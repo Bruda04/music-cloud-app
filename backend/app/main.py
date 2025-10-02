@@ -14,10 +14,3 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"message": "Welcome to Music Cloud Backend"}
-
-@app.get("/songs")
-def get_songs():
-    return [
-        {"id": 1, "title": "Song A", "artist": "Artist A"},
-        {"id": 2, "title": "Song B", "artist": "Artist B"},
-    ]
