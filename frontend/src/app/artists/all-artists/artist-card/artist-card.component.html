@@ -1,0 +1,7 @@
+<div class="card">
+  <h3>{{ artist?.name }}</h3>
+  <p>{{ artist?.bio }}</p>
+  <div class="genres">
+    <span *ngFor="let genre of artist?.genres">{{ genre }}</span>
+  </div>
+</div>

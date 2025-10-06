@@ -2,7 +2,6 @@ import {AuthModule} from 'angular-auth-oidc-client';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { BrowserModule } from '@angular/platform-browser';
 
 @NgModule({
   imports: [
@@ -17,7 +16,6 @@ import { BrowserModule } from '@angular/platform-browser';
     }),
     CommonModule,
     FormsModule,
-    BrowserModule
   ],
   exports: [AuthModule],
 })

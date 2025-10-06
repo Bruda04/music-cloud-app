@@ -1,0 +1,40 @@
+.horizontal-list-wrapper {
+  position: relative;
+  width: 80%;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.horizontal-list {
+  display: flex;
+  gap: 16px;
+  scroll-behavior: smooth;
+  overflow-x: auto;
+  padding-bottom: 24px; 
+  scrollbar-width: none;
+}
+
+.horizontal-list::-webkit-scrollbar {
+  display: none;
+}
+.scroll-dots {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+}
+
+.scroll-dots span {
+  width: 8px;
+  height: 8px;
+  background: #555;
+  border-radius: 50%;
+  display: block;
+  transition: background 0.3s;
+}
+
+.scroll-dots span.active {
+  background: #50C878;
+}
