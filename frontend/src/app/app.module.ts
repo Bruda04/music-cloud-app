@@ -8,17 +8,20 @@ import { AppComponent } from './app.component';
 import { JwtInterceptor } from './auth/jwt.interceptor';
 import { CommonModule } from '@angular/common';
 import { AppAuthModule } from './auth/auth.module';
+import { NavbarComponent } from "./auth/nav-bar/nav-bar.component";
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [
+    AppComponent,
+    NavbarComponent
+  ],
   imports: [
     BrowserModule,
     AppRoutingModule,
-    HttpClientModule,
     FormsModule,
     CommonModule,
-    AppAuthModule,
-  ],
+    AppAuthModule
+],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true }
   ],
