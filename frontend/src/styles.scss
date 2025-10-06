@@ -1,3 +1,4 @@
+@use "sass:color";
 // variables
 $body-bg: #121212;
 $form-bg: #1e1e1e;
@@ -81,7 +82,7 @@ button {
   transition: background-color 0.3s, transform 0.1s;
 
   &:hover:not(:disabled) {
-    background-color: darken($accent-color, 10%);
+    background-color: color.scale($accent-color, $lightness: -10%);
     transform: translateY(-1px);
   }
 
@@ -125,7 +126,7 @@ button {
     transition: background-color 0.2s, transform 0.1s;
 
     &:hover {
-      background-color: lighten($input-bg, 5%);
+      background-color: color.scale($input-bg, $lightness: 5%);
       transform: translateY(-1px);
     }
 
@@ -149,7 +150,7 @@ button {
       padding: 1%;
 
       &:hover {
-        background-color: darken($error-color, 10%);
+        background-color: color.scale($error-color, $lightness: -10%);
       }
     }
   }
