@@ -10,6 +10,5 @@ import { ArtistsModule } from '../artists/artists.module';
 })
 export class HomepageComponent {
   ngOnInit(): void {
-    
   }
 }

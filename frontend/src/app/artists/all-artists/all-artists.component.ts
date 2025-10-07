@@ -22,7 +22,10 @@ export class AllArtistsComponent implements OnInit, AfterViewInit {
   constructor(private service:ArtistService) {}
 
   ngOnInit(): void {
-    this.artists = this.service.getAll();
+    // this.service.getAll().subscribe(a=>{
+    //   this.artists = a;
+    // });
+    this.artists = this.service.getAllMock(); // TODO: change to getAll, its like this so i dont use all aws free requests
     this.updateDots();
   }
 

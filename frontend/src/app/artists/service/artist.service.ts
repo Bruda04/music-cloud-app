@@ -15,8 +15,12 @@ export class ArtistService {
     return this.httpClient.post<{"message":String,"artist":Artist}>(`${environment.apiUrl}/artists`,artist);
   }
 
-  getAll(): Artist[]{
-    //mock for now because its on homepage and i want to keep my requests low for now
+  getAll(): Observable<Artist[]>{
+    return this.httpClient.get<Artist[]>(`${environment.apiUrl}/artists`);
+  }
+  
+  getAllMock():Artist[]{ 
+    //mock because its on homepage and i want to keep my requests low for now
     return[
       { artistId: '1', name: 'John Doe', bio: 'Singer and songwriter from NY.', genres: ['Pop', 'Rock'] },
       { artistId: '2', name: 'Jane Smith', bio: 'Jazz vocalist with a smooth style.', genres: ['Jazz'] },
