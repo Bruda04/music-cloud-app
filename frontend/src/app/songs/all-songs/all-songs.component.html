@@ -1,0 +1,18 @@
+<div class="horizontal-list-wrapper">
+  <div class="song-grid">
+    <app-song-card
+      *ngFor="let song of songs"
+      [song]="song"
+      [artists]="artists"
+      (edit)="onEdit($event)"
+      (delete)="onDelete($event)"
+      (favourite)="onFavourite($event)">
+    </app-song-card>
+  </div>
+
+  <div class="pagination">
+    <button (click)="prevPage()" [disabled]="page===1">Previous</button>
+    <span>Page {{ page }}</span>
+    <button (click)="nextPage()" [disabled]="!lastKey">Next</button>
+  </div>
+</div>

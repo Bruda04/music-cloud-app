@@ -9,6 +9,11 @@ import { JwtInterceptor } from './auth/jwt.interceptor';
 import { CommonModule } from '@angular/common';
 import { AppAuthModule } from './auth/auth.module';
 import { NavbarComponent } from "./auth/nav-bar/nav-bar.component";
+import { HomepageComponent } from './homepage/homepage.component';
+import { ArtistsModule } from './artists/artists.module';
+import { SongsModule } from './songs/songs.module';
+import { AllSongsComponent } from "./songs/all-songs/all-songs.component";
+import { AllArtistsComponent } from './artists/all-artists/all-artists.component';
 
 @NgModule({
   declarations: [
@@ -20,7 +25,7 @@ import { NavbarComponent } from "./auth/nav-bar/nav-bar.component";
     AppRoutingModule,
     FormsModule,
     CommonModule,
-    AppAuthModule
+    AppAuthModule,
 ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true }

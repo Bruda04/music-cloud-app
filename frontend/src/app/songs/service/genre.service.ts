@@ -14,6 +14,7 @@ export class GenreService {
   getAll(): Observable<Genre[]> {
     return this.httpClient.get<Genre[]>(`${environment.apiUrl}/genres`);
   }
+  
   getAllMock(): Genre[]{
     return [
         {genreName:"rock"},

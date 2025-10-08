@@ -35,11 +35,11 @@ def lambda_handler(event, context):
 
         file_bytes = base64.b64decode(file_content_base64)
         timestamp = int(datetime.utcnow().timestamp())
-        key = f"songs/{timestamp}-{body['title'].replace(' ', '_')}.mp3"
+        key = f"{timestamp}-{body['title'].replace(' ', '_')}.mp3"
 
         s3.put_object(
             Bucket=BUCKET,
-            Key=key,
+            Key=f"songs/{key}",
             Body=file_bytes,
             ContentType='audio/mpeg'
         )
@@ -65,8 +65,12 @@ def lambda_handler(event, context):
             'createdAt': datetime.utcnow().isoformat()
         }
 
-        if 'other' in body:
-            item['other'] = body['other']
+        if 'other' in body and isinstance(body['other'], dict):
+            for k, v in body['other'].items():
+                if k not in item:
+                    item[k] = v
+                else:
+                    item[f'other_{k}'] = v
 
         songs_table.put_item(Item=item)
 

@@ -51,6 +51,13 @@ def lambda_handler(event, context):
             "createdAt": created_at
         }
 
+        if 'other' in body and isinstance(body['other'], dict):
+            for k, v in body['other'].items():
+                if k not in item:
+                    item[k] = v
+                else:
+                    item[f'other_{k}'] = v
+
         artists_table.put_item(Item=item)
 
         return {

@@ -4,13 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { CreateArtistComponent } from './create-artist/create-artist.component';
 import { DialogComponent } from "../shared/dialog/dialog.component";
-import { AllArtistsComponent } from './all-artists/all-artists.component';
 import { ArtistCardComponent } from './all-artists/artist-card/artist-card.component';
 
 @NgModule({
     declarations: [
         CreateArtistComponent,
-        AllArtistsComponent,
         ArtistCardComponent
     ],
     imports: [
@@ -19,7 +17,7 @@ import { ArtistCardComponent } from './all-artists/artist-card/artist-card.compo
         DialogComponent,
     ],
     exports:[
-        AllArtistsComponent
+        ArtistCardComponent
     ]
 })
 export class ArtistsModule {}

@@ -113,7 +113,7 @@ export class CreateSongComponent implements OnInit{
 
       this.songService.create(this.song).subscribe({
         next: res => {
-          console.log('Song created:', res.song);
+          console.log('Song created:', res);
           this.loading = false;
           this.dialogType = 'message';
           this.dialogTitle = 'Success';

@@ -1,16 +1,18 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { Artist } from '../model/artist.model';
 import { ArtistService } from '../service/artist.service';
+import { ArtistsModule } from '../artists.module';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-all-artists',
   templateUrl: './all-artists.component.html',
   styleUrls: ['../../shared/themes/all-items.css'],
-  standalone: false
+  imports:[ArtistsModule,CommonModule],
+  standalone: true
 })
 export class AllArtistsComponent implements OnInit, AfterViewInit {
-  artists: Artist[] = [];
+  @Input() artists: Artist[] = [];
   displayDots: number[] = [];
   activeIndex = 0;
 
@@ -22,10 +24,6 @@ export class AllArtistsComponent implements OnInit, AfterViewInit {
   constructor(private service:ArtistService) {}
 
   ngOnInit(): void {
-    // this.service.getAll().subscribe(a=>{
-    //   this.artists = a;
-    // });
-    this.artists = this.service.getAllMock(); // TODO: change to getAll, its like this so i dont use all aws free requests
     this.updateDots();
   }
 
