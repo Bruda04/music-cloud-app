@@ -1,0 +1,7 @@
+<div class="card">
+    <h3>{{ album?.title }}</h3>
+    <p>Artists: {{ getArtistNames() }}</p>
+    <div class="genres">
+        <span *ngFor="let genre of album?.genres">{{ genre }}</span>
+    </div>
+</div>

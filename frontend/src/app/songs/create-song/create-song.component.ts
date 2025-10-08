@@ -19,7 +19,7 @@ export class CreateSongComponent implements OnInit{
     title: '',
     artistIds: [],
     genres: [],
-    fileContentBase64:'',
+    file:'',
     other:{}
   };
 
@@ -109,7 +109,7 @@ export class CreateSongComponent implements OnInit{
     this.loading = true;
 
     try {
-      this.song.fileContentBase64 = await this.convertFileToBase64(this.uploadedFile);
+      this.song.file = await this.convertFileToBase64(this.uploadedFile);
 
       this.songService.create(this.song).subscribe({
         next: res => {

@@ -18,9 +18,10 @@ def lambda_handler(event, context):
 
         songs = []
         for song in items:
-            core_fields = ['songId', 'title', 'artistIds', 'genres', 'fileKey']
+            core_fields = ['songId', 'title', 'artistIds', 'genres']
             mapped_song = {key: song.get(key, '' if key != 'artistIds' and key != 'genres' else []) for key in core_fields}
-            mapped_song['other'] = {k: v for k, v in song.items() if k not in core_fields}
+            mapped_song['file'] = song.get('fileKey')
+            mapped_song['other'] = {k: v for k, v in song.items() if k not in core_fields and k != 'fileKey'}
             songs.append(mapped_song)
 
         result = {

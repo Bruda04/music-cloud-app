@@ -22,7 +22,7 @@ export class SongService {
 
   getMockSongs():Song[]{
     return [
-      { fileKey: "1759885382-Solar_Waves.mp3",
+      { file: "1759885382-Solar_Waves.mp3",
         title: "Solar Waves", 
         songId: "21f3d794-1e02-4bf9-9a4a-5d30c7547c9f",
         genres: ["ambient", "chill"],
@@ -31,14 +31,14 @@ export class SongService {
       },
       {songId: "cd67114b-e440-4822-849d-26b956a8b3fc",
         artistIds: ["5"],
-        fileKey: "1759886182-Gilmore_Girls_intro.mp3", 
+        file: "1759886182-Gilmore_Girls_intro.mp3", 
         other:{createdAt: "2025-10-08T01:03:03.207124", "from series": "Gilmore Girls"}, 
         genres: ["pop", "movie music"], 
         title: "Gilmore Girls intro"
       },
        {songId: "cd67114b-e440-4822-849d-26b956a8b3fc",
         artistIds: ["5"],
-        fileKey: "1759886182-Gilmore_Girls_intro.mp3", 
+        file: "1759886182-Gilmore_Girls_intro.mp3", 
         other:{createdAt: "2025-10-08T01:03:03.207124", "from series": "Gilmore Girls"}, 
         genres: ["pop", "movie music"], 
         title: "Gilmore Girls intro"

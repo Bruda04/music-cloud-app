@@ -1,18 +1,20 @@
 import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
-import { Artist } from '../model/artist.model';
-import { ArtistService } from '../service/artist.service';
-import { ArtistsModule } from '../artists.module';
 import { CommonModule } from '@angular/common';
+import { Album } from '../../model/album.model';
+import { AlbumService } from '../../service/album.service';
+import { AlbumsModule } from '../../albums.module';
+import { Artist } from '../../../artists/model/artist.model';
 
 @Component({
-  selector: 'app-all-artists',
-  templateUrl: './all-artists.component.html',
-  styleUrls: ['../../shared/themes/all-items.css'],
-  imports:[ArtistsModule,CommonModule],
+  selector: 'app-all-albums-carousel',
+  templateUrl: './all-albums.component.html',
+  styleUrls: ['../../../shared/themes/all-items.css'],
+  imports:[AlbumsModule,CommonModule],
   standalone: true
 })
-export class AllArtistsComponent implements OnInit, AfterViewInit {
+export class AllAlbumsCarouselComponent implements OnInit, AfterViewInit {
   @Input() artists: Artist[] = [];
+  albums: Album[] = [];
   displayDots: number[] = [];
   activeIndex = 0;
 
@@ -21,9 +23,11 @@ export class AllArtistsComponent implements OnInit, AfterViewInit {
 
   @ViewChild('scrollContainer') scrollContainer!: ElementRef<HTMLDivElement>;
 
-  constructor(private service:ArtistService) {}
+  constructor(private service:AlbumService) {}
 
   ngOnInit(): void {
+    // this.service.get10New().subscribe(a=>this.albums=a);
+    this.albums = this.service.getMock() // TODO: change to get10New
     this.updateDots();
   }
 
@@ -41,7 +45,7 @@ export class AllArtistsComponent implements OnInit, AfterViewInit {
       this.scrollAmount = 0;
       this.activeIndex = 0;
     } else {
-      this.activeIndex = (this.activeIndex + 1) % this.artists.length;
+      this.activeIndex = (this.activeIndex + 1) % this.albums.length;
     }
 
     container.scrollTo({ left: this.scrollAmount, behavior: 'smooth' });
@@ -52,12 +56,12 @@ export class AllArtistsComponent implements OnInit, AfterViewInit {
     if (!this.scrollContainer) return;
     const container = this.scrollContainer.nativeElement;
     const cardWidth = container.firstElementChild?.clientWidth || 200;
-    this.activeIndex = Math.round(container.scrollLeft / (cardWidth + 16)) % this.artists.length;
+    this.activeIndex = Math.round(container.scrollLeft / (cardWidth + 16)) % this.albums.length;
     this.updateDots();
   }
 
   updateDots() {
-    const total = this.artists.length;
+    const total = this.albums.length;
     const active = this.activeIndex;
     const windowSize = 5;
     const dots: number[] = [];

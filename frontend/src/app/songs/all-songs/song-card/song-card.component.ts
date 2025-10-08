@@ -30,7 +30,7 @@ export class SongCardComponent {
   }
 
   playSong() {
-    if (!this.song.fileKey) return;
+    if (!this.song.file) return;
 
     if (this.isPlaying) {
       this.audio.pause();
@@ -39,7 +39,7 @@ export class SongCardComponent {
       return;
     }
 
-    this.songService.getUrl(this.song.fileKey).subscribe({
+    this.songService.getUrl(this.song.file).subscribe({
       next: (songUrl) => {
         this.audio.src = songUrl.url;
         this.audio.load();

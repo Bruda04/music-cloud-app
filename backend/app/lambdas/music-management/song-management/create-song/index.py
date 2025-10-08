@@ -15,13 +15,13 @@ genres_table = dynamodb.Table('Genres')
 def lambda_handler(event, context):
     try:
         body = json.loads(event.get('body', '{}'))
-        file_content_base64 = body.get('fileContentBase64')
+        file_content_base64 = body.get('file')
 
         if not file_content_base64:
             return {
                 'statusCode': 400,
                 'headers': _cors_headers(),
-                'body': json.dumps({'message': 'Missing fileContentBase64'})
+                'body': json.dumps({'message': 'Missing file'})
             }
 
         required_fields = ['title', 'artistIds', 'genres']

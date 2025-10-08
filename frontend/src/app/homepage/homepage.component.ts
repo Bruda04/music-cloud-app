@@ -1,15 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { ArtistService } from '../artists/service/artist.service';
 import { Artist } from '../artists/model/artist.model';
-import { AllArtistsComponent } from '../artists/all-artists/all-artists.component';
+import { AllArtistsCarouselComponent } from '../artists/all-artists/all-artists-carousel/all-artists.component';
 import { AllSongsComponent } from '../songs/all-songs/all-songs.component';
+import { AllAlbumsCarouselComponent } from '../albums/all-albums/all-albums-carousel/all-albums.component';
 
 @Component({
   selector: 'app-root',
   templateUrl: './homepage.component.html',
   styleUrls: ['./homepage.component.css'],
   standalone: true,
-  imports: [AllSongsComponent,AllArtistsComponent]
+  imports: [AllSongsComponent,AllArtistsCarouselComponent,AllAlbumsCarouselComponent]
 })
 export class HomepageComponent implements OnInit{
   artists: Artist[]=[]

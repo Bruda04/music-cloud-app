@@ -3,8 +3,7 @@ export interface Song {
     title: string,
     artistIds: string[],
     genres: string[],
-    fileContentBase64?:string,
-    fileKey?:string,
+    file:string,
     other?: Record<string,string>,
 }
 export interface CreateSongResponse{

@@ -13,7 +13,7 @@ import { HomepageComponent } from './homepage/homepage.component';
 import { ArtistsModule } from './artists/artists.module';
 import { SongsModule } from './songs/songs.module';
 import { AllSongsComponent } from "./songs/all-songs/all-songs.component";
-import { AllArtistsComponent } from './artists/all-artists/all-artists.component';
+import { AllArtistsCarouselComponent } from './artists/all-artists/all-artists-carousel/all-artists.component';
 
 @NgModule({
   declarations: [
