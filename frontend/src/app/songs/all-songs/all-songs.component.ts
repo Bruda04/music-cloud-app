@@ -26,12 +26,12 @@ export class AllSongsComponent implements OnInit {
     }
 
     loadSongs(lastKey?: string) {
-        this.songService.getSongs(this.limit, lastKey).subscribe(res => {
-            console.log(res)
-            this.songs = res.songs;
-            this.lastKey = res.lastKey;
-        });
-        // this.songs=this.songService.getMockSongs(); //TODO: change to getSongs, now is mock due to too many requests
+        // this.songService.getSongs(this.limit, lastKey).subscribe(res => {
+        //     console.log(res)
+        //     this.songs = res.songs;
+        //     this.lastKey = res.lastKey;
+        // });
+        this.songs=this.songService.getMockSongs(); //TODO: change to getSongs, now is mock due to too many requests
     }
 
     nextPage() {
