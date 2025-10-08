@@ -4,27 +4,17 @@ import uuid
 from datetime import datetime
 
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('Artists') 
+artists_table = dynamodb.Table('Artists') 
+genres_table = dynamodb.Table('Genres') 
 
 #TODO: check if user making artist has role: admin
 def lambda_handler(event, context):
-    if event["httpMethod"] == "OPTIONS":
-        return {
-            "statusCode": 200,
-            "headers": {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers": "*",
-                "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
-            },
-            "body": ""
-        }
-
     try:
         body = json.loads(event.get("body", "{}"))
 
         name = body.get("name", "").strip()
         bio = body.get("bio", "").strip()
-        genres = body.get("genres", [])
+        genres = [g.strip() for g in body.get("genres", []) if g.strip()]
 
         if not name or not bio or not genres:
             return {
@@ -38,6 +28,17 @@ def lambda_handler(event, context):
                 "body": json.dumps({"error": "Name, Bio and at least one Genre are required"})
             }
 
+        for genre in genres:
+            try:
+                genres_table.put_item(
+                    Item={"genreName": genre.lower()},
+                    ConditionExpression="attribute_not_exists(#g)",
+                    ExpressionAttributeNames={"#g": "genreName"}
+                )
+            except genres_table.meta.client.exceptions.ConditionalCheckFailedException:
+                pass
+
+
         artist_id = str(uuid.uuid4())
         created_at = datetime.utcnow().isoformat()
 
@@ -45,12 +46,12 @@ def lambda_handler(event, context):
             "artistId": artist_id,
             "name": name,
             "bio": bio,
-            "genres": genres,
+            "genres":  [g.lower() for g in genres if g] ,
             "isDeleted": False,
             "createdAt": created_at
         }
 
-        table.put_item(Item=item)
+        artists_table.put_item(Item=item)
 
         return {
             "statusCode": 201,

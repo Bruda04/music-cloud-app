@@ -1,0 +1,88 @@
+<div class="form-container">
+  <h2>Create Song</h2>
+
+  <form (ngSubmit)="submit()">
+    <label>Title *</label>
+    <input type="text" [(ngModel)]="song.title" name="title" placeholder="Song title" />
+
+    <div class="array-group">
+      <label>Artists *</label>
+      <div class="array-tokens">
+        <div class="array-item" *ngFor="let aId of song.artistIds; let i = index">
+          <span>{{ getArtistNameById(aId) }}</span>
+          <button type="button" (click)="removeArtist(i)">x</button>
+        </div>
+      </div>
+
+      <div class="genre-inputs">
+        <select [(ngModel)]="artistInput" name="artistSelect">
+          <option value="">-- Select artist --</option>
+          <option *ngFor="let a of artists" [value]="a.artistId">{{ a.name }}</option>
+        </select>
+
+        <button type="button" (click)="addArtist()">Add Artist</button>
+      </div>
+    </div>
+
+    <div class="array-group">
+      <label>Genres *</label>
+      <div class="array-tokens">
+        <div class="array-item" *ngFor="let g of song.genres; let i = index">
+          <span>{{ g }}</span>
+          <button type="button" (click)="removeGenre(i)">x</button>
+        </div>
+      </div>
+
+      <div class="genre-inputs">
+        <select [(ngModel)]="genreInput" name="genreSelect">
+          <option value="">-- Select genre --</option>
+          <option *ngFor="let g of genres" [value]="g.genreName">{{ g.genreName }}</option>
+        </select>
+
+        <span class="or">or</span>
+
+        <input type="text" [(ngModel)]="genreInputManual" name="genreInputManual" placeholder="Enter new genre" />
+
+        <button type="button" (click)="addGenre()">Add Genre</button>
+      </div>
+    </div>
+
+    <div class="array-group">
+      <label>Other Info (optional)</label>
+      <div class="array-tokens">
+        <div class="array-item" *ngFor="let entry of song.other | keyvalue">
+          <span>{{ entry.key }} : {{ entry.value }}</span>
+          <button type="button" (click)="removeOther(entry.key)">x</button>
+        </div>
+      </div>
+
+      <input type="text" [(ngModel)]="otherKey" name="otherKey" placeholder="Key" />
+      <input type="text" [(ngModel)]="otherValue" name="otherValue" placeholder="Value" />
+      <button type="button" (click)="addOther()">Add Other</button>
+    </div>
+    
+    <div
+      class="file-drop-zone"
+      [class.dragging]="dragging"
+      (drop)="onFileDropped($event)"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+    >
+      <p *ngIf="!uploadedFile">Drag & drop audio file here or click to select</p>
+      <p *ngIf="uploadedFile"><strong>{{ uploadedFile.name }}</strong> selected</p>
+      <input type="file" (change)="onFileSelected($event)" />
+    </div>
+
+
+    <button type="submit" [disabled]="loading">Create Song</button>
+    <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+  </form>
+</div>
+
+<app-dialog
+  *ngIf="showDialog"
+  [type]="dialogType"
+  [title]="dialogTitle"
+  [message]="dialogMessage"
+  (closed)="closeDialog()">
+</app-dialog>
