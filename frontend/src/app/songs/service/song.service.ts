@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../environment/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { CreateSongResponse, PaginatedSongs, Song, SongUrl } from '../model/song.model';
+import { CreateSongResponse, PaginatedSongs, Song, Url } from '../model/song.model';
 
 @Injectable({providedIn: 'root'})
 export class SongService {
@@ -46,7 +46,7 @@ export class SongService {
     ]
   }
 
-  getUrl(fileKey:string):Observable<SongUrl>{
-    return this.httpClient.get<SongUrl>(`${environment.apiUrl}/songs/url/${fileKey}`)
+  getUrl(fileKey:string):Observable<Url>{
+    return this.httpClient.get<Url>(`${environment.apiUrl}/songs/url/${fileKey}`)
   }
 }

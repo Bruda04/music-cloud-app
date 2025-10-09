@@ -27,7 +27,7 @@ export class AllAlbumsCarouselComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     // this.service.get10New().subscribe(a=>this.albums=a);
-    this.albums = this.service.getMock() // TODO: change to get10New
+    this.albums = this.service.getAllMock() // TODO: change to get10New
     this.updateDots();
   }
 

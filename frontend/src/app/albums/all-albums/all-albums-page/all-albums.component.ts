@@ -31,7 +31,7 @@ export class AllAlbumsPageComponent implements OnInit, AfterViewInit {
         // this.artistService.getAll().subscribe(a=>this.artists=a)
         this.artists=this.artistService.getAllMock() // TODO: change to getAll
         // this.albumService.getAll().subscribe(a=>this.albums=a);
-        this.albums = this.albumService.getMock() // TODO: change to getAll
+        this.albums = this.albumService.getAllMock() // TODO: change to getAll
         this.updateDots();
     }
 

@@ -36,11 +36,11 @@ def lambda_handler(event, context):
             file_bytes = base64.b64decode(track['file'])
             timestamp = int(datetime.utcnow().timestamp())
             safe_title = track.get('title', 'track').replace(' ', '_')
-            key = f"albums/{timestamp}-{safe_title}.mp3"
+            key = f"{timestamp}-{safe_title}.mp3"
 
             s3.put_object(
                 Bucket=BUCKET,
-                Key=key,
+                Key=f"albums/{key}",
                 Body=file_bytes,
                 ContentType='audio/mpeg'
             )

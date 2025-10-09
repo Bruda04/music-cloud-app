@@ -17,6 +17,6 @@ export interface PaginatedSongs {
   lastKey?: string;
 }
 
-export interface SongUrl{
+export interface Url{
   url:string
 }

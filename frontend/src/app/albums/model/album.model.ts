@@ -16,7 +16,7 @@ export interface AlbumTrack {
 
 export interface TrackDTO{
     title:string,
-    file:string
+    fileKey:string
 }
 
 export interface CreateAlbumResponse{

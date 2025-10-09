@@ -138,7 +138,7 @@ export class CreateAlbumComponent implements OnInit {
         const tracksPayload:TrackDTO[] = await Promise.all(
             this.tracks.map(async (t) => ({
                 title: t.title.trim(),
-                file: await this.convertFileToBase64(t.file!)
+                fileKey: await this.convertFileToBase64(t.file!)
             }))
         );
 

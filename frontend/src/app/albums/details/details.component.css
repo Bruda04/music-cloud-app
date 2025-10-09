@@ -1,0 +1,47 @@
+.album-details {
+  padding: 1rem 2rem;
+}
+
+.genres span {
+  background: #333;       
+  color: #fff;            
+  border-radius: 1rem;
+  padding: 0.2rem 0.6rem;
+  margin: 0 0.3rem;
+  font-size: 12px;
+}
+
+
+.track-list {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.track-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #222;
+  border-radius: 0.6rem;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.track-item:hover {
+  background-color: #333;
+}
+
+.track-item.playing {
+  background-color: #2d6a4f;
+}
+
+.play-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}

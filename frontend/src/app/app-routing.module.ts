@@ -7,6 +7,7 @@ import { CreateAlbumComponent } from './albums/create-album/create-album.compone
 import { AllArtistsCarouselComponent } from './artists/all-artists/all-artists-carousel/all-artists.component';
 import { AllArtistsPageComponent } from './artists/all-artists/all-artists-page/all-artists.component';
 import { AllAlbumsPageComponent } from './albums/all-albums/all-albums-page/all-albums.component';
+import { AlbumDetailsComponent } from './albums/details/details.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -16,6 +17,7 @@ const routes: Routes = [
   { path: 'create-album', component:CreateAlbumComponent},
   { path: 'all-artists', component: AllArtistsPageComponent},
   { path: 'all-albums', component: AllAlbumsPageComponent},
+  { path: 'albums/:id', component: AlbumDetailsComponent },
   { path: '**', redirectTo: 'home' },
 ];
 
