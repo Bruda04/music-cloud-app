@@ -12,7 +12,7 @@
       {{ isPlaying ? '⏸Pause' : '▶ Play' }}
     </button>
     <button (click)="goToEdit()">✎ Edit</button>
-    <button (click)="delete.emit(song.songId)">🗑 Delete</button>
+    <button (click)="deleteSong()">🗑 Delete</button>
     <button (click)="favourite.emit(song.songId)">★ Favourite</button>
   </div>
 
@@ -22,3 +22,12 @@
     </div>
   </div>
 </div>
+
+
+<app-dialog
+  *ngIf="showDialog"
+  [type]="dialogType"
+  [title]="dialogTitle"
+  [message]="dialogMessage"
+  (closed)="onDialogClosed($event)">
+</app-dialog>

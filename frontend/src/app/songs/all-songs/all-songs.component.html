@@ -4,8 +4,7 @@
       *ngFor="let song of songs"
       [song]="song"
       [artists]="artists"
-      (edit)="onEdit($event)"
-      (delete)="onDelete($event)"
+      (deleted)="onSongDeleted($event)"
       (favourite)="onFavourite($event)">
     </app-song-card>
   </div>

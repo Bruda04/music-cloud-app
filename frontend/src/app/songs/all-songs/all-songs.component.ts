@@ -14,6 +14,7 @@ import { CommonModule } from '@angular/common';
 })
 export class AllSongsComponent implements OnInit {
     @Input() artists: Artist[] = []; // with this i will have only one call on it
+
     songs: Song[] = [];
     lastKey?: string;
     limit = 5;
@@ -48,7 +49,8 @@ export class AllSongsComponent implements OnInit {
         }
     }
 
-    onEdit(id: string) { console.log('Edit', id); }
-    onDelete(id: string) { console.log('Delete', id); }
+    onSongDeleted(id: string) {
+        this.loadSongs()
+    }
     onFavourite(id: string) { console.log('Favourite', id); }
 }

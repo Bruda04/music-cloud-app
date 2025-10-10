@@ -17,6 +17,10 @@ export class SongService {
     return this.httpClient.put<CreateSongResponse>(`${environment.apiUrl}/songs`,song);
   }
 
+  delete(id:string):Observable<{"message":string}>{
+    return this.httpClient.delete<{"message":string}>(`${environment.apiUrl}/songs/${id}`);
+  } 
+  
   getSongs(limit: number = 6, lastKey?: string): Observable<PaginatedSongs> {
     let params = new HttpParams().set('limit', limit.toString());
     if (lastKey) params = params.set('lastKey', lastKey);
@@ -40,7 +44,7 @@ export class SongService {
         genres: ["pop", "movie music"], 
         title: "Gilmore Girls intro"
       },
-       {songId: "cd67114b-e440-4822-849d-26b956a8b3fc",
+       {songId: "1",
         artistIds: ["5"],
         file: "1759886182-Gilmore_Girls_intro.mp3", 
         other:{createdAt: "2025-10-08T01:03:03.207124", "from series": "Gilmore Girls"}, 
