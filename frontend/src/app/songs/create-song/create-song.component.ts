@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { DialogType } from '../../shared/dialog/dialog.component';
 import { Song } from '../model/song.model';
 import { SongService } from '../service/song.service';
@@ -15,6 +15,8 @@ import { Genre } from '../model/genre.model';
   standalone:false
 })
 export class CreateSongComponent implements OnInit{
+  editMode = false;
+
   song: Song = {
     title: '',
     artistIds: [],
@@ -39,13 +41,21 @@ export class CreateSongComponent implements OnInit{
   dialogMessage = '';
   showDialog = false;
 
-  constructor(private songService: SongService, private artistService:ArtistService, private genreService:GenreService, private router: Router) {}
+  constructor(private songService: SongService, private artistService:ArtistService, private genreService:GenreService, private router: Router,private route: ActivatedRoute) {}
 
   ngOnInit(){
     // this.artistService.getAll().subscribe(a=> this.artists = a);
     this.artists = this.artistService.getAllMock(); // TODO: change to getAll, its like this so i dont use all aws free requests
     // this.genreService.getAll().subscribe(g => this.genres = g);
     this.genres = this.genreService.getAllMock(); // TODO: change to getAll, its like this so i dont use all aws free requests
+    const songId = this.route.snapshot.paramMap.get('id');
+    if (songId) {
+      this.editMode = true;
+      // this.songService.getById(songId).subscribe(song => {
+      //   this.song = song;
+      // });
+      this.song=this.songService.getMockById();
+    }
   }
 
   addGenre() {
@@ -97,7 +107,7 @@ export class CreateSongComponent implements OnInit{
       return;
     }
 
-    if (!this.uploadedFile) {
+    if (!this.editMode && !this.uploadedFile) {
       this.errorMessage = 'You must upload an mp3 file';
       this.dialogType = 'error';
       this.dialogTitle = 'Validation Error';
@@ -109,15 +119,21 @@ export class CreateSongComponent implements OnInit{
     this.loading = true;
 
     try {
-      this.song.file = await this.convertFileToBase64(this.uploadedFile);
+      if (this.uploadedFile) {
+        this.song.file = await this.convertFileToBase64(this.uploadedFile);
+        this.song.fileChanged = true;
+      } else {
+        this.song.fileChanged = false;
+      }
 
-      this.songService.create(this.song).subscribe({
+      console.log(this.song)
+      const req = this.editMode ? this.songService.edit(this.song): this.songService.create(this.song);
+      req.subscribe({
         next: res => {
-          console.log('Song created:', res);
           this.loading = false;
           this.dialogType = 'message';
           this.dialogTitle = 'Success';
-          this.dialogMessage = 'Song successfully created!';
+          this.dialogMessage = res.message;
           this.showDialog = true;
         },
         error: err => {
@@ -125,7 +141,7 @@ export class CreateSongComponent implements OnInit{
           this.loading = false;
           this.dialogType = 'error';
           this.dialogTitle = 'Error';
-          this.dialogMessage = 'Error creating a song.';
+          this.dialogMessage = 'Error request.';
           this.showDialog = true;
         }
       });
