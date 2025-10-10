@@ -11,7 +11,7 @@
     <button (click)="playSong()">
       {{ isPlaying ? '⏸Pause' : '▶ Play' }}
     </button>
-    <button (click)="edit.emit(song.songId)">✎ Edit</button>
+    <button (click)="goToEdit()">✎ Edit</button>
     <button (click)="delete.emit(song.songId)">🗑 Delete</button>
     <button (click)="favourite.emit(song.songId)">★ Favourite</button>
   </div>

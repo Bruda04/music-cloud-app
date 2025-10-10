@@ -55,7 +55,7 @@ export class SongService {
   }
 
   getById(id:string):Observable<Song>{
-    return this.httpClient.get<Song>(`${environment.apiUrl}/songs/{id}`);
+    return this.httpClient.get<Song>(`${environment.apiUrl}/songs/${id}`);
   } 
 
   getMockById(): Song{

@@ -54,7 +54,7 @@ export class CreateSongComponent implements OnInit{
       // this.songService.getById(songId).subscribe(song => {
       //   this.song = song;
       // });
-      this.song=this.songService.getMockById();
+      this.song=this.songService.getMockById(); //TODO: change to getById
     }
   }
 

@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Song } from '../../model/song.model';
 import { Artist } from '../../../artists/model/artist.model';
 import { SongService } from '../../service/song.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-song-card',
@@ -20,7 +21,7 @@ export class SongCardComponent {
   audio = new Audio();
   isPlaying = false;
 
-  constructor(private songService: SongService) {}
+  constructor(private songService: SongService,private router:Router) {}
 
   getArtistNames(): string {
     if (!this.song || !this.song.artistIds?.length) return 'Unknown artist';
@@ -51,6 +52,12 @@ export class SongCardComponent {
       },
       error: (err) => console.error('Failed to get song URL', err)
     });
+  }
+  
+  goToEdit() {
+    if (this.song){
+      this.router.navigate(['/songs/edit', this.song.songId]);
+    }
   }
 
 }
