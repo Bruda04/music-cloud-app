@@ -1,0 +1,58 @@
+<div class="form-container">
+  <h2>Create Artist</h2>
+
+  <form (ngSubmit)="submit()">
+    <label>Name *</label>
+    <input type="text" [(ngModel)]="artist.name" name="name" placeholder="Artist name" />
+    
+    <label>Bio *</label>
+    <textarea [(ngModel)]="artist.bio" name="bio" placeholder="Artist biography"></textarea>
+
+    <div class="array-group">
+      <label>Genres *</label>
+      <div class="array-tokens">
+        <div class="array-item" *ngFor="let g of artist.genres; let i = index">
+          <span>{{ g }}</span>
+          <button type="button" (click)="removeGenre(i)">x</button>
+        </div>
+      </div>
+
+      <div class="genre-inputs">
+        <select [(ngModel)]="genreInput" name="genreSelect">
+          <option value="">-- Select genre --</option>
+          <option *ngFor="let g of genres" [value]="g.genreName">{{ g.genreName }}</option>
+        </select>
+
+        <span class="or">or</span>
+
+        <input type="text" [(ngModel)]="genreInputManual" name="genreInputManual" placeholder="Enter new genre" />
+
+        <button type="button" (click)="addGenre()">Add Genre</button>
+      </div>
+    </div>
+
+    <div class="array-group">
+      <label>Other Info (optional)</label>
+      <div class="array-tokens">
+        <div class="array-item" *ngFor="let entry of artist.other | keyvalue">
+            <span>{{ entry.key }} : {{ entry.value }}</span>
+            <button type="button" (click)="removeOther(entry.key)">x</button>
+        </div>
+      </div>
+      <input type="text" [(ngModel)]="otherKey" name="otherKey" placeholder="Key"/>
+      <input type="text" [(ngModel)]="otherValue" name="otherValue" placeholder="Value"/>
+      <button type="button" (click)="addOther()">Add Other</button>
+    </div>
+
+    <button type="submit" [disabled]="loading">Create Artist</button>
+    <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+  </form>
+</div>
+
+<app-dialog
+  *ngIf="showDialog"
+  [type]="dialogType"
+  [title]="dialogTitle"
+  [message]="dialogMessage"
+  (closed)="closeDialog()">
+</app-dialog>

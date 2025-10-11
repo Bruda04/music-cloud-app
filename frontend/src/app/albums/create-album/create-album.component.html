@@ -1,0 +1,88 @@
+<div class="form-container">
+  <h2>Create Album</h2>
+
+  <form (ngSubmit)="submit()">
+    <label>Album Title *</label>
+    <input type="text" [(ngModel)]="album.title" name="title" placeholder="Album title" />
+
+    <!-- Artists -->
+    <div class="array-group">
+      <label>Artists *</label>
+      <div class="array-tokens">
+        <div class="array-item" *ngFor="let aId of album.artistIds; let i = index">
+            <span>{{ getArtistNameById(aId) }}</span>
+            <button type="button" (click)="removeArtist(i)">x</button>
+        </div>
+      </div>
+      <select [(ngModel)]="artistInput" name="artistSelect">
+        <option value="">-- Select artist --</option>
+        <option *ngFor="let a of artists" [value]="a.artistId">{{ a.name }}</option>
+      </select>
+      <button type="button" (click)="addArtist()">Add Artist</button>
+    </div>
+
+    <!-- Genres -->
+    <div class="array-group">
+      <label>Genres *</label>
+      <div class="array-tokens">
+        <div class="array-item" *ngFor="let g of album.genres; let i = index">
+          <span>{{ g }}</span>
+          <button type="button" (click)="removeGenre(i)">x</button>
+        </div>
+      </div>
+      <select [(ngModel)]="genreInput" name="genreSelect">
+        <option value="">-- Select genre --</option>
+        <option *ngFor="let g of genres" [value]="g.genreName">{{ g.genreName }}</option>
+      </select>
+      <span class="or">or</span>
+      <input type="text" [(ngModel)]="genreInputManual" name="genreInputManual" placeholder="Enter new genre" />
+      <button type="button" (click)="addGenre()">Add Genre</button>
+    </div>
+
+    <!-- Other -->
+    <div class="array-group">
+      <label>Other Info (optional)</label>
+      <div class="array-tokens">
+        <div class="array-item" *ngFor="let entry of album.other | keyvalue">
+          <span>{{ entry.key }} : {{ entry.value }}</span>
+          <button type="button" (click)="removeOther(entry.key)">x</button>
+        </div>
+      </div>
+      <input type="text" [(ngModel)]="otherKey" name="otherKey" placeholder="Key" />
+      <input type="text" [(ngModel)]="otherValue" name="otherValue" placeholder="Value" />
+      <button type="button" (click)="addOther()">Add Other</button>
+    </div>
+
+    <!-- Tracks -->
+    <div class="array-group">
+      <label>Tracks *</label>
+      <div *ngFor="let t of tracks; let i = index" class="track-item">
+        <input type="text" [(ngModel)]="t.title" name="trackTitle{{i}}" placeholder="Track title" />
+        <div class="file-drop-zone"
+            [class.dragging]="t.dragging"
+            (drop)="onFileDropped($event, t)"
+            (dragover)="onDragOver($event, t)"
+            (dragleave)="onDragLeave($event, t)"
+            (click)="fileInputMap.get(t)?.click()">
+        <p *ngIf="!t.file">Click or drag & drop audio file here</p>
+        <p *ngIf="t.file"><strong>{{ t.file.name }}</strong> selected</p>
+        <input type="file" #fileInput (change)="onFileSelected($event, t)" />
+        </div>
+
+        <button type="button" (click)="removeTrack(i)" *ngIf="tracks.length > 1">Remove Track</button>
+      </div>
+      <button type="button" (click)="addTrack()">Add Track</button>
+    </div>
+
+    <button type="submit" [disabled]="loading">Create Album</button>
+    <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+  </form>
+</div>
+
+<app-dialog
+  *ngIf="showDialog"
+  [type]="dialogType"
+  [title]="dialogTitle"
+  [message]="dialogMessage"
+  (closed)="closeDialog()">
+</app-dialog>

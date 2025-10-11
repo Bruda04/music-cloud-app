@@ -1,0 +1,33 @@
+<div class="song-card">
+  <div class="basic-info">
+    <h3>{{ song.title }}</h3>
+    <p>Artists: {{ getArtistNames() }}</p>
+    <div class="genres">
+      <span *ngFor="let genre of song.genres">{{ genre }}</span>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button (click)="playSong()">
+      {{ isPlaying ? '⏸Pause' : '▶ Play' }}
+    </button>
+    <button (click)="goToEdit()">✎ Edit</button>
+    <button (click)="deleteSong()">🗑 Delete</button>
+    <button (click)="favourite.emit(song.songId)">★ Favourite</button>
+  </div>
+
+  <div class="other-info">
+    <div *ngFor="let key of song.other | keyvalue">
+      <strong>{{ key.key }}:</strong> {{ key.value }}
+    </div>
+  </div>
+</div>
+
+
+<app-dialog
+  *ngIf="showDialog"
+  [type]="dialogType"
+  [title]="dialogTitle"
+  [message]="dialogMessage"
+  (closed)="onDialogClosed($event)">
+</app-dialog>

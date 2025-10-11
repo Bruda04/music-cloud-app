@@ -1,0 +1,79 @@
+.dialog-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.dialog-box {
+  background-color: #1e1e1e;
+  padding: 1.5rem;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+  text-align: center;
+  color: #f0f0f0;
+}
+
+.dialog-box h3 {
+  margin-bottom: 0.5rem;
+  color: #50C878;
+}
+
+.dialog-box p {
+  margin-bottom: 1rem;
+  color: #f0f0f0;
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.dialog-buttons button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.dialog-buttons button:hover {
+  transform: translateY(-1px);
+}
+
+.dialog-buttons button.ok {
+  background-color: #50C878;
+  color: #1e1e1e;
+}
+
+.dialog-buttons button.ok:hover {
+  background-color: #3fa563;
+}
+
+.dialog-buttons button.cancel {
+  background-color: #6c757d;
+  color: #f0f0f0;
+}
+
+.dialog-buttons button.cancel:hover {
+  background-color: #495057;
+}
+
+.dialog-buttons button.error {
+  background-color: #ff6b6b;
+  color: #ffffff;
+}
+
+.dialog-buttons button.error:hover {
+  background-color: #e14c4c;
+}
