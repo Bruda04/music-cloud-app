@@ -45,3 +45,5 @@ htmlcov/
 .pytest_cache/
 
 backend/.venv
+backend/app/__pycache__
+backend/app/cdk.out
