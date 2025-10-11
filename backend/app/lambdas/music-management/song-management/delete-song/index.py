@@ -1,11 +1,12 @@
 import json
+import os
 import boto3
 
 s3 = boto3.client('s3')
-BUCKET = 'music-app-content-dhox6eq69e'
+BUCKET = os.environ['BUCKET']
 
-dynamodb = boto3.resource('dynamodb')
-songs_table = dynamodb.Table('Songs')
+dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
+songs_table = dynamodb.Table(os.environ['SONGS_TABLE'])
 
 def lambda_handler(event, context):
     try:

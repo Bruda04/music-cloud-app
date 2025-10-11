@@ -1,9 +1,10 @@
 import json
 import boto3
+import os
 from boto3.dynamodb.types import TypeDeserializer
 
-dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('Artists')
+dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
+artists_table = dynamodb.Table(os.environ["ARTISTS_TABLE"])
 
 def convert_sets_to_lists(obj):
     if isinstance(obj, set):
@@ -17,7 +18,7 @@ def convert_sets_to_lists(obj):
 
 def lambda_handler(event, context):
     try:
-        response = table.scan()
+        response = artists_table.scan()
         items = response.get('Items', [])
         items = convert_sets_to_lists(items)
 

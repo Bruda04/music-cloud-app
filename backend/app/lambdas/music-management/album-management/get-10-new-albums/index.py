@@ -1,9 +1,10 @@
 import json
+import os
 import boto3
 from boto3.dynamodb.conditions import Key
 
-dynamodb = boto3.resource('dynamodb')
-albums_table = dynamodb.Table('Albums')
+dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
+albums_table = dynamodb.Table(os.environ['ALBUMS_TABLE'])
 
 def lambda_handler(event, context):
     try:

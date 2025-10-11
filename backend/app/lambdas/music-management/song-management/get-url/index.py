@@ -1,8 +1,9 @@
 import boto3
 import json
+import os
 
-s3 = boto3.client("s3")
-BUCKET = "music-app-content-dhox6eq69e"
+s3 = boto3.client('s3')
+BUCKET = os.environ['BUCKET']
 
 def lambda_handler(event, context):
     path_params = event.get("pathParameters") or {}

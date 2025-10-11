@@ -2,10 +2,11 @@ import json
 import boto3
 import uuid
 from datetime import datetime
+import os
 
-dynamodb = boto3.resource('dynamodb')
-artists_table = dynamodb.Table('Artists') 
-genres_table = dynamodb.Table('Genres') 
+dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
+artists_table = dynamodb.Table(os.environ["ARTISTS_TABLE"])
+genres_table = dynamodb.Table(os.environ["GENRES_TABLE"])
 
 #TODO: check if user making artist has role: admin
 def lambda_handler(event, context):

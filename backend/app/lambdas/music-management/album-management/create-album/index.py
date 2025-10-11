@@ -2,14 +2,15 @@ import base64
 import json
 import boto3
 import uuid
+import os
 from datetime import datetime
 
 s3 = boto3.client('s3')
-BUCKET = 'music-app-content-dhox6eq69e'
+BUCKET = os.environ['BUCKET']
 
-dynamodb = boto3.resource('dynamodb')
-albums_table = dynamodb.Table('Albums')
-genres_table = dynamodb.Table('Genres')
+dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
+albums_table = dynamodb.Table(os.environ['ALBUMS_TABLE'])
+genres_table = dynamodb.Table(os.environ['GENRES_TABLE'])
 
 def lambda_handler(event, context):
     try:

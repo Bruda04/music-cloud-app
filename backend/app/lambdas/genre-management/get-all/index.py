@@ -1,9 +1,10 @@
 import json
 import boto3
+import os
 from boto3.dynamodb.types import TypeDeserializer
 
-dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('Genres')
+dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
+table = dynamodb.Table(os.environ["GENRES_TABLE"])
 
 def lambda_handler(event, context):
     try:
