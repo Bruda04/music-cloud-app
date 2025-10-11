@@ -16,8 +16,19 @@
           <button type="button" (click)="removeGenre(i)">x</button>
         </div>
       </div>
-      <input type="text" [(ngModel)]="genreInput" name="genreInput" placeholder="New genre" />
-      <button type="button" (click)="addGenre()">Add Genre</button>
+
+      <div class="genre-inputs">
+        <select [(ngModel)]="genreInput" name="genreSelect">
+          <option value="">-- Select genre --</option>
+          <option *ngFor="let g of genres" [value]="g.genreName">{{ g.genreName }}</option>
+        </select>
+
+        <span class="or">or</span>
+
+        <input type="text" [(ngModel)]="genreInputManual" name="genreInputManual" placeholder="Enter new genre" />
+
+        <button type="button" (click)="addGenre()">Add Genre</button>
+      </div>
     </div>
 
     <div class="array-group">

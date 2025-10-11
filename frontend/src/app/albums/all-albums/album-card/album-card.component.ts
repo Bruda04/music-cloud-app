@@ -27,7 +27,7 @@ export class AlbumCardComponent {
       console.error('Album ID is missing:', this.album);
       return;
     }
-    this.router.navigate(['/albums', this.album.albumId], {
+    this.router.navigate(['/albums/details/', this.album.albumId], {
       state: { album: this.album, artists: this.artists }
     });
   }

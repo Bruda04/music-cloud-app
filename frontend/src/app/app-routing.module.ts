@@ -10,13 +10,13 @@ import { AlbumDetailsComponent } from './albums/details/details.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
-  { path: 'home', component:HomepageComponent },
+  { path: 'home', component: HomepageComponent },
   { path: 'artists', component: AllArtistsPageComponent},
-  { path: 'artists/create', component:CreateArtistComponent},
+  { path: 'artists/create', component: CreateArtistComponent},
   { path: 'albums', component: AllAlbumsPageComponent},
-  { path: 'albums/:id', component: AlbumDetailsComponent },
-  { path: 'albums/create', component:CreateAlbumComponent},
-  { path: 'songs/create', component:CreateSongComponent},
+  { path: 'albums/details/:id', component: AlbumDetailsComponent },
+  { path: 'albums/create', component: CreateAlbumComponent},
+  { path: 'songs/create', component: CreateSongComponent},
   { path: 'songs/edit/:id', component: CreateSongComponent },
   { path: '**', redirectTo: 'home' },
 ];

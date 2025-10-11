@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { ArtistService } from '../service/artist.service';
 import { Artist } from '../model/artist.model';
 import { DialogType } from '../../shared/dialog/dialog.component';
+import { Genre } from '../../songs/model/genre.model';
+import { GenreService } from '../../songs/service/genre.service';
 
 @Component({
   selector: 'app-create-artist',
@@ -19,6 +21,9 @@ export class CreateArtistComponent {
   };
 
   genreInput = '';
+  genreInputManual = '';
+  genres: Genre[] = [];
+
   otherKey = '';
   otherValue = '';
   
@@ -29,12 +34,20 @@ export class CreateArtistComponent {
   dialogMessage = '';
   showDialog = false;
 
-  constructor(private artistService: ArtistService, private router: Router) {}
-
+  constructor(private artistService: ArtistService, private genreService:GenreService) {
+    // this.genreService.getAll().subscribe(g => this.genres = g);
+    this.genres = this.genreService.getAllMock(); // TODO: change to getAll, its like this so i dont use all aws free requests
+  }
+  
   addGenre() {
-    if (this.genreInput.trim()) {
-      this.artist.genres.push(this.genreInput.trim());
+    const selected = this.genreInput.trim();
+    const manual = this.genreInputManual.trim();
+    const value = selected || manual;
+
+    if (value && !this.artist.genres.includes(value)) {
+      this.artist.genres.push(value);
       this.genreInput = '';
+      this.genreInputManual = '';
     }
   }
 

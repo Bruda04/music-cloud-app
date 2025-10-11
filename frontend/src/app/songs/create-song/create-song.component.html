@@ -14,7 +14,7 @@
         </div>
       </div>
 
-      <div class="genre-inputs">
+    <div class="genre-inputs">
         <select [(ngModel)]="artistInput" name="artistSelect">
           <option value="">-- Select artist --</option>
           <option *ngFor="let a of artists" [value]="a.artistId">{{ a.name }}</option>
