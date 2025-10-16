@@ -20,8 +20,6 @@ export class AppComponent implements OnInit{
         this.oidcSecurityService.authorize()
       }
     });
-    this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe((event: any) => {});
+    this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe((event: any) => {});
   }
 }

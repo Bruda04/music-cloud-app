@@ -1,37 +1,24 @@
-import { Component, inject, signal } from '@angular/core';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { ArtistService } from '../artists/service/artist.service';
+import { Artist } from '../artists/model/artist.model';
+import { AllArtistsCarouselComponent } from '../artists/all-artists/all-artists-carousel/all-artists.component';
+import { AllSongsComponent } from '../songs/all-songs/all-songs.component';
+import { AllAlbumsCarouselComponent } from '../albums/all-albums/all-albums-carousel/all-albums.component';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule],
   templateUrl: './homepage.component.html',
-  styleUrls: []
+  styleUrls: ['./homepage.component.css'],
+  standalone: true,
+  imports: [AllSongsComponent,AllArtistsCarouselComponent,AllAlbumsCarouselComponent]
 })
-export class HomepageComponent {
-  protected readonly title = signal('frontend');
-  
-  private readonly oidcSecurityService = inject(OidcSecurityService);
-
-  configuration$ = this.oidcSecurityService.getConfiguration();
-  userData$ = this.oidcSecurityService.userData$;
-
-  isAuthenticated = false;
-
+export class HomepageComponent implements OnInit{
+  artists: Artist[]=[]
+  constructor(private artistService:ArtistService){}
   ngOnInit(): void {
-    this.oidcSecurityService.isAuthenticated$.subscribe(({ isAuthenticated }) => {
-      this.isAuthenticated = isAuthenticated;
-      console.warn('authenticated: ', isAuthenticated);
-    });
-  }
-
-  login(): void {
-    this.oidcSecurityService.authorize();
-  }
-
-  logout(): void {
-    this.oidcSecurityService.logoff().subscribe(result => {
-      console.log('logged out', result);
-    });
+    // this.service.getAll().subscribe(a=>{
+    //   this.artists = a;
+    // });
+    this.artists = this.artistService.getAllMock(); // TODO: change to getAll, its like this so i dont use all aws free requests
   }
 }

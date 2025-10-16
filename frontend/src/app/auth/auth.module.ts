@@ -1,5 +1,7 @@
 import {AuthModule} from 'angular-auth-oidc-client';
 import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   imports: [
@@ -12,6 +14,8 @@ import { NgModule } from '@angular/core';
         responseType: 'code'
       },
     }),
+    CommonModule,
+    FormsModule,
   ],
   exports: [AuthModule],
 })
