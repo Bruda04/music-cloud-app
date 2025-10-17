@@ -1,7 +1,8 @@
-import { Router } from '@angular/router';
-import { Component, inject, signal } from '@angular/core';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { getIamRole } from '../../auth/cognito/IAMRole';
+import {Router} from '@angular/router';
+import {Component, inject, signal} from '@angular/core';
+import {OidcSecurityService} from 'angular-auth-oidc-client';
+import {UserModel, UserRole} from '../../artists/model/user.model';
+import {environment} from '../../environment/environment';
 
 @Component({
   selector: 'app-navbar',
@@ -12,7 +13,8 @@ import { getIamRole } from '../../auth/cognito/IAMRole';
 export class NavbarComponent {
     isLoggedIn = false;
     protected readonly title = signal('frontend');
-  
+    loggedInUser: UserModel | null = null;
+
     private readonly oidcSecurityService = inject(OidcSecurityService);
     menuOpen = false;
 
@@ -20,19 +22,39 @@ export class NavbarComponent {
     userData$ = this.oidcSecurityService.userData$;
 
 
-    constructor(private router: Router ) {   
+    constructor(private router: Router ) {
         this.oidcSecurityService.isAuthenticated$.subscribe(({ isAuthenticated }) => {
         this.isLoggedIn = isAuthenticated;
         console.warn('authenticated: ', isAuthenticated);
-        this.oidcSecurityService.userData$.subscribe(({ userData }) => {
-            console.log('User data:', userData);
-            console.log('Groups:', userData['cognito:groups']);
-            console.log('Role:', userData['cognito:roles']);
-        });
-        });
-        this.oidcSecurityService.userData$.subscribe(({ userData }) => {
-        const idToken = userData.idToken;
-        getIamRole(idToken);
+        if (isAuthenticated) {
+          this.oidcSecurityService.getIdToken().subscribe(idToken => {
+            console.log('ID Token:', idToken);
+            if (idToken) {
+              const payload = this.decodeJwt(idToken);
+              const group = payload['cognito:groups']?.[0];
+              let role: UserRole;
+              switch (group) {
+                case 'Admins':
+                  role = UserRole.Admin;
+                  break;
+                case 'AuthUsers':
+                  role = UserRole.AuthUser;
+                  break;
+                default:
+                  role = UserRole.AuthUser;
+              }
+
+              this.loggedInUser = {
+                userId: payload['sub'],
+                email: payload['email'],
+                role: role,
+              };
+              console.log('Decoded JWT payload:', payload);
+              console.log('Groups:', payload['cognito:groups']);
+              console.log('Logged in user:', this.loggedInUser);
+            }
+          });
+        }
         });
     }
 
@@ -45,8 +67,20 @@ export class NavbarComponent {
     }
 
     logout(): void {
-        this.oidcSecurityService.logoff().subscribe(result => {
-        console.log('logged out', result);
-        });
+      if (window.sessionStorage) {
+        window.sessionStorage.clear();
+      }
+
+      window.location.href = environment.oidc.logoutUrl;
+    }
+
+    private decodeJwt(token: string): any {
+      try {
+        const payload = token.split('.')[1];
+        return JSON.parse(atob(payload));
+      } catch (e) {
+        console.error('Invalid JWT token:', e);
+        return {};
+      }
     }
 }
