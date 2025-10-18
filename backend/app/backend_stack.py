@@ -188,7 +188,6 @@ class BackendStack(Stack):
             code=_lambda.Code.from_asset(AppConfig.POST_REGISTER_LAMBDA),
             timeout=Duration.seconds(10),
             environment={
-                "USER_POOL_ID": self.user_pool.user_pool_id,
                 "GROUP_NAME": AppConfig.COGNITO_GROUP_AUTH_USERS
             }
         )

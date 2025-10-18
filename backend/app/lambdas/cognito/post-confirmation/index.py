@@ -1,7 +1,6 @@
 import boto3
 import os
 
-USER_POOL_ID = os.environ['USER_POOL_ID']
 GROUP_NAME = os.environ['GROUP_NAME']
 
 cognito_client = boto3.client('cognito-idp')
@@ -9,9 +8,10 @@ cognito_client = boto3.client('cognito-idp')
 def lambda_handler(event, context):
     try:
         username = event['userName']
+        user_pool_id = event.get('userPoolId')
 
         response = cognito_client.admin_add_user_to_group(
-            UserPoolId=USER_POOL_ID,
+            UserPoolId=user_pool_id,
             Username=username,
             GroupName=GROUP_NAME
         )
