@@ -1,10 +1,5 @@
 export const environment = {
   production: false,
-  cognito: {
-    userPoolId: 'eu-central-1_kSX5IZ7TI' ,
-    clientId: '1ros1jfnb3dpidu8v0n8g6ndmg',
-    region: 'eu-central-1',
-  },
   oidc: {
     authority: 'https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_vS3vkgRGf',
     redirectUrl: 'http://localhost:4200/home',

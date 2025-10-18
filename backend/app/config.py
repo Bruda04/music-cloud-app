@@ -24,6 +24,7 @@ class AppConfig:
 
     SUBSCRIPTIONS_TABLE_NAME = "Subscriptions"
     SUBSCRIPTIONS_TABLE_ID = "SubscriptionsTable"
+    SUBSCRIPTIONS_TABLE_GSI_ID = "SubscriptionsUserIndex"
 
     USER_FEED_TABLE_NAME = "UserFeed"
     USER_FEED_TABLE_ID = "UserFeedTable"

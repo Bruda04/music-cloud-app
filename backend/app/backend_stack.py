@@ -125,6 +125,15 @@ class BackendStack(Stack):
             removal_policy=RemovalPolicy.DESTROY
         )
 
+        self.subscriptions_table.add_global_secondary_index(
+            index_name=AppConfig.SUBSCRIPTIONS_TABLE_GSI_ID,
+            partition_key=dynamodb.Attribute(
+                name="user",
+                type=dynamodb.AttributeType.STRING
+            ),
+            projection_type=dynamodb.ProjectionType.KEYS_ONLY
+        )
+
         self.user_feed_table = dynamodb.Table(
             self, AppConfig.USER_FEED_TABLE_ID,
             table_name=AppConfig.USER_FEED_TABLE_NAME,
