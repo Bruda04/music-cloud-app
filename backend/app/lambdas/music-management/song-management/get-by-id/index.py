@@ -1,9 +1,15 @@
 import json
+from http.client import responses
+
 import boto3
 import os
 
+from boto3.dynamodb.conditions import Key
+
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 songs_table = dynamodb.Table(os.environ['SONGS_TABLE'])
+songs_table_sgi_id = os.environ['SONGS_TABLE_GSI_ID']
+
 
 def lambda_handler(event, context):
     try:
@@ -15,7 +21,21 @@ def lambda_handler(event, context):
                 'body': json.dumps({'message': 'Missing songId in path parameters'})
             }
 
-        response = songs_table.get_item(Key={'songId': song_id})
+        song_keys = songs_table.query(
+            IndexName= songs_table_sgi_id,
+            KeyConditionExpression=Key("songId").eq(song_id)
+        )
+
+        if song_keys['Count'] == 0 or song_keys['Items'] is None:
+            return {
+                'statusCode': 404,
+                'headers': _cors_headers(),
+                'body': json.dumps({'message': 'Song not found'})
+            }
+
+        artist_ids = [item['artistId'] for item in song_keys['Items']]
+
+        response = songs_table.get_item(Key={'songId': song_id, "artistId": artist_ids[0]})
         item = response.get('Item')
         if not item:
             return {
@@ -24,9 +44,10 @@ def lambda_handler(event, context):
                 'body': json.dumps({'message': 'Song not found'})
             }
 
-        core_fields = ['songId', 'title', 'artistIds', 'genres']
-        mapped_song = {key: item.get(key, '' if key not in ['artistIds','genres'] else []) for key in core_fields}
+        core_fields = ['songId', 'title', 'genres']
+        mapped_song = {key: item.get(key, '' if key not in ['genres'] else []) for key in core_fields}
         mapped_song['file'] = item.get('fileKey')
+        mapped_song['artistIds'] = artist_ids
         mapped_song['other'] = {k: v for k, v in item.items() if k not in core_fields and k != 'fileKey'}
 
         return {

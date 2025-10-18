@@ -105,7 +105,7 @@ class BackendStack(Stack):
                 type=dynamodb.AttributeType.STRING
             ),
             sort_key=dynamodb.Attribute(
-                name="songId",
+                name="contentKey", # <contentType>#<contentId> (e.g., "album#1234", "song#5678")
                 type=dynamodb.AttributeType.STRING
             ),
             removal_policy=RemovalPolicy.DESTROY
@@ -138,236 +138,6 @@ class BackendStack(Stack):
             ),
             removal_policy=RemovalPolicy.DESTROY
         )
-
-        # --- S3 Buckets ---
-        self.content_bucket = s3.Bucket(
-            self,
-            AppConfig.CONTENT_BUCKET_ID,
-            bucket_name=AppConfig.CONTENT_BUCKET_NAME,
-            versioned=False,
-            encryption=s3.BucketEncryption.UNENCRYPTED,
-            removal_policy=RemovalPolicy.DESTROY,
-            auto_delete_objects=True
-        )
-
-        # --- Lambdas ---
-        self.create_artist_lambda = _lambda.Function(
-            self, "CreateArtistLambda",
-            runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="index.lambda_handler",
-            code=_lambda.Code.from_asset(AppConfig.CREATE_ARTIST_LAMBDA),
-            timeout=Duration.seconds(10),
-            environment={
-                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
-                "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
-                "REGION": AppConfig.REGION
-            }
-        )
-        
-        self.get_10_new_artists_lambda = _lambda.Function(
-            self, "Get10NewArtistsLambda",
-            runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="index.lambda_handler",
-            code=_lambda.Code.from_asset(AppConfig.GET_10_NEW_ARTISTS_LAMBDA),
-            timeout=Duration.seconds(10),
-            environment={
-                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
-                "REGION": AppConfig.REGION
-            }
-        )
-        
-        self.get_all_artists_lambda = _lambda.Function(
-            self, "GetAllArtistsLambda",  
-            runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="index.lambda_handler", 
-            code=_lambda.Code.from_asset(AppConfig.GET_ALL_ARTISTS_LAMBDA),
-            timeout=Duration.seconds(10),
-            environment={
-                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
-                "REGION": AppConfig.REGION
-            }
-        )
-
-        self.get_all_genres_lambda = _lambda.Function(
-            self,"GetAllGenresLambda",
-            runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="index.lambda_handler",
-            code=_lambda.Code.from_asset(AppConfig.GET_ALL_GENRES_LAMBDA),
-            timeout=Duration.seconds(10),
-            environment={
-                "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
-                "REGION": AppConfig.REGION
-            }
-        )
-
-        self.create_album_lambda = _lambda.Function(
-            self,"CreateAlbumLambda",
-            runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="index.lambda_handler",  
-            code=_lambda.Code.from_asset(AppConfig.CREATE_ALBUM_LAMBDA),
-            timeout=Duration.seconds(20),
-            environment={
-                "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
-                "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
-                "BUCKET": AppConfig.CONTENT_BUCKET,
-                "REGION": AppConfig.REGION
-            }
-        )
-        
-        self.get_10_new_albums_lambda = _lambda.Function(
-            self,"Get10NewAlbumsLambda",
-            runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="index.lambda_handler",
-            code=_lambda.Code.from_asset(AppConfig.GET_10_NEW_ALBUMS_LAMBDA),
-            timeout=Duration.seconds(10),
-            environment={
-                "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
-                "REGION": AppConfig.REGION
-            }
-        )
-
-        self.get_all_albums_lambda = _lambda.Function(
-            self,"GetAllAlbumsLambda",
-            runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="index.lambda_handler", 
-            code=_lambda.Code.from_asset(AppConfig.GET_ALL_ALBUMS_LAMBDA),
-            timeout=Duration.seconds(10),
-            environment={
-                "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
-                "REGION": AppConfig.REGION
-            }
-        )
-
-        self.get_album_by_id_lambda = _lambda.Function(
-            self,"GetAlbumByIdLambda",
-            runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="index.lambda_handler",
-            code=_lambda.Code.from_asset(AppConfig.GET_ALBUM_BY_ID_LAMBDA),
-            timeout=Duration.seconds(10),
-            environment={
-                "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
-                "REGION": AppConfig.REGION
-            }
-        )
-
-        self.get_album_track_lambda = _lambda.Function(
-            self, "GetAlbumTrackLambda",
-            runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="index.lambda_handler", 
-            code=_lambda.Code.from_asset(AppConfig.GET_ALBUM_TRACK_LAMBDA),
-            timeout=Duration.seconds(10),
-            environment={
-                "BUCKET": AppConfig.CONTENT_BUCKET,
-                "REGION": AppConfig.REGION
-            }
-        )
-
-        self.create_song_lambda = _lambda.Function(
-            self,"CreateSongLambda",
-            runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="index.lambda_handler", 
-            code=_lambda.Code.from_asset(AppConfig.CREATE_SONG_LAMBDA),
-            timeout=Duration.seconds(25),  # upload of files can take a little longer
-            environment={
-                "BUCKET": AppConfig.CONTENT_BUCKET,
-                "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
-                "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
-                "REGION": AppConfig.REGION
-            }
-        )
-
-        self.delete_song_lambda = _lambda.Function(
-            self,"DeleteSongLambda",
-            runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="index.lambda_handler",
-            code=_lambda.Code.from_asset(AppConfig.DELETE_SONG_LAMBDA),
-            timeout=Duration.seconds(10),
-            environment={
-                "BUCKET": AppConfig.CONTENT_BUCKET,
-                "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
-                "REGION": AppConfig.REGION
-            }
-        )
-
-        self.edit_song_lambda = _lambda.Function(
-            self, "EditSongLambda",
-            runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="index.lambda_handler", 
-            code=_lambda.Code.from_asset(AppConfig.EDIT_SONG_LAMBDA),
-            timeout=Duration.seconds(10),
-            environment={
-                "BUCKET": AppConfig.CONTENT_BUCKET,
-                "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
-                "REGION": AppConfig.REGION
-            }
-        )
-
-        self.get_all_songs_lambda = _lambda.Function(
-            self, "GetAllSongsLambda",
-            runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="index.lambda_handler",
-            code=_lambda.Code.from_asset(AppConfig.GET_ALL_SONGS_LAMBDA),
-            timeout=Duration.seconds(10),
-            environment={
-                "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
-                "REGION": AppConfig.REGION
-            }
-        )
-
-        self.get_song_by_id_lambda = _lambda.Function(
-            self, "GetSongByIdLambda",
-            runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="index.lambda_handler", 
-            code=_lambda.Code.from_asset(AppConfig.GET_SONG_BY_ID_LAMBDA),
-            timeout=Duration.seconds(10),
-            environment={
-                "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
-                "REGION": AppConfig.REGION
-            }
-        )
-
-        self.get_song_track_lambda = _lambda.Function(
-            self, "GetSongTrackLambda",
-            runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="index.lambda_handler",
-            code=_lambda.Code.from_asset(AppConfig.GET_SONG_TRACK_LAMBDA),
-            timeout=Duration.seconds(10),
-            environment={
-                "BUCKET": AppConfig.CONTENT_BUCKET,
-                "REGION": AppConfig.REGION
-            }
-        )
-
-        # --- Grant permissions ---
-        # Artist lambdas
-        self.artists_table.grant_read_write_data(self.create_artist_lambda)
-        self.artists_table.grant_read_data(self.get_all_artists_lambda)
-        self.artists_table.grant_read_data(self.get_10_new_artists_lambda)
-
-        # Genre lambda
-        self.genres_table.grant_read_data(self.get_all_genres_lambda)
-        self.genres_table.grant_read_write_data(self.create_artist_lambda)
-        self.genres_table.grant_read_write_data(self.create_song_lambda)
-        self.genres_table.grant_read_write_data(self.create_album_lambda)
-
-        # Album lambdas
-        self.albums_table.grant_read_write_data(self.create_album_lambda)
-        self.albums_table.grant_read_data(self.get_10_new_albums_lambda)
-        self.albums_table.grant_read_data(self.get_all_albums_lambda)
-        self.albums_table.grant_read_data(self.get_album_by_id_lambda)
-        self.content_bucket.grant_read_write(self.create_album_lambda)
-        self.content_bucket.grant_read(self.get_album_track_lambda)
-
-        # Song lambdas
-        self.songs_table.grant_read_write_data(self.create_song_lambda)
-        self.songs_table.grant_read_write_data(self.edit_song_lambda)
-        self.songs_table.grant_read_write_data(self.delete_song_lambda)
-        self.songs_table.grant_read_data(self.get_all_songs_lambda)
-        self.songs_table.grant_read_data(self.get_song_by_id_lambda)
-        self.content_bucket.grant_read_write(self.create_song_lambda)
-        self.content_bucket.grant_read_write(self.edit_song_lambda)
-        self.content_bucket.grant_read_write(self.delete_song_lambda)
-        self.content_bucket.grant_read(self.get_song_track_lambda)
 
         # --- Cognito User Pool ---
         self.user_pool = cognito.UserPool(
@@ -405,18 +175,10 @@ class BackendStack(Stack):
             )
         )
 
-        self.user_group_admins = cognito.CfnUserPoolGroup(
-            self,
-            id=AppConfig.COGNITO_GROUP_ADMINS_ID,
-            group_name=AppConfig.COGNITO_GROUP_ADMINS,
-            user_pool_id=self.user_pool.user_pool_id
-        )
-
-        self.user_group_auth_users = cognito.CfnUserPoolGroup(
-            self,
-            id=AppConfig.COGNITO_GROUP_AUTH_USERS_ID,
-            group_name=AppConfig.COGNITO_GROUP_AUTH_USERS,
-            user_pool_id=self.user_pool.user_pool_id
+        self.cognito_authorizer = apigw.CognitoUserPoolsAuthorizer(
+            self, AppConfig.COGNITO_AUTHORIZER_ID,
+            authorizer_name=AppConfig.COGNITO_AUTHORIZER_NAME,
+            cognito_user_pools=[self.user_pool]
         )
 
         self.post_register_lambda = _lambda.Function(
@@ -431,20 +193,259 @@ class BackendStack(Stack):
             }
         )
 
-        self.user_pool.add_trigger(cognito.UserPoolOperation.POST_CONFIRMATION, self.post_register_lambda)
+        self.user_pool.add_trigger(
+            cognito.UserPoolOperation.POST_CONFIRMATION,
+            self.post_register_lambda
+        )
 
+        self.user_group_admins = cognito.CfnUserPoolGroup(
+            self,
+            id=AppConfig.COGNITO_GROUP_ADMINS_ID,
+            group_name=AppConfig.COGNITO_GROUP_ADMINS,
+            user_pool_id=self.user_pool.user_pool_id
+        )
 
-        # --- API Gateway ---
+        self.user_group_auth_users = cognito.CfnUserPoolGroup(
+            self,
+            id=AppConfig.COGNITO_GROUP_AUTH_USERS_ID,
+            group_name=AppConfig.COGNITO_GROUP_AUTH_USERS,
+            user_pool_id=self.user_pool.user_pool_id
+        )
+
+        # --- S3 Buckets ---
+        self.content_bucket = s3.Bucket(
+            self,
+            AppConfig.CONTENT_BUCKET_ID,
+            bucket_name=AppConfig.CONTENT_BUCKET_NAME,
+            versioned=False,
+            removal_policy=RemovalPolicy.DESTROY,
+            auto_delete_objects=True
+        )
+
+        # --- Lambdas ---
+        self.create_artist_lambda = _lambda.Function(
+            self, "CreateArtistLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.CREATE_ARTIST_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
+                "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        self.get_10_new_artists_lambda = _lambda.Function(
+            self, "Get10NewArtistsLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.GET_10_NEW_ARTISTS_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        self.get_all_artists_lambda = _lambda.Function(
+            self, "GetAllArtistsLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.GET_ALL_ARTISTS_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        self.get_all_genres_lambda = _lambda.Function(
+            self,"GetAllGenresLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.GET_ALL_GENRES_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        self.create_album_lambda = _lambda.Function(
+            self,"CreateAlbumLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.CREATE_ALBUM_LAMBDA),
+            timeout=Duration.seconds(20),
+            environment={
+                "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
+                "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
+                "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        self.get_10_new_albums_lambda = _lambda.Function(
+            self,"Get10NewAlbumsLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.GET_10_NEW_ALBUMS_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        self.get_all_albums_lambda = _lambda.Function(
+            self,"GetAllAlbumsLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.GET_ALL_ALBUMS_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        self.get_album_by_id_lambda = _lambda.Function(
+            self,"GetAlbumByIdLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.GET_ALBUM_BY_ID_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        self.get_album_track_lambda = _lambda.Function(
+            self, "GetAlbumTrackLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.GET_ALBUM_TRACK_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        self.create_song_lambda = _lambda.Function(
+            self,"CreateSongLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.CREATE_SONG_LAMBDA),
+            timeout=Duration.seconds(25),  # upload of files can take a little longer
+            environment={
+                "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
+                "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
+                "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        self.delete_song_lambda = _lambda.Function(
+            self,"DeleteSongLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.DELETE_SONG_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
+                "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        self.edit_song_lambda = _lambda.Function(
+            self, "EditSongLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.EDIT_SONG_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
+                "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        self.get_all_songs_lambda = _lambda.Function(
+            self, "GetAllSongsLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.GET_ALL_SONGS_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        self.get_song_by_id_lambda = _lambda.Function(
+            self, "GetSongByIdLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.GET_SONG_BY_ID_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
+                "SONG_TABLE_GSI_ID": AppConfig.SONGS_TABLE_GSI_ID,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        self.get_song_track_lambda = _lambda.Function(
+            self, "GetSongTrackLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.GET_SONG_TRACK_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        # --- Grant permissions ---
+        # Artist lambdas
+        self.artists_table.grant_read_write_data(self.create_artist_lambda)
+        self.artists_table.grant_read_data(self.get_all_artists_lambda)
+        self.artists_table.grant_read_data(self.get_10_new_artists_lambda)
+
+        # Genre lambda
+        self.genres_table.grant_read_data(self.get_all_genres_lambda)
+        self.genres_table.grant_read_write_data(self.create_artist_lambda)
+        self.genres_table.grant_read_write_data(self.create_song_lambda)
+        self.genres_table.grant_read_write_data(self.create_album_lambda)
+
+        # Album lambdas
+        self.albums_table.grant_read_write_data(self.create_album_lambda)
+        self.albums_table.grant_read_data(self.get_10_new_albums_lambda)
+        self.albums_table.grant_read_data(self.get_all_albums_lambda)
+        self.albums_table.grant_read_data(self.get_album_by_id_lambda)
+        self.content_bucket.grant_read_write(self.create_album_lambda)
+        self.content_bucket.grant_read(self.get_album_track_lambda)
+
+        # Song lambdas
+        self.songs_table.grant_read_write_data(self.create_song_lambda)
+        self.songs_table.grant_read_write_data(self.edit_song_lambda)
+        self.songs_table.grant_read_write_data(self.delete_song_lambda)
+        self.songs_table.grant_read_data(self.get_all_songs_lambda)
+        self.songs_table.grant_read_data(self.get_song_by_id_lambda)
+        self.content_bucket.grant_read_write(self.create_song_lambda)
+        self.content_bucket.grant_read_write(self.edit_song_lambda)
+        self.content_bucket.grant_read_write(self.delete_song_lambda)
+        self.content_bucket.grant_read(self.get_song_track_lambda)
+
         self.api = apigw.RestApi(
             self, AppConfig.API_GW_ID,
             rest_api_name=AppConfig.API_GW_NAME,
-            deploy_options=apigw.StageOptions(stage_name=AppConfig.API_GW_STAGE_DEV)
-        )
-
-        self.cognito_authorizer = apigw.CognitoUserPoolsAuthorizer(
-            self, AppConfig.COGNITO_AUTHORIZER_ID,
-            authorizer_name=AppConfig.COGNITO_AUTHORIZER_NAME,
-            cognito_user_pools=[self.user_pool]
+            deploy=False
         )
 
         # /albums
@@ -634,3 +635,14 @@ class BackendStack(Stack):
             allow_origins=apigw.Cors.ALL_ORIGINS,
             allow_methods=["GET", "OPTIONS"]
         )
+
+        self.deployment = apigw.Deployment(
+            self, AppConfig.API_DEPLOYMENT_ID,
+            api=self.api,
+            retain_deployments=False
+        )
+
+        self.stage = apigw.Stage(
+            self, AppConfig.API_GW_STAGE_DEV_ID,
+            deployment=self.deployment,
+            stage_name=AppConfig.API_GW_STAGE_DEV_NAME)

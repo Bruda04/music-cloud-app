@@ -29,30 +29,29 @@ class AppConfig:
     USER_FEED_TABLE_ID = "UserFeedTable"
 
     # S3 buckets
-    CONTENT_BUCKET_NAME = "cloud-music-app-content-bucket"
-    CONTENT_BUCKET_ID = "Cloud Music App Content"
-    ALBUMS_BUCKET_PATH = "/albums/"
-    SONGS_BUCKET_PATH = "/songs/"
-    IMGS_BUCKET_PATH = "/images/"
+    CONTENT_BUCKET_NAME = "cloud-music-app-content"
+    CONTENT_BUCKET_ID = "cloud-music-app-content-bucket"
 
     # Cognito
     COGNITO_CLIENT_LOGOUT_URLS = ["http://localhost:4200/home"]
     COGNITO_CLIENT_CALLBACK_URLS = ["http://localhost:4200/home"]
     COGNITO_USER_POOL_ID = "cloud-music-app-user-pool"
-    COGNITO_USER_POOL_NAME = "User pool for Cloud Music App"
+    COGNITO_USER_POOL_NAME = "user-pool-cloud-music-app"
     COGNITO_CLIENT_ID = "cloud-music-app-client"
-    COGNITO_CLIENT_NAME = "Cloud Music App Cognito Client"
+    COGNITO_CLIENT_NAME = "cloud-music-app-cognito-client"
     COGNITO_GROUP_ADMINS = "Admins"
     COGNITO_GROUP_ADMINS_ID = "AdminsGroup"
     COGNITO_GROUP_AUTH_USERS = "AuthUsers"
     COGNITO_GROUP_AUTH_USERS_ID = "AuthUsersGroup"
     COGNITO_AUTHORIZER_ID = "cloud-music-app-authorizer"
-    COGNITO_AUTHORIZER_NAME = "Cloud Music App Authorizer"
+    COGNITO_AUTHORIZER_NAME = "cloud-music-app-authorizer"
 
     # API Gateway
-    API_GW_NAME = "Cloud Music App API"
+    API_GW_NAME = "cloud-music-app-api"
     API_GW_ID = "cloud-music-app-api-gateway"
-    API_GW_STAGE_DEV = "dev"
+    API_GW_STAGE_DEV_NAME = "dev"
+    API_GW_STAGE_DEV_ID = "dev-stage"
+    API_DEPLOYMENT_ID = "cloud-music-app-api-deployment"
 
 
     # Lambda function paths

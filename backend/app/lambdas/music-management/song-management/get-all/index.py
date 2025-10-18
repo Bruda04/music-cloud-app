@@ -17,16 +17,31 @@ def lambda_handler(event, context):
         response = songs_table.scan(**scan_kwargs)
         items = response.get('Items', [])
 
-        songs = []
+        songs_map = {}
         for song in items:
-            core_fields = ['songId', 'title', 'artistIds', 'genres']
-            mapped_song = {key: song.get(key, '' if key != 'artistIds' and key != 'genres' else []) for key in core_fields}
-            mapped_song['file'] = song.get('fileKey')
-            mapped_song['other'] = {k: v for k, v in song.items() if k not in core_fields and k != 'fileKey'}
-            songs.append(mapped_song)
+            song_id = song['songId']
+            if song_id not in songs_map:
+                songs_map[song_id] = {
+                    'songId': song_id,
+                    'title': song.get('title', None),
+                    'genres': song.get('genres', []),
+                    'file': song.get('fileKey', None),
+                    'artistIds': [song['artistId']] if 'artistId' in song else []
+                }
+            else:
+                if 'artistId' in song and song['artistId'] not in songs_map[song_id]['artistIds']:
+                    songs_map[song_id]['artistIds'].append(song['artistId'])
+
+                main_fields = ['title', 'genres', 'fileKey']
+                for field in main_fields:
+                    if songs_map[song_id].get(field) is None and field in song:
+                        if field == 'fileKey':
+                            songs_map[song_id]['file'] = song[field]
+                        else:
+                            songs_map[song_id][field] = song[field]
 
         result = {
-            'songs': songs,
+            'songs': songs_map.values(),
             'lastKey': json.dumps(response.get('LastEvaluatedKey')) if 'LastEvaluatedKey' in response else None
         }
 
