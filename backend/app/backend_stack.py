@@ -369,127 +369,6 @@ class BackendStack(Stack):
         self.content_bucket.grant_read_write(self.delete_song_lambda)
         self.content_bucket.grant_read(self.get_song_track_lambda)
 
-        # --- API Gateway ---
-        self.api = apigw.RestApi(
-            self, AppConfig.API_GW_ID,
-            rest_api_name=AppConfig.API_GW_NAME,
-            deploy_options=apigw.StageOptions(stage_name=AppConfig.API_GW_STAGE_DEV)
-        )
-
-        # /albums
-        albums = self.api.root.add_resource("albums")
-        albums.add_method("POST", apigw.LambdaIntegration(self.create_album_lambda))
-        albums.add_method("GET", apigw.LambdaIntegration(self.get_all_albums_lambda))
-
-        # /albums/{id}
-        album_by_id = albums.add_resource("{id}")
-        album_by_id.add_method("GET", apigw.LambdaIntegration(self.get_album_by_id_lambda))
-
-        # /albums/new10
-        new_albums = albums.add_resource("new10")
-        new_albums.add_method("GET", apigw.LambdaIntegration(self.get_10_new_albums_lambda))
-
-        # /albums/url
-        album_url = albums.add_resource("url")
-
-        # /albums/url/{key}
-        album_url_by_key = album_url.add_resource("{key}")
-        album_url_by_key.add_method("GET", apigw.LambdaIntegration(self.get_album_track_lambda))
-
-        # /artists
-        artists = self.api.root.add_resource("artists")
-        artists.add_method("GET", apigw.LambdaIntegration(self.get_all_artists_lambda))
-        artists.add_method("POST", apigw.LambdaIntegration(self.create_artist_lambda))
-
-        # /artists/new10
-        new_artists = artists.add_resource("new10")
-        new_artists.add_method("GET", apigw.LambdaIntegration(self.get_10_new_artists_lambda))
-
-        # /genres
-        genres = self.api.root.add_resource("genres")
-        genres.add_method("GET", apigw.LambdaIntegration(self.get_all_genres_lambda))
-
-        # /songs
-        songs = self.api.root.add_resource("songs")
-        songs.add_method("GET", apigw.LambdaIntegration(self.get_all_songs_lambda))
-        songs.add_method("POST", apigw.LambdaIntegration(self.create_song_lambda))
-        songs.add_method("PUT", apigw.LambdaIntegration(self.edit_song_lambda))
-
-        # /songs/{id}
-        song_by_id = songs.add_resource("{id}")
-        song_by_id.add_method("GET", apigw.LambdaIntegration(self.get_song_by_id_lambda))
-        song_by_id.add_method("DELETE", apigw.LambdaIntegration(self.delete_song_lambda))
-
-        # /songs/url
-        song_url = songs.add_resource("url")
-
-        # /songs/url/{fileKey}
-        song_url_by_key = song_url.add_resource("{fileKey}")
-        song_url_by_key.add_method("GET", apigw.LambdaIntegration(self.get_song_track_lambda))
-
-
-        # CORS
-        # /albums
-        albums.add_cors_preflight(
-            allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["GET", "POST", "OPTIONS"]
-        )
-
-        # /albums/{id}
-        album_by_id.add_cors_preflight(
-            allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["GET", "OPTIONS"]
-        )
-
-        # /albums/new10
-        new_albums.add_cors_preflight(
-            allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["GET", "OPTIONS"]
-        )
-
-        # /albums/url/{key}
-        album_url_by_key.add_cors_preflight(
-            allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["GET", "OPTIONS"]
-        )
-
-        # /artists
-        artists.add_cors_preflight(
-            allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["GET", "POST", "OPTIONS"]
-        )
-
-        # /artists/new10
-        new_artists.add_cors_preflight(
-            allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["GET", "OPTIONS"]
-        )
-
-        # /genres
-        genres.add_cors_preflight(
-            allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["GET", "OPTIONS"]
-        )
-
-        # /songs
-        songs.add_cors_preflight(
-            allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["GET", "POST", "PUT", "OPTIONS"]
-        )
-
-        # /songs/{id}
-        song_by_id.add_cors_preflight(
-            allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["GET", "DELETE", "OPTIONS"]
-        )
-
-        # /songs/url/{fileKey}
-        song_url_by_key.add_cors_preflight(
-            allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["GET", "OPTIONS"]
-        )
-
-
         # --- Cognito User Pool ---
         self.user_pool = cognito.UserPool(
             self, AppConfig.COGNITO_USER_POOL_ID,
@@ -553,3 +432,205 @@ class BackendStack(Stack):
         )
 
         self.user_pool.add_trigger(cognito.UserPoolOperation.POST_CONFIRMATION, self.post_register_lambda)
+
+
+        # --- API Gateway ---
+        self.api = apigw.RestApi(
+            self, AppConfig.API_GW_ID,
+            rest_api_name=AppConfig.API_GW_NAME,
+            deploy_options=apigw.StageOptions(stage_name=AppConfig.API_GW_STAGE_DEV)
+        )
+
+        self.cognito_authorizer = apigw.CognitoUserPoolsAuthorizer(
+            self, AppConfig.COGNITO_AUTHORIZER_ID,
+            authorizer_name=AppConfig.COGNITO_AUTHORIZER_NAME,
+            cognito_user_pools=[self.user_pool]
+        )
+
+        # /albums
+        albums = self.api.root.add_resource("albums")
+        albums.add_method(
+            "POST",
+            apigw.LambdaIntegration(self.create_album_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+        albums.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.get_all_albums_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
+        # /albums/{id}
+        album_by_id = albums.add_resource("{id}")
+        album_by_id.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.get_album_by_id_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
+        # /albums/new10
+        new_albums = albums.add_resource("new10")
+        new_albums.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.get_10_new_albums_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
+        # /albums/url
+        album_url = albums.add_resource("url")
+
+        # /albums/url/{key}
+        album_url_by_key = album_url.add_resource("{key}")
+        album_url_by_key.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.get_album_track_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
+        # /artists
+        artists = self.api.root.add_resource("artists")
+        artists.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.get_all_artists_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+        artists.add_method(
+            "POST",
+            apigw.LambdaIntegration(self.create_artist_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
+        # /artists/new10
+        new_artists = artists.add_resource("new10")
+        new_artists.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.get_10_new_artists_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
+        # /genres
+        genres = self.api.root.add_resource("genres")
+        genres.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.get_all_genres_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
+        # /songs
+        songs = self.api.root.add_resource("songs")
+        songs.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.get_all_songs_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+        songs.add_method(
+            "POST",
+            apigw.LambdaIntegration(self.create_song_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+        songs.add_method(
+            "PUT",
+            apigw.LambdaIntegration(self.edit_song_lambda),
+            authorizer = self.cognito_authorizer,
+            authorization_type = apigw.AuthorizationType.COGNITO
+        )
+
+        # /songs/{id}
+        song_by_id = songs.add_resource("{id}")
+        song_by_id.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.get_song_by_id_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+        song_by_id.add_method(
+            "DELETE",
+            apigw.LambdaIntegration(self.delete_song_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
+        # /songs/url
+        song_url = songs.add_resource("url")
+
+        # /songs/url/{fileKey}
+        song_url_by_key = song_url.add_resource("{fileKey}")
+        song_url_by_key.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.get_song_track_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
+
+        # CORS
+        # /albums
+        albums.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["GET", "POST", "OPTIONS"]
+        )
+
+        # /albums/{id}
+        album_by_id.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["GET", "OPTIONS"]
+        )
+
+        # /albums/new10
+        new_albums.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["GET", "OPTIONS"]
+        )
+
+        # /albums/url/{key}
+        album_url_by_key.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["GET", "OPTIONS"]
+        )
+
+        # /artists
+        artists.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["GET", "POST", "OPTIONS"]
+        )
+
+        # /artists/new10
+        new_artists.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["GET", "OPTIONS"]
+        )
+
+        # /genres
+        genres.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["GET", "OPTIONS"]
+        )
+
+        # /songs
+        songs.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["GET", "POST", "PUT", "OPTIONS"]
+        )
+
+        # /songs/{id}
+        song_by_id.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["GET", "DELETE", "OPTIONS"]
+        )
+
+        # /songs/url/{fileKey}
+        song_url_by_key.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["GET", "OPTIONS"]
+        )

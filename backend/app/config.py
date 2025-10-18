@@ -46,6 +46,8 @@ class AppConfig:
     COGNITO_GROUP_ADMINS_ID = "AdminsGroup"
     COGNITO_GROUP_AUTH_USERS = "AuthUsers"
     COGNITO_GROUP_AUTH_USERS_ID = "AuthUsersGroup"
+    COGNITO_AUTHORIZER_ID = "cloud-music-app-authorizer"
+    COGNITO_AUTHORIZER_NAME = "Cloud Music App Authorizer"
 
     # API Gateway
     API_GW_NAME = "Cloud Music App API"
