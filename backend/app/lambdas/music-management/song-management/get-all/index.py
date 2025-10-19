@@ -1,5 +1,7 @@
 import json
 import os
+from operator import index
+
 import boto3
 
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
@@ -17,31 +19,16 @@ def lambda_handler(event, context):
         response = songs_table.scan(**scan_kwargs)
         items = response.get('Items', [])
 
-        songs_map = {}
+        songs = []
         for song in items:
-            song_id = song['songId']
-            if song_id not in songs_map:
-                songs_map[song_id] = {
-                    'songId': song_id,
-                    'title': song.get('title', None),
-                    'genres': song.get('genres', []),
-                    'file': song.get('fileKey', None),
-                    'artistIds': [song['artistId']] if 'artistId' in song else []
-                }
-            else:
-                if 'artistId' in song and song['artistId'] not in songs_map[song_id]['artistIds']:
-                    songs_map[song_id]['artistIds'].append(song['artistId'])
-
-                main_fields = ['title', 'genres', 'fileKey']
-                for field in main_fields:
-                    if songs_map[song_id].get(field) is None and field in song:
-                        if field == 'fileKey':
-                            songs_map[song_id]['file'] = song[field]
-                        else:
-                            songs_map[song_id][field] = song[field]
+            core_fields = ['songId', 'title', 'artistId', 'genres', 'otherArtistsIds']
+            mapped_song = {key: song.get(key, '' if key != 'otherArtistsIds' and key != 'genres' else []) for key in core_fields}
+            mapped_song['file'] = song.get('fileKey')
+            mapped_song['other'] = {k: v for k, v in song.items() if k not in core_fields and k != 'fileKey'}
+            songs.append(mapped_song)
 
         result = {
-            'songs': songs_map.values(),
+            'songs': songs,
             'lastKey': json.dumps(response.get('LastEvaluatedKey')) if 'LastEvaluatedKey' in response else None
         }
 
@@ -57,7 +44,6 @@ def lambda_handler(event, context):
         }
 
     except Exception as e:
-        print("Error:", e)
         return {
             'statusCode': 500,
             'body': json.dumps({'message': f'Failed to fetch songs: {str(e)}'})

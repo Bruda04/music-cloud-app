@@ -33,9 +33,7 @@ def lambda_handler(event, context):
                 'body': json.dumps({'message': 'Song not found'})
             }
 
-        artist_ids = [item['artistId'] for item in song_keys['Items']]
-
-        response = songs_table.get_item(Key={'songId': song_id, "artistId": artist_ids[0]})
+        response = songs_table.get_item(Key={'songId': song_id, "artistId": song_keys['Items']['artistId']})
         item = response.get('Item')
         if not item:
             return {
@@ -44,10 +42,9 @@ def lambda_handler(event, context):
                 'body': json.dumps({'message': 'Song not found'})
             }
 
-        core_fields = ['songId', 'title', 'genres']
-        mapped_song = {key: item.get(key, '' if key not in ['genres'] else []) for key in core_fields}
+        core_fields = ['songId', 'title', 'genres', 'artistId', 'otherArtistsIds']
+        mapped_song = {key: item.get(key, '' if key not in ['genres', 'otherArtistsIds'] else []) for key in core_fields}
         mapped_song['file'] = item.get('fileKey')
-        mapped_song['artistIds'] = artist_ids
         mapped_song['other'] = {k: v for k, v in item.items() if k not in core_fields and k != 'fileKey'}
 
         return {
@@ -57,7 +54,6 @@ def lambda_handler(event, context):
         }
 
     except Exception as e:
-        print("Error:", e)
         return {
             'statusCode': 500,
             'headers': _cors_headers(),

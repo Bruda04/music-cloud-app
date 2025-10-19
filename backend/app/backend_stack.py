@@ -160,6 +160,7 @@ class BackendStack(Stack):
                 email=cognito.StandardAttribute(required=True, mutable=True),
                 given_name=cognito.StandardAttribute(required=True, mutable=True),
                 family_name=cognito.StandardAttribute(required=True, mutable=True),
+                birthdate=cognito.StandardAttribute(required=True, mutable=True)
             ),
             password_policy=cognito.PasswordPolicy(
                 min_length=8,
@@ -457,6 +458,22 @@ class BackendStack(Stack):
             }
         )
 
+        self.rate_contnet_lambda = _lambda.Function(
+            self, "RateContentLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.RATE_CONTENT_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "RATINGS_TABLE": AppConfig.RATINGS_TABLE_NAME,
+                "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
+                "SONGS_TABLE_GSI": AppConfig.SONGS_TABLE_GSI_ID,
+                "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
+                "ALBUMS_TABLE_GSI": AppConfig.ALBUMS_TABLE_GSI_ID,
+                "REGION": AppConfig.REGION
+            }
+        )
+
         # --- Grant permissions ---
         # Artist lambdas
         self.artists_table.grant_read_write_data(self.create_artist_lambda)
@@ -487,6 +504,11 @@ class BackendStack(Stack):
         self.content_bucket.grant_read_write(self.edit_song_lambda)
         self.content_bucket.grant_read_write(self.delete_song_lambda)
         self.content_bucket.grant_read(self.get_song_track_lambda)
+
+        # Rating lambda
+        self.ratings_table.grant_read_write_data(self.rate_contnet_lambda)
+        self.songs_table.grant_read_write_data(self.rate_contnet_lambda)
+        self.albums_table.grant_read_write_data(self.rate_contnet_lambda)
 
         self.api = apigw.RestApi(
             self, AppConfig.API_GW_ID,
@@ -620,6 +642,14 @@ class BackendStack(Stack):
             authorization_type=apigw.AuthorizationType.COGNITO
         )
 
+        # /rate
+        rate = self.api.root.add_resource("rate")
+        rate.add_method(
+            "POST",
+            apigw.LambdaIntegration(self.rate_contnet_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
 
         # CORS
         # /albums
@@ -680,6 +710,12 @@ class BackendStack(Stack):
         song_url_by_key.add_cors_preflight(
             allow_origins=apigw.Cors.ALL_ORIGINS,
             allow_methods=["GET", "OPTIONS"]
+        )
+
+        # /rate
+        rate.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["POST", "OPTIONS"]
         )
 
         self.deployment = apigw.Deployment(

@@ -77,5 +77,7 @@ class AppConfig:
     GET_SONG_BY_ID_LAMBDA = "app/lambdas/music-management/song-management/get-by-id"
     GET_SONG_TRACK_LAMBDA = "app/lambdas/music-management/song-management/get-url"
 
+    RATE_CONTENT_LAMBDA = "app/lambdas/rating-management/rate-content"
+
     POST_REGISTER_LAMBDA = "app/lambdas/cognito/post-confirmation"
     PRE_SIGNUP_LAMBDA = "app/lambdas/cognito/pre-signup"
