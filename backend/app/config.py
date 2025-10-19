@@ -1,4 +1,8 @@
 class AppConfig:
+    SQS_NOTIFICATION_QUEUE_NAME = "userNotificationQueue"
+    SQS_NOTIFICATION_QUEUE_ID = "userNotificationQueueSQS"
+    SNS_PUBLISHING_CONTENT_TOPIC_NAME = "publishingContentTopic"
+    SNS_PUBLISHING_CONTENT_TOPIC_ID = "PublishingContentTopicSNS"
     REGION = "eu-central-1"
 
     # DynamoDB
@@ -63,13 +67,13 @@ class AppConfig:
     GET_ALL_ARTISTS_LAMBDA = "app/lambdas/artist-management/get-all"
 
     GET_ALL_GENRES_LAMBDA = "app/lambdas/genre-management/get-all"
-    
+
     CREATE_ALBUM_LAMBDA = "app/lambdas/music-management/album-management/create-album"
     GET_10_NEW_ALBUMS_LAMBDA = "app/lambdas/music-management/album-management/get-10-new-albums"
     GET_ALL_ALBUMS_LAMBDA = "app/lambdas/music-management/album-management/get-all"
     GET_ALBUM_BY_ID_LAMBDA = "app/lambdas/music-management/album-management/get-by-id"
     GET_ALBUM_TRACK_LAMBDA = "app/lambdas/music-management/album-management/get-url"
-    
+
     CREATE_SONG_LAMBDA = "app/lambdas/music-management/song-management/create-song"
     DELETE_SONG_LAMBDA = "app/lambdas/music-management/song-management/delete-song"
     EDIT_SONG_LAMBDA = "app/lambdas/music-management/song-management/edit-song"
@@ -81,6 +85,10 @@ class AppConfig:
 
     SUBSCRIBE_CONTENT_LAMBDA = "app/lambdas/subscription-management/subscribe-content"
     UNSUBSCRIBE_CONTENT_LAMBDA = "app/lambdas/subscription-management/unsubscribe-content"
+    NOTIFY_SUBSCRIBERS_LAMBDA = "app/lambdas/subscription-management/notify-subscribers"
 
     POST_REGISTER_LAMBDA = "app/lambdas/cognito/post-confirmation"
     PRE_SIGNUP_LAMBDA = "app/lambdas/cognito/pre-signup"
+
+    # SES
+    SES_FROM_EMAIL = None

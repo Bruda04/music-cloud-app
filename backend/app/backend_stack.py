@@ -7,7 +7,10 @@ from aws_cdk import (
     aws_apigateway as apigw,
     aws_cognito as cognito,
     RemovalPolicy,
-    aws_iam as iam
+    aws_iam as iam,
+    aws_sns as sns,
+    aws_sns_subscriptions as subscriptions,
+    aws_sqs as sqs
 )
 from constructs import Construct
 from app.config import AppConfig
@@ -498,6 +501,41 @@ class BackendStack(Stack):
             }
         )
 
+        self.notify_subscribers_lambda = _lambda.Function(
+            self, "NotifySubscribersLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.NOTIFY_SUBSCRIBERS_LAMBDA),
+            timeout=Duration.seconds(30),
+            environment={
+                "SUBSCRIPTIONS_TABLE": AppConfig.SUBSCRIPTIONS_TABLE_NAME,
+                "REGION": AppConfig.REGION,
+                "SES_FROM_EMAIL": AppConfig.SES_FROM_EMAIL
+            }
+        )
+
+        # --- SNS Topics ---
+        self.publishing_content_topic = sns.Topic(
+            self, AppConfig.SNS_PUBLISHING_CONTENT_TOPIC_ID,
+            topic_name=AppConfig.SNS_PUBLISHING_CONTENT_TOPIC_NAME
+        )
+
+        # --- SQS ---
+        self.notification_queue = sqs.Queue(
+            self, AppConfig.SQS_NOTIFICATION_QUEUE_ID,
+            queue_name=AppConfig.SQS_NOTIFICATION_QUEUE_NAME,
+            visibility_timeout=Duration.seconds(30),
+            retention_period=Duration.days(4)
+        )
+        self.publishing_content_topic.add_subscription(subscriptions.SqsSubscription(self.notification_queue))
+        _lambda.EventSourceMapping(
+            self, "NotifyLambdaEventSource",
+            target=self.notify_subscribers_lambda,
+            event_source_arn=self.notification_queue.queue_arn,
+            batch_size=10,
+            enabled=True
+        )
+
         # --- Grant permissions ---
         # Artist lambdas
         self.artists_table.grant_read_write_data(self.create_artist_lambda)
@@ -537,6 +575,12 @@ class BackendStack(Stack):
         # Subscription lambdas
         self.subscriptions_table.grant_read_write_data(self.subscribe_content_lambda)
         self.subscriptions_table.grant_read_write_data(self.unsubscribe_content_lambda)
+        self.notification_queue.grant_consume_messages(self.notify_subscribers_lambda)
+        self.subscriptions_table.grant_read_data(self.notify_subscribers_lambda)
+        self.notify_subscribers_lambda.add_to_role_policy(iam.PolicyStatement(
+            actions=["ses:SendEmail", "ses:SendRawEmail"],
+            resources=["*"]
+        ))
 
         # --- API Gateway ---
         self.api = apigw.RestApi(
