@@ -16,8 +16,6 @@ def lambda_handler(event, context):
             GroupName=GROUP_NAME
         )
 
-        print(f"User {username} added to group {GROUP_NAME}")
     except Exception as e:
-        print(f"Error adding user to group: {str(e)}")
-
+        pass
     return event
