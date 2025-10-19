@@ -79,5 +79,8 @@ class AppConfig:
 
     RATE_CONTENT_LAMBDA = "app/lambdas/rating-management/rate-content"
 
+    SUBSCRIBE_CONTENT_LAMBDA = "app/lambdas/subscription-management/subscribe-content"
+    UNSUBSCRIBE_CONTENT_LAMBDA = "app/lambdas/subscription-management/unsubscribe-content"
+
     POST_REGISTER_LAMBDA = "app/lambdas/cognito/post-confirmation"
     PRE_SIGNUP_LAMBDA = "app/lambdas/cognito/pre-signup"

@@ -474,6 +474,30 @@ class BackendStack(Stack):
             }
         )
 
+        self.subscribe_content_lambda = _lambda.Function(
+            self, "SubscribeContentLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.SUBSCRIBE_CONTENT_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "SUBSCRIPTIONS_TABLE": AppConfig.SUBSCRIPTIONS_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        self.unsubscribe_content_lambda = _lambda.Function(
+            self, "UnsubscribeContentLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.UNSUBSCRIBE_CONTENT_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "SUBSCRIPTIONS_TABLE": AppConfig.SUBSCRIPTIONS_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
         # --- Grant permissions ---
         # Artist lambdas
         self.artists_table.grant_read_write_data(self.create_artist_lambda)
@@ -510,6 +534,11 @@ class BackendStack(Stack):
         self.songs_table.grant_read_write_data(self.rate_contnet_lambda)
         self.albums_table.grant_read_write_data(self.rate_contnet_lambda)
 
+        # Subscription lambdas
+        self.subscriptions_table.grant_read_write_data(self.subscribe_content_lambda)
+        self.subscriptions_table.grant_read_write_data(self.unsubscribe_content_lambda)
+
+        # --- API Gateway ---
         self.api = apigw.RestApi(
             self, AppConfig.API_GW_ID,
             rest_api_name=AppConfig.API_GW_NAME,
@@ -651,6 +680,24 @@ class BackendStack(Stack):
             authorization_type=apigw.AuthorizationType.COGNITO
         )
 
+        # /subscribe
+        subscribe = self.api.root.add_resource("subscribe")
+        subscribe.add_method(
+            "POST",
+            apigw.LambdaIntegration(self.subscribe_content_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
+        # /unsubscribe
+        unsubscribe = self.api.root.add_resource("unsubscribe")
+        unsubscribe.add_method(
+            "DELETE",
+            apigw.LambdaIntegration(self.unsubscribe_content_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
         # CORS
         # /albums
         albums.add_cors_preflight(
@@ -717,6 +764,19 @@ class BackendStack(Stack):
             allow_origins=apigw.Cors.ALL_ORIGINS,
             allow_methods=["POST", "OPTIONS"]
         )
+
+        # /subscribe
+        subscribe.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["POST", "OPTIONS"]
+        )
+
+        # /unsubscribe
+        unsubscribe.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["DELETE", "OPTIONS"]
+        )
+
 
         self.deployment = apigw.Deployment(
             self, AppConfig.API_DEPLOYMENT_ID,
