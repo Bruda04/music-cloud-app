@@ -8,9 +8,20 @@ dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 artists_table = dynamodb.Table(os.environ["ARTISTS_TABLE"])
 genres_table = dynamodb.Table(os.environ["GENRES_TABLE"])
 
-#TODO: check if user making artist has role: admin
 def lambda_handler(event, context):
     try:
+        claims = event.get("requestContext", {}).get("authorizer", {}).get("claims", {})
+        if not claims.get("cognito:groups") or "Admins" not in claims.get("cognito:groups"):
+            return {
+                'statusCode': 403,
+                'headers': {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers": "*",
+                    "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+                    "Content-Type": "application/json"
+                },
+                'body': json.dumps({'message': 'Forbidden: Admins only'})
+            }
         body = json.loads(event.get("body", "{}"))
 
         name = body.get("name", "").strip()
