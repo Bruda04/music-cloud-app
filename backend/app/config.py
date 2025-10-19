@@ -46,6 +46,8 @@ class AppConfig:
     COGNITO_GROUP_AUTH_USERS_ID = "AuthUsersGroup"
     COGNITO_AUTHORIZER_ID = "cloud-music-app-authorizer"
     COGNITO_AUTHORIZER_NAME = "cloud-music-app-authorizer"
+    USER_POOL_DOMAIN_PREFIX = "cloudmusicapp"
+    USER_POOL_DOMAIN_ID = "CognitoDomain"
 
     # API Gateway
     API_GW_NAME = "cloud-music-app-api"
@@ -76,3 +78,4 @@ class AppConfig:
     GET_SONG_TRACK_LAMBDA = "app/lambdas/music-management/song-management/get-url"
 
     POST_REGISTER_LAMBDA = "app/lambdas/cognito/post-confirmation"
+    PRE_SIGNUP_LAMBDA = "app/lambdas/cognito/pre-signup"

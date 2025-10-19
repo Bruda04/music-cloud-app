@@ -7,6 +7,7 @@ from aws_cdk import (
     aws_apigateway as apigw,
     aws_cognito as cognito,
     RemovalPolicy,
+    aws_iam as iam
 )
 from constructs import Construct
 from app.config import AppConfig
@@ -159,7 +160,6 @@ class BackendStack(Stack):
                 email=cognito.StandardAttribute(required=True, mutable=True),
                 given_name=cognito.StandardAttribute(required=True, mutable=True),
                 family_name=cognito.StandardAttribute(required=True, mutable=True),
-                birthdate=cognito.StandardAttribute(required=True, mutable=True)
             ),
             password_policy=cognito.PasswordPolicy(
                 min_length=8,
@@ -173,21 +173,50 @@ class BackendStack(Stack):
             removal_policy=RemovalPolicy.DESTROY
         )
 
+        self.user_pool_domain = self.user_pool.add_domain(
+            AppConfig.USER_POOL_DOMAIN_ID,
+            cognito_domain=cognito.CognitoDomainOptions(
+                domain_prefix=AppConfig.USER_POOL_DOMAIN_PREFIX
+            )
+        )
+
         self.user_pool_client = cognito.UserPoolClient(
-            self, id=AppConfig.COGNITO_CLIENT_ID,
+            self, AppConfig.COGNITO_CLIENT_ID,
             user_pool=self.user_pool,
             generate_secret=False,
             o_auth=cognito.OAuthSettings(
                 callback_urls=AppConfig.COGNITO_CLIENT_CALLBACK_URLS,
                 logout_urls=AppConfig.COGNITO_CLIENT_LOGOUT_URLS,
                 flows=cognito.OAuthFlows(authorization_code_grant=True),
-            )
+                scopes=[
+                    cognito.OAuthScope.OPENID,
+                    cognito.OAuthScope.EMAIL,
+                    cognito.OAuthScope.PROFILE
+                ]
+            ),
+            access_token_validity=Duration.hours(1),
+            id_token_validity=Duration.hours(1),
+            refresh_token_validity=Duration.days(30),
+            prevent_user_existence_errors=True,
         )
 
         self.cognito_authorizer = apigw.CognitoUserPoolsAuthorizer(
             self, AppConfig.COGNITO_AUTHORIZER_ID,
             authorizer_name=AppConfig.COGNITO_AUTHORIZER_NAME,
             cognito_user_pools=[self.user_pool]
+        )
+
+        self.pre_signup_lambda = _lambda.Function(
+            self, "PreSignUpLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.PRE_SIGNUP_LAMBDA),
+            timeout=Duration.seconds(10),
+        )
+
+        self.user_pool.add_trigger(
+            cognito.UserPoolOperation.PRE_SIGN_UP,
+            self.pre_signup_lambda
         )
 
         self.post_register_lambda = _lambda.Function(
@@ -200,6 +229,15 @@ class BackendStack(Stack):
                 "GROUP_NAME": AppConfig.COGNITO_GROUP_AUTH_USERS
             }
         )
+
+        policy = iam.Policy(
+            self, "PostRegisterCognitoPolicy",
+            statements=[iam.PolicyStatement(
+                actions=["cognito-idp:AdminAddUserToGroup"],
+                resources=[self.user_pool.user_pool_arn]
+            )]
+        )
+        policy.attach_to_role(self.post_register_lambda.role)
 
         self.user_pool.add_trigger(
             cognito.UserPoolOperation.POST_CONFIRMATION,

@@ -11,7 +11,7 @@ import {environment} from '../environment/environment';
         authority: environment.oidc.authority,
         redirectUrl: environment.oidc.redirectUrl,
         clientId: environment.oidc.clientId,
-        scope: 'email openid phone',
+        scope: 'email openid profile',
         responseType: 'code'
       },
     }),
