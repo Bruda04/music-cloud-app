@@ -346,6 +346,7 @@ class BackendStack(Stack):
                 "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
                 "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
                 "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
+                "GENRE_CONTENTS_TABLE": AppConfig.GENRE_CONTENT_TABLE_NAME,
                 "SNS_PUBLISHING_CONTENT_TOPIC_ARN": self.publishing_content_topic.topic_arn,
                 "REGION": AppConfig.REGION
             }
@@ -383,6 +384,7 @@ class BackendStack(Stack):
             timeout=Duration.seconds(10),
             environment={
                 "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
+                "ALBUMS_TABLE_GSI_ID": AppConfig.ALBUMS_TABLE_GSI_ID,
                 "REGION": AppConfig.REGION
             }
         )
@@ -567,6 +569,8 @@ class BackendStack(Stack):
         self.content_bucket.grant_read_write(self.create_album_lambda)
         self.content_bucket.grant_read(self.get_album_track_lambda)
         self.publishing_content_topic.grant_publish(self.create_album_lambda)
+        self.genre_contents_table.grant_read_write_data(self.create_album_lambda)
+        self.artists_table.grant_read_data(self.create_album_lambda)
 
         # Song lambdas
         self.songs_table.grant_read_write_data(self.create_song_lambda)

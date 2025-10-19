@@ -11,6 +11,8 @@ BUCKET = os.environ['BUCKET']
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 albums_table = dynamodb.Table(os.environ['ALBUMS_TABLE'])
 genres_table = dynamodb.Table(os.environ['GENRES_TABLE'])
+genre_contents_table = dynamodb.Table(os.environ['GENRE_CONTENTS_TABLE'])
+artists_table = dynamodb.Table(os.environ['ARTISTS_TABLE'])
 
 publishing_topic_arn = os.environ['SNS_PUBLISHING_CONTENT_TOPIC_ARN']
 sns_client = boto3.client('sns', region_name=os.environ["REGION"])
@@ -19,7 +21,7 @@ def lambda_handler(event, context):
     try:
         body = json.loads(event.get('body', '{}'))
 
-        required_fields = ['title', 'artistIds', 'genres', 'tracks']
+        required_fields = ['title', 'artistId', 'genres', 'tracks', 'details', 'imageFile']
         missing = [f for f in required_fields if f not in body or not body[f]]
         if missing:
             return {
@@ -51,7 +53,13 @@ def lambda_handler(event, context):
 
             track_file_keys.append({
                 'title': track.get('title', ''),
-                'fileKey': key
+                'fileKey': key,
+                'artistId': body['artistId'],
+                'otherArtistIds': track.get('otherArtistIds', []),
+                'lyrics': '',
+                'ratingSum': 0,
+                'ratingCount': 0,
+                'genres': body['genres']
             })
 
         genres = [g.strip().lower() for g in body['genres'] if g.strip()]
@@ -69,10 +77,12 @@ def lambda_handler(event, context):
         item = {
             'albumId': album_id,
             'title': body['title'],
-            'artistIds': body['artistIds'],
+            'artistId': body['artistId'],
             'genres': genres,
             'tracks': track_file_keys,
-            'createdAt': datetime.utcnow().isoformat()
+            'createdAt': datetime.utcnow().isoformat(),
+            'details': body['details'],
+            'imageFile': body['imageFile']
         }
 
         if 'other' in body and isinstance(body['other'], dict):
@@ -83,6 +93,20 @@ def lambda_handler(event, context):
                     item[f'other_{k}'] = v
 
         albums_table.put_item(Item=item)
+
+        for genre in genres:
+            genre_contents_table.put_item(
+                Item={
+                    'genre': genre,
+                    'contentKey': f'album#{album_id}',
+                }
+            )
+
+
+        artist = artists_table.get_item(Key={'artistId': body['artistId']}).get('Item')
+        artist_name = artist['name'] if artist else 'Unknown Artist'
+
+        publish_notification(body['artistId'], genres, artist_name, body['title'])
 
         return {
             'statusCode': 201,

@@ -14,7 +14,7 @@ genres_table = dynamodb.Table(os.environ['GENRES_TABLE'])
 publishing_topic_arn = os.environ['SNS_PUBLISHING_CONTENT_TOPIC_ARN']
 sns_client = boto3.client('sns', region_name=os.environ["REGION"])
 artists_table = dynamodb.Table(os.environ['ARTISTS_TABLE'])
-genre_content_table = dynamodb.Table(os.environ['GENRE_CONTENTS_TABLE'])
+genre_contents_table = dynamodb.Table(os.environ['GENRE_CONTENTS_TABLE'])
 
 def lambda_handler(event, context):
     try:
@@ -103,7 +103,7 @@ def lambda_handler(event, context):
         )
 
         for genre in genres:
-            genre_content_table.put_item(
+            genre_contents_table.put_item(
                 Item={
                     'genre': genre,
                     'contentKey': f'song#{song_id}',
