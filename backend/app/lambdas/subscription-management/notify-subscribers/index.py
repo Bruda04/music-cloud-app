@@ -9,34 +9,31 @@ from_email = os.environ["SES_FROM_EMAIL"]
 
 def lambda_handler(event, context):
     try:
+        all_subscribers = set()
         for record in event.get('Records', []):
             body = json.loads(record['body'])
-            content_type = body['contentType']
-            content_id = body['contentId']
-            metadata = body['metadata']  # {from: artist_name, contentName: name_of_content}
+
+            artist_id = body['artistId']
+            genres = body['genres']
+            metadata = body['metadata']  # {from: artist_name, contentName: name_of_content, contentType: 'song'|'album'}
 
             artist_name = metadata.get('from', 'Unknown Artist')
             content_name = metadata.get('contentName', 'Unknown Content')
+            content_type = metadata.get('contentType')  # 'song'|'album'
 
-            match content_type:
-                case 'genre':
-                    email_subject = f"New in genre {content_id.upper()}"
-                    email_body = f"Hello!\n\nA new song has been released in genre {content_id.upper()}.\n\n" \
-                                 f"Title: {content_name}\nBy: {artist_name}\n\n" \
-                                 f"Check it out on our platform!"
-                case 'artist':
-                    email_subject = f"New from artist {artist_name}"
-                    email_body = f"Hello!\n\nA new song has been released by {artist_name}.\n\n" \
-                                 f"Title: {content_name}\n \n" \
-                                 f"Check it out on our platform!"
-                case _:
-                    continue
+            artist_subs = get_subscribers('artist', artist_id)
+            all_subscribers.update(artist_subs)
 
+            for genre in genres:
+                genre_subs = get_subscribers('genre', genre)
+                all_subscribers.update(genre_subs)
 
+        email_subject = f"New from {artist_name}"
+        email_body = f"Hello!\n\nA new {content_type} has been released by {artist_name}.\n\n" \
+                     f"Title: {content_name}\n\nCheck it out on our platform!"
 
-            subscribers = get_subscribers(content_type, content_id)
-            for user_email in subscribers:
-                send_email(user_email, email_body, email_subject)
+        for user_email in all_subscribers:
+            send_email(user_email, email_body, email_subject)
 
         return {
             'statusCode': 200,
