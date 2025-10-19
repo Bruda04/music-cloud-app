@@ -1,5 +1,4 @@
 import json
-from http.client import responses
 
 import boto3
 import os
@@ -9,6 +8,8 @@ from boto3.dynamodb.conditions import Key
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 songs_table = dynamodb.Table(os.environ['SONGS_TABLE'])
 songs_table_sgi_id = os.environ['SONGS_TABLE_GSI_ID']
+artists_table = dynamodb.Table(os.environ['ARTISTS_TABLE'])
+ratings_table = dynamodb.Table(os.environ['RATINGS_TABLE'])
 
 
 def lambda_handler(event, context):
@@ -42,10 +43,30 @@ def lambda_handler(event, context):
                 'body': json.dumps({'message': 'Song not found'})
             }
 
-        core_fields = ['songId', 'title', 'genres', 'artistId', 'otherArtistsIds']
-        mapped_song = {key: item.get(key, '' if key not in ['genres', 'otherArtistsIds'] else []) for key in core_fields}
+        core_fields = ['songId', 'title', 'genres', 'imageFile', 'lyrics']
+        mapped_song = {key: item.get(key, '' if key not in ['genres'] else []) for key in core_fields}
         mapped_song['file'] = item.get('fileKey')
-        mapped_song['other'] = {k: v for k, v in item.items() if k not in core_fields and k != 'fileKey'}
+        mapped_song['other'] = {k: v for k, v in item.items() if k not in core_fields and k not in ['fileKey', 'artistId', 'otherArtistIds']}
+        mapped_song['rating'] = item.get('ratingSum', 0)/ item.get('ratingCount', 1) if item.get('ratingCount', 0) > 0 else 0
+
+        artist = artists_table.get_item(Key={'artistId': item['artistId']}).get('Item')
+        mapped_song['artist'] = {
+            'artistId': artist['artistId'],
+            'name': artist['name'],
+        } if artist else {}
+
+        other_artists = _get_artists_by_ids(item.get('otherArtistIds', []))
+        mapped_song['otherArtists'] = [
+            {
+                'artistId': artist['artistId'],
+                'name': artist['name'],
+            } for artist in other_artists
+        ]
+
+        claims = event.get("requestContext", {}).get("authorizer", {}).get("claims", {})
+        user = claims.get("email")
+        rates = ratings_table.get_item(Key={'user': user, 'contentKey': f"song#{song_id}"})
+        mapped_song["canRate"] = rates.get("Count", 0) == 0
 
         return {
             'statusCode': 200,
@@ -68,3 +89,17 @@ def _cors_headers():
         "Access-Control-Allow-Methods": "OPTIONS,GET",
         "Content-Type": "application/json"
     }
+
+def _get_artists_by_ids(artist_ids):
+    keys = [{'artistId': artist_id} for artist_id in artist_ids]
+
+    response = dynamodb.batch_get_item(
+        RequestItems={
+            artists_table.name: {'Keys': keys}
+        }
+    )
+
+    items = response.get('Responses', {}).get(artists_table.name, [])
+    deserialized = [{k: list(v.values())[0] for k, v in item.items()} for item in items]
+
+    return deserialized

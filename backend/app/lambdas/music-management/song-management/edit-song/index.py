@@ -2,8 +2,9 @@ import base64
 import json
 import os
 import boto3
-import uuid
 from datetime import datetime
+
+from boto3.dynamodb.conditions import Key
 
 s3 = boto3.client('s3')
 BUCKET = os.environ['BUCKET']
@@ -11,12 +12,22 @@ BUCKET = os.environ['BUCKET']
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 songs_table = dynamodb.Table(os.environ['SONGS_TABLE'])
 genres_table = dynamodb.Table(os.environ['GENRES_TABLE'])
+songs_table_gsi_id = os.environ['SONGS_TABLE_GSI_ID']
+genre_content_table = dynamodb.Table(os.environ['GENRE_CONTENTS_TABLE'])
 
 def lambda_handler(event, context):
     try:
+        claims = event.get("requestContext", {}).get("authorizer", {}).get("claims", {})
+        if not claims.get("cognito:groups") or "Admins" not in claims.get("cognito:groups"):
+            return {
+                'statusCode': 403,
+                'headers': _cors_headers(),
+                'body': json.dumps({'message': 'Forbidden: Admins only'})
+            }
+
         body = json.loads(event.get('body', '{}'))
 
-        required_fields = ['songId', 'title', 'artistIds', 'genres', 'file']
+        required_fields = ['songId', 'title', 'artistId', 'genres', 'file', 'otherArtistIds']
         missing = [f for f in required_fields if f not in body or not body[f]]
         if missing:
             return {
@@ -35,11 +46,25 @@ def lambda_handler(event, context):
                 )
             except genres_table.meta.client.exceptions.ConditionalCheckFailedException:
                 pass
-        
+
+        song_keys = songs_table.query(
+            IndexName=songs_table_gsi_id,
+            KeyConditionExpression=Key("songId").eq(body['songId'])
+        )
+
+        if song_keys['Count'] == 0 or song_keys['Items'] is None:
+            return {
+                'statusCode': 404,
+                'headers': _cors_headers(),
+                'body': json.dumps({'message': 'Song not found'})
+            }
+
+        existing_song_resp = songs_table.get_item(Key={'songId': body['songId'], 'artistId': song_keys['Items'][0]['artistId']})
+        existing_song = existing_song_resp.get('Item')
+
         key=body.get('file')
         if body.get('fileChanged', False):
-            existing_song_resp = songs_table.get_item(Key={'songId': body['songId']})
-            existing_song = existing_song_resp.get('Item')
+            existing_song_resp = songs_table.get_item(Key={'songId': body['songId'], 'artistId': song_keys['Items'][0]['artistId']})
             if not existing_song:
                 return {
                     'statusCode': 404,
@@ -57,14 +82,20 @@ def lambda_handler(event, context):
                 ContentType='audio/mpeg'
             )
          
-        item = {
-            'songId': body['songId'],
-            'title': body['title'],
-            'artistIds': body['artistIds'],
+        item = existing_song.copy()
+        genres_to_add = list(set(genres) - set(item.get('genres', [])))
+        genres_to_remove = list(set(item.get('genres', [])) - set(genres))
+
+        item.update({
+            'songId': item.get('songId'),
+            'title': body.get('title', existing_song.get('title')),
+            'artistId': body.get('artistIds', existing_song.get('artistId', '')),
+            'otherArtistIds': body.get('otherArtistIds', existing_song.get('otherArtistIds', [])),
             'genres': genres,
-            'fileKey':key,
+            'fileKey': key,
             'updatedAt': datetime.utcnow().isoformat()
-        }
+        })
+
         
         if 'other' in body and isinstance(body['other'], dict):
             for k, v in body['other'].items():
@@ -74,6 +105,22 @@ def lambda_handler(event, context):
                     item[f'other_{k}'] = v
 
         songs_table.put_item(Item=item)
+
+        for genre in genres_to_add:
+            genre_content_table.put_item(
+                Item={
+                    'genreName': genre,
+                    'contentKey': f"song#{item.get('songId')}"
+                }
+            )
+
+        for genre in genres_to_remove:
+            genre_content_table.delete_item(
+                Key={
+                    'genreName': genre,
+                    'contentKey': f"song#{item.get('songId')}"
+                }
+            )
 
         return {
             'statusCode': 201,

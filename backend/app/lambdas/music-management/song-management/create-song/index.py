@@ -5,8 +5,6 @@ import boto3
 import uuid
 from datetime import datetime
 
-from publication import publish
-
 s3 = boto3.client('s3')
 BUCKET = os.environ['BUCKET']
 
@@ -15,9 +13,19 @@ songs_table = dynamodb.Table(os.environ['SONGS_TABLE'])
 genres_table = dynamodb.Table(os.environ['GENRES_TABLE'])
 publishing_topic_arn = os.environ['SNS_PUBLISHING_CONTENT_TOPIC_ARN']
 sns_client = boto3.client('sns', region_name=os.environ["REGION"])
+artists_table = dynamodb.Table(os.environ['ARTISTS_TABLE'])
+genre_content_table = dynamodb.Table(os.environ['GENRE_CONTENTS_TABLE'])
 
 def lambda_handler(event, context):
     try:
+        claims = event.get("requestContext", {}).get("authorizer", {}).get("claims", {})
+        if not claims.get("cognito:groups") or "Admins" not in claims.get("cognito:groups"):
+            return {
+                'statusCode': 403,
+                'headers': _cors_headers(),
+                'body': json.dumps({'message': 'Forbidden: Admins only'})
+            }
+
         body = json.loads(event.get('body', '{}'))
         file_content_base64 = body.get('file')
 
@@ -28,7 +36,7 @@ def lambda_handler(event, context):
                 'body': json.dumps({'message': 'Missing file'})
             }
 
-        required_fields = ['title', 'artistIds', 'genres']
+        required_fields = ['title', 'artistId', 'genres']
         missing = [f for f in required_fields if f not in body or not body[f]]
         if missing:
             return {
@@ -63,10 +71,15 @@ def lambda_handler(event, context):
         item = {
             'songId': song_id,
             'title': body['title'],
-            'artistIds': body['artistIds'],
+            'artistId': body['artistId'],
+            'otherArtistIds': body['otherArtistIds'] if 'otherArtistIds' in body else [],
             'genres': genres,
             'fileKey': key,
-            'createdAt': datetime.utcnow().isoformat()
+            'createdAt': datetime.utcnow().isoformat(),
+            'imageFile': None,
+            'lyrics': '',
+            'ratingSum': 0,
+            'ratingCount': 0,
         }
 
         if 'other' in body and isinstance(body['other'], dict):
@@ -77,6 +90,25 @@ def lambda_handler(event, context):
                     item[f'other_{k}'] = v
 
         songs_table.put_item(Item=item)
+
+        artist = artists_table.get_item(Key={'artistId': body['artistId']}).get('Item')
+        artist_name = artist['name'] if artist else 'Unknown Artist'
+
+        publish_notification(
+            artist_id=body['artistId'],
+            genres=genres,
+            artist_name= artist_name,
+            song_title=body['title'],
+            song_id=song_id
+        )
+
+        for genre in genres:
+            genre_content_table.put_item(
+                Item={
+                    'genre': genre,
+                    'contentKey': f'song#{song_id}',
+                }
+            )
 
         return {
             'statusCode': 201,
@@ -96,9 +128,10 @@ def lambda_handler(event, context):
             'body': json.dumps({'message': f'Failed to upload a song: {str(e)}'})
         }
 
-def publish_notification(artist_id, genres, artist_name, song_title):
+def publish_notification(artist_id, genres, artist_name, song_title, song_id):
     payload = {
         'artistId': artist_id,
+        'songId': song_id,
         'genres': genres,
         'metadata': {
             'from': artist_name,

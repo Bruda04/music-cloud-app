@@ -409,6 +409,8 @@ class BackendStack(Stack):
                 "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
                 "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
                 "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
+                "GENRE_CONTENTS_TABLE": AppConfig.GENRE_CONTENT_TABLE_NAME,
                 "SNS_PUBLISHING_CONTENT_TOPIC_ARN": self.publishing_content_topic.topic_arn,
                 "REGION": AppConfig.REGION
             }
@@ -423,6 +425,8 @@ class BackendStack(Stack):
             environment={
                 "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
                 "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
+                "SONGS_TABLE_GSI_ID": AppConfig.SONGS_TABLE_GSI_ID,
+                "GENRE_CONTENTS_TABLE": AppConfig.GENRE_CONTENT_TABLE_NAME,
                 "REGION": AppConfig.REGION
             }
         )
@@ -436,6 +440,8 @@ class BackendStack(Stack):
             environment={
                 "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
                 "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
+                "SONGS_TABLE_GSI_ID": AppConfig.SONGS_TABLE_GSI_ID,
+                "GENRE_CONTENTS_TABLE": AppConfig.GENRE_CONTENT_TABLE_NAME,
                 "REGION": AppConfig.REGION
             }
         )
@@ -448,6 +454,7 @@ class BackendStack(Stack):
             timeout=Duration.seconds(10),
             environment={
                 "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
                 "REGION": AppConfig.REGION
             }
         )
@@ -461,6 +468,8 @@ class BackendStack(Stack):
             environment={
                 "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
                 "SONG_TABLE_GSI_ID": AppConfig.SONGS_TABLE_GSI_ID,
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
+                "RATINGS_TABLE": AppConfig.RATINGS_TABLE_NAME,
                 "REGION": AppConfig.REGION
             }
         )
@@ -563,6 +572,8 @@ class BackendStack(Stack):
         self.songs_table.grant_read_write_data(self.create_song_lambda)
         self.songs_table.grant_read_write_data(self.edit_song_lambda)
         self.songs_table.grant_read_write_data(self.delete_song_lambda)
+        self.genre_contents_table.grant_read_write_data(self.delete_song_lambda)
+        self.genre_contents_table.grant_read_write_data(self.edit_song_lambda)
         self.songs_table.grant_read_data(self.get_all_songs_lambda)
         self.songs_table.grant_read_data(self.get_song_by_id_lambda)
         self.content_bucket.grant_read_write(self.create_song_lambda)
@@ -570,6 +581,11 @@ class BackendStack(Stack):
         self.content_bucket.grant_read_write(self.delete_song_lambda)
         self.content_bucket.grant_read(self.get_song_track_lambda)
         self.publishing_content_topic.grant_publish(self.create_song_lambda)
+        self.ratings_table.grant_read_data(self.get_song_by_id_lambda)
+        self.artists_table.grant_read_data(self.get_song_by_id_lambda)
+        self.artists_table.grant_read_data(self.get_all_songs_lambda)
+        self.artists_table.grant_read_data(self.create_song_lambda)
+        self.genre_contents_table.grant_read_write_data(self.create_song_lambda)
 
         # Rating lambda
         self.ratings_table.grant_read_write_data(self.rate_contnet_lambda)
