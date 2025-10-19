@@ -83,12 +83,12 @@ class AppConfig:
 
     RATE_CONTENT_LAMBDA = "app/lambdas/rating-management/rate-content"
 
-    SUBSCRIBE_CONTENT_LAMBDA = "app/lambdas/subscription-management/subscribe-content"
-    UNSUBSCRIBE_CONTENT_LAMBDA = "app/lambdas/subscription-management/unsubscribe-content"
+    SUBSCRIBE_CONTENT_LAMBDA = "app/lambdas/subscription-management/subscribe"
+    UNSUBSCRIBE_CONTENT_LAMBDA = "app/lambdas/subscription-management/unsubscribe"
     NOTIFY_SUBSCRIBERS_LAMBDA = "app/lambdas/subscription-management/notify-subscribers"
 
     POST_REGISTER_LAMBDA = "app/lambdas/cognito/post-confirmation"
     PRE_SIGNUP_LAMBDA = "app/lambdas/cognito/pre-signup"
 
     # SES
-    SES_FROM_EMAIL = None
+    SES_FROM_EMAIL = ""

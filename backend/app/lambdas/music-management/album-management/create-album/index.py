@@ -52,6 +52,7 @@ def lambda_handler(event, context):
             )
 
             track_file_keys.append({
+                'songId': str(uuid.uuid4()),
                 'title': track.get('title', ''),
                 'fileKey': key,
                 'artistId': body['artistId'],
@@ -97,7 +98,7 @@ def lambda_handler(event, context):
         for genre in genres:
             genre_contents_table.put_item(
                 Item={
-                    'genre': genre,
+                    'genreName': genre,
                     'contentKey': f'album#{album_id}',
                 }
             )

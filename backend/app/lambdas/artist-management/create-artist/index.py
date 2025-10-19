@@ -7,6 +7,7 @@ import os
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 artists_table = dynamodb.Table(os.environ["ARTISTS_TABLE"])
 genres_table = dynamodb.Table(os.environ["GENRES_TABLE"])
+genre_contents_table = dynamodb.Table(os.environ["GENRE_CONTENTS_TABLE"])
 
 def lambda_handler(event, context):
     try:
@@ -40,6 +41,8 @@ def lambda_handler(event, context):
                 "body": json.dumps({"error": "Name, Bio and at least one Genre are required"})
             }
 
+        artist_id = str(uuid.uuid4())
+
         for genre in genres:
             try:
                 genres_table.put_item(
@@ -50,17 +53,12 @@ def lambda_handler(event, context):
             except genres_table.meta.client.exceptions.ConditionalCheckFailedException:
                 pass
 
-
-        artist_id = str(uuid.uuid4())
-        created_at = datetime.utcnow().isoformat()
-
         item = {
             "artistId": artist_id,
             "name": name,
             "bio": bio,
             "genres":  [g.lower() for g in genres if g] ,
-            "isDeleted": False,
-            "createdAt": created_at
+            "createdAt": datetime.utcnow().isoformat()
         }
 
         if 'other' in body and isinstance(body['other'], dict):
@@ -71,6 +69,14 @@ def lambda_handler(event, context):
                     item[f'other_{k}'] = v
 
         artists_table.put_item(Item=item)
+
+        for genre in genres:
+            genre_contents_table.put_item(
+                Item={
+                    "genreName": genre.lower(),
+                    "contentKey": f"artist#{artist_id}"
+                }
+            )
 
         return {
             "statusCode": 201,

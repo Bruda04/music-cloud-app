@@ -49,7 +49,7 @@ def lambda_handler(event, context):
         for genre in genres:
             genre_contents_table.delete_item(
                 Key={
-                    'genre': genre,
+                    'genreName': genre,
                     'contentKey': f"song#{song_id}"
                 }
             )

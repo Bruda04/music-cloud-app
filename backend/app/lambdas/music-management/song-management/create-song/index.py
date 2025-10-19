@@ -105,7 +105,7 @@ def lambda_handler(event, context):
         for genre in genres:
             genre_contents_table.put_item(
                 Item={
-                    'genre': genre,
+                    'genreName': genre,
                     'contentKey': f'song#{song_id}',
                 }
             )

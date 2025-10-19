@@ -296,6 +296,7 @@ class BackendStack(Stack):
             environment={
                 "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
                 "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
+                "GENRE_CONTENTS_TABLE": AppConfig.GENRE_CONTENT_TABLE_NAME,
                 "REGION": AppConfig.REGION
             }
         )
@@ -554,6 +555,7 @@ class BackendStack(Stack):
         self.artists_table.grant_read_write_data(self.create_artist_lambda)
         self.artists_table.grant_read_data(self.get_all_artists_lambda)
         self.artists_table.grant_read_data(self.get_10_new_artists_lambda)
+        self.genre_contents_table.grant_read_write_data(self.create_artist_lambda)
 
         # Genre lambda
         self.genres_table.grant_read_data(self.get_all_genres_lambda)
