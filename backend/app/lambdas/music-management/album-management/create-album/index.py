@@ -12,6 +12,9 @@ dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 albums_table = dynamodb.Table(os.environ['ALBUMS_TABLE'])
 genres_table = dynamodb.Table(os.environ['GENRES_TABLE'])
 
+publishing_topic_arn = os.environ['SNS_PUBLISHING_CONTENT_TOPIC_ARN']
+sns_client = boto3.client('sns', region_name=os.environ["REGION"])
+
 def lambda_handler(event, context):
     try:
         body = json.loads(event.get('body', '{}'))
@@ -98,6 +101,22 @@ def lambda_handler(event, context):
             'headers': _cors_headers(),
             'body': json.dumps({'message': f'Failed to upload album: {str(e)}'})
         }
+
+def publish_notification(artist_id, genres, artist_name, album_title):
+    payload = {
+        'artistId': artist_id,
+        'genres': genres,
+        'metadata': {
+            'from': artist_name,
+            'contentName': album_title,
+            'contentType': 'album'
+        }
+    }
+    sns_client.publish(
+        TopicArn=publishing_topic_arn,
+        Message=json.dumps(payload),
+    )
+
 
 def _cors_headers():
     return {

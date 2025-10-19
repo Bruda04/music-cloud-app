@@ -272,6 +272,20 @@ class BackendStack(Stack):
             auto_delete_objects=True
         )
 
+        # --- SNS Topics ---
+        self.publishing_content_topic = sns.Topic(
+            self, AppConfig.SNS_PUBLISHING_CONTENT_TOPIC_ID,
+            topic_name=AppConfig.SNS_PUBLISHING_CONTENT_TOPIC_NAME
+        )
+
+        # --- SQS ---
+        self.notification_queue = sqs.Queue(
+            self, AppConfig.SQS_NOTIFICATION_QUEUE_ID,
+            queue_name=AppConfig.SQS_NOTIFICATION_QUEUE_NAME,
+            visibility_timeout=Duration.seconds(30),
+            retention_period=Duration.days(4)
+        )
+
         # --- Lambdas ---
         self.create_artist_lambda = _lambda.Function(
             self, "CreateArtistLambda",
@@ -332,6 +346,7 @@ class BackendStack(Stack):
                 "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
                 "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
                 "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
+                "SNS_PUBLISHING_CONTENT_TOPIC_ARN": self.publishing_content_topic.topic_arn,
                 "REGION": AppConfig.REGION
             }
         )
@@ -394,6 +409,7 @@ class BackendStack(Stack):
                 "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
                 "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
                 "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
+                "SNS_PUBLISHING_CONTENT_TOPIC_ARN": self.publishing_content_topic.topic_arn,
                 "REGION": AppConfig.REGION
             }
         )
@@ -513,20 +529,6 @@ class BackendStack(Stack):
                 "SES_FROM_EMAIL": AppConfig.SES_FROM_EMAIL
             }
         )
-
-        # --- SNS Topics ---
-        self.publishing_content_topic = sns.Topic(
-            self, AppConfig.SNS_PUBLISHING_CONTENT_TOPIC_ID,
-            topic_name=AppConfig.SNS_PUBLISHING_CONTENT_TOPIC_NAME
-        )
-
-        # --- SQS ---
-        self.notification_queue = sqs.Queue(
-            self, AppConfig.SQS_NOTIFICATION_QUEUE_ID,
-            queue_name=AppConfig.SQS_NOTIFICATION_QUEUE_NAME,
-            visibility_timeout=Duration.seconds(30),
-            retention_period=Duration.days(4)
-        )
         self.publishing_content_topic.add_subscription(subscriptions.SqsSubscription(self.notification_queue))
         _lambda.EventSourceMapping(
             self, "NotifyLambdaEventSource",
@@ -555,6 +557,7 @@ class BackendStack(Stack):
         self.albums_table.grant_read_data(self.get_album_by_id_lambda)
         self.content_bucket.grant_read_write(self.create_album_lambda)
         self.content_bucket.grant_read(self.get_album_track_lambda)
+        self.publishing_content_topic.grant_publish(self.create_album_lambda)
 
         # Song lambdas
         self.songs_table.grant_read_write_data(self.create_song_lambda)
@@ -566,6 +569,7 @@ class BackendStack(Stack):
         self.content_bucket.grant_read_write(self.edit_song_lambda)
         self.content_bucket.grant_read_write(self.delete_song_lambda)
         self.content_bucket.grant_read(self.get_song_track_lambda)
+        self.publishing_content_topic.grant_publish(self.create_song_lambda)
 
         # Rating lambda
         self.ratings_table.grant_read_write_data(self.rate_contnet_lambda)

@@ -5,12 +5,16 @@ import boto3
 import uuid
 from datetime import datetime
 
+from publication import publish
+
 s3 = boto3.client('s3')
 BUCKET = os.environ['BUCKET']
 
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 songs_table = dynamodb.Table(os.environ['SONGS_TABLE'])
 genres_table = dynamodb.Table(os.environ['GENRES_TABLE'])
+publishing_topic_arn = os.environ['SNS_PUBLISHING_CONTENT_TOPIC_ARN']
+sns_client = boto3.client('sns', region_name=os.environ["REGION"])
 
 def lambda_handler(event, context):
     try:
@@ -92,6 +96,20 @@ def lambda_handler(event, context):
             'body': json.dumps({'message': f'Failed to upload a song: {str(e)}'})
         }
 
+def publish_notification(artist_id, genres, artist_name, song_title):
+    payload = {
+        'artistId': artist_id,
+        'genres': genres,
+        'metadata': {
+            'from': artist_name,
+            'contentName': song_title,
+            'contentType': 'song'
+        }
+    }
+    sns_client.publish(
+        TopicArn=publishing_topic_arn,
+        Message=json.dumps(payload),
+    )
 
 def _cors_headers():
     """Utility for consistent CORS headers"""
