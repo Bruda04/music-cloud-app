@@ -1,8 +1,4 @@
 class AppConfig:
-    SQS_NOTIFICATION_QUEUE_NAME = "userNotificationQueue"
-    SQS_NOTIFICATION_QUEUE_ID = "userNotificationQueueSQS"
-    SNS_PUBLISHING_CONTENT_TOPIC_NAME = "publishingContentTopic"
-    SNS_PUBLISHING_CONTENT_TOPIC_ID = "PublishingContentTopicSNS"
     REGION = "eu-central-1"
 
     # DynamoDB
@@ -60,6 +56,17 @@ class AppConfig:
     API_GW_STAGE_DEV_ID = "dev-stage"
     API_DEPLOYMENT_ID = "cloud-music-app-api-deployment"
 
+    # SNS
+    SNS_PUBLISHING_CONTENT_TOPIC_NAME = "publishingContentTopic"
+    SNS_PUBLISHING_CONTENT_TOPIC_ID = "PublishingContentTopicSNS"
+
+    # SQS
+    SQS_NOTIFICATION_QUEUE_NAME = "userNotificationQueue"
+    SQS_NOTIFICATION_QUEUE_ID = "userNotificationQueueSQS"
+
+    SQS_UPDATE_USER_FEED_QUEUE_NAME = "updateUserFeedQueue"
+    SQS_UPDATE_USER_FEED_QUEUE_ID = "UpdateUserFeedQueueSQS"
+
 
     # Lambda function paths
     CREATE_ARTIST_LAMBDA = "app/lambdas/artist-management/create-artist"
@@ -88,6 +95,9 @@ class AppConfig:
     SUBSCRIBE_CONTENT_LAMBDA = "app/lambdas/subscription-management/subscribe"
     UNSUBSCRIBE_CONTENT_LAMBDA = "app/lambdas/subscription-management/unsubscribe"
     NOTIFY_SUBSCRIBERS_LAMBDA = "app/lambdas/subscription-management/notify-subscribers"
+
+    UPDATE_USER_FEED_LAMBDA = "app/lambdas/user-feed-management/update-user-feed"
+    GET_USER_FEED_LAMBDA = "app/lambdas/user-feed-management/get-user-feed"
 
     POST_REGISTER_LAMBDA = "app/lambdas/cognito/post-confirmation"
     PRE_SIGNUP_LAMBDA = "app/lambdas/cognito/pre-signup"

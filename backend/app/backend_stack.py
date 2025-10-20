@@ -282,6 +282,13 @@ class BackendStack(Stack):
             retention_period=Duration.days(4)
         )
 
+        self.update_user_feed_queue = sqs.Queue(
+            self, AppConfig.SQS_UPDATE_USER_FEED_QUEUE_ID,
+            queue_name=AppConfig.SQS_UPDATE_USER_FEED_QUEUE_NAME,
+            visibility_timeout=Duration.seconds(30),
+            retention_period=Duration.days(4)
+        )
+
         # --- Lambdas ---
         self.create_artist_lambda = _lambda.Function(
             self, "CreateArtistLambda",
@@ -576,6 +583,40 @@ class BackendStack(Stack):
             enabled=True
         )
 
+        self.update_user_feed_lambda = _lambda.Function(
+            self, "UpdateUserFeedLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.UPDATE_USER_FEED_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "USER_FEED_TABLE": AppConfig.USER_FEED_TABLE_NAME,
+                "SUBSCRIPTIONS_TABLE": AppConfig.SUBSCRIPTIONS_TABLE_NAME,
+                "SUBSCRIPTIONS_TABLE_GSI_ID": AppConfig.SUBSCRIPTIONS_TABLE_GSI_ID,
+                "REGION": AppConfig.REGION
+            }
+        )
+        self.publishing_content_topic.add_subscription(subscriptions.SqsSubscription(self.update_user_feed_queue))
+        _lambda.EventSourceMapping(
+            self, "UpdateUserFeedLambdaEventSource",
+            target=self.update_user_feed_lambda,
+            event_source_arn=self.update_user_feed_queue.queue_arn,
+            batch_size=10,
+            enabled=True
+        )
+
+        self.get_user_feed_lambda = _lambda.Function(
+            self, "GetUserFeedLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.GET_USER_FEED_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "USER_FEED_TABLE": AppConfig.USER_FEED_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
         # --- Grant permissions ---
         # Artist lambdas
         self.artists_table.grant_read_write_data(self.create_artist_lambda)
@@ -638,6 +679,13 @@ class BackendStack(Stack):
             actions=["ses:SendEmail", "ses:SendRawEmail"],
             resources=["*"]
         ))
+
+        # User feed lambdas
+        self.update_user_feed_queue.grant_consume_messages(self.update_user_feed_lambda)
+        self.user_feed_table.grant_read_write_data(self.update_user_feed_lambda)
+        self.subscriptions_table.grant_read_data(self.update_user_feed_lambda)
+        self.user_feed_table.grant_read_data(self.get_user_feed_lambda)
+
 
         # --- API Gateway ---
         self.api = apigw.RestApi(
@@ -823,6 +871,16 @@ class BackendStack(Stack):
             authorization_type=apigw.AuthorizationType.COGNITO
         )
 
+        # /feed
+        feed = self.api.root.add_resource("feed")
+        feed.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.get_user_feed_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
+
         # CORS
         # /albums
         albums.add_cors_preflight(
@@ -912,6 +970,12 @@ class BackendStack(Stack):
         unsubscribe.add_cors_preflight(
             allow_origins=apigw.Cors.ALL_ORIGINS,
             allow_methods=["DELETE", "OPTIONS"]
+        )
+
+        # /feed
+        feed.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["GET", "OPTIONS"]
         )
 
 
