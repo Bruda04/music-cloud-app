@@ -52,5 +52,5 @@ export class AllSongsComponent implements OnInit {
     onSongDeleted(id: string) {
         this.loadSongs()
     }
-    onFavourite(id: string) { console.log('Favourite', id); }
+    onRate(id: string) { console.log('Rate', id); }
 }

@@ -15,8 +15,11 @@ export class SongCardComponent {
   @Input() song!: Song;
   @Input() artists: Artist[] = []; // passed from parent (so you call ArtistService only once)
 
-  @Output() favourite = new EventEmitter<string>();
+  @Output() rate = new EventEmitter<string>();
   @Output() deleted = new EventEmitter<string>();
+
+  photoPath: string = 'photo.jpg'; // placeholder image
+
 
   audio = new Audio();
   isPlaying = false;
@@ -92,6 +95,20 @@ export class SongCardComponent {
     }
 
     this.pendingDeleteId = null;
+  }
+
+
+  formatDate(dateString: string): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    // Example: "Oct 20, 2025, 21:15"
+    return date.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 
 }

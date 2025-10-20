@@ -1,15 +1,25 @@
 <div class="song-card">
-  <div class="basic-info">
-    <h3>{{ song.title }}</h3>
-    <p>Artists: {{song.artist?.name}}</p>
-    <p>Other artists:
-      <span *ngFor="let a of song.otherArtists; let last = last">
-        {{ a.name }}<span *ngIf="!last">, </span>
-      </span>
-    </p>
-    <div class="genres">
-      <span *ngFor="let genre of song.genres">{{ genre }}</span>
+
+  <!-- Horizontal container for title + info and photo -->
+  <div class="song-top" style="display: flex; gap: 1rem; align-items: stretch;">
+
+    <!-- Left side: title + info -->
+    <div class="song-info" style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
+      <h2>{{ song.title }}</h2>
+      <p style="margin-top: 0">Artists: {{song.artist?.name}}</p>
+      <p  style="margin-top: 0">Other artists:
+        <span *ngFor="let a of song.otherArtists; let last = last">
+          {{ a.name }}<span *ngIf="!last">, </span>
+        </span>
+      </p>
+      <div class="genres">
+        <span *ngFor="let genre of song.genres">{{ genre }}</span>
+      </div>
     </div>
+
+    <!-- Right side: photo fills the full height -->
+    <img [src]="photoPath" alt="Song photo" class="song-photo" />
+
   </div>
 
   <div class="actions">
@@ -18,14 +28,17 @@
     </button>
     <button (click)="goToEdit()">✎ Edit</button>
     <button (click)="deleteSong()">🗑 Delete</button>
-    <button (click)="favourite.emit(song.songId)">★ Favourite</button>
+    <button (click)="rate.emit(song.songId)">★ Rate</button>
   </div>
 
   <div class="other-info">
     <div *ngFor="let key of song.other || {} | keyvalue">
-      <strong>{{ key.key }}:</strong> {{ key.value }}
+      <strong>{{ key.key }}:</strong>&nbsp;
+      <span *ngIf="key.key === 'createdAt'">{{ formatDate(key.value) }}</span>
+      <span *ngIf="key.key !== 'createdAt'">{{ key.value }}</span>
     </div>
   </div>
+
 </div>
 
 

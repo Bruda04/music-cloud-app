@@ -96,3 +96,14 @@
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
+
+
+.song-photo {
+  width: 120px; /* fixed width */
+  height: 100%; /* fills the height of the left container */
+  object-fit: cover;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  flex-shrink: 0;
+}
