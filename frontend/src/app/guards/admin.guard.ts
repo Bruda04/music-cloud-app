@@ -1,13 +1,14 @@
-import { Injectable } from '@angular/core';
-import { CanActivate, Router } from '@angular/router';
-import { NavbarComponent } from '../auth/nav-bar/nav-bar.component';
+import {Injectable} from '@angular/core';
+import {CanActivate, Router} from '@angular/router';
+import {AuthService} from '../auth/auth.service';
+import {UserRole} from '../auth/model/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class AdminGuard implements CanActivate {
-  constructor(private navbar: NavbarComponent, private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
   canActivate(): boolean {
-    if (this.navbar.loggedInUser?.role=='Admin') return true;
+    if (this.authService.loggedInUser?.role==UserRole.Admin) return true;
     this.router.navigate(['/home']);
     return false;
   }

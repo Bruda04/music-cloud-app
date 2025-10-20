@@ -6,7 +6,7 @@ import { AllSongsComponent } from '../songs/all-songs/all-songs.component';
 import { AllAlbumsCarouselComponent } from '../albums/all-albums/all-albums-carousel/all-albums.component';
 import {NgIf} from '@angular/common';
 import {AuthService} from '../auth/auth.service';
-import {UserRole} from '../artists/model/user.model';
+import {UserRole} from '../auth/model/user.model';
 
 @Component({
   selector: 'app-root',
