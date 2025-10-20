@@ -71,7 +71,6 @@ export class SongCardComponent {
     this.dialogType = 'confirmation';
     this.dialogTitle = 'Are you sure?';
     this.dialogMessage = `Do you really want to delete "${this.song.title}"?`;
-    this.pendingDeleteId = this.song.songId;
     this.showDialog = true;
   }
 

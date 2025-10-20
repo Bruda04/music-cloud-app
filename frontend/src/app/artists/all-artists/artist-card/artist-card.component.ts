@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { Artist } from '../../model/artist.model';
 import {UserRole} from '../../../auth/model/user.model';
 import {DialogType} from '../../../shared/dialog/dialog.component';
+import {AuthService} from '../../../auth/auth.service';
 
 @Component({
   selector: 'app-artist-card',
@@ -17,7 +18,6 @@ export class ArtistCardComponent {
   dialogType: DialogType = 'message';
   dialogTitle: string = '';
   dialogMessage: string = '';
-
 
   subscribeToArtist(): void {
     if (!this.artist) return;

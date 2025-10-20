@@ -5,7 +5,22 @@
     <div class="genres">
       <span *ngFor="let genre of album?.genres">{{ genre }}</span>
     </div>
+
+    <div class="actions" style="display: flex; justify-content: flex-start; margin-top: 8px;">
+      <button *ngIf="authService.loggedInUser?.role==UserRole.Admin" style="font-size: 14px;"
+              (click)="goToEdit(); $event.stopPropagation()">✎ Edit</button>
+      <button *ngIf="authService.loggedInUser?.role==UserRole.Admin" style="font-size: 14px;"
+              (click)="deleteAlbum(); $event.stopPropagation()">🗑 Delete</button>
+    </div>
   </div>
 
   <img [src]="photoPath" alt="Album photo" class="album-photo">
 </div>
+
+<app-dialog
+  *ngIf="showDialog"
+  [type]="dialogType"
+  [title]="dialogTitle"
+  [message]="dialogMessage"
+  (closed)="onDialogClosed($event)">
+</app-dialog>

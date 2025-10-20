@@ -2,6 +2,9 @@ import { Component, Input } from '@angular/core';
 import { Album } from '../../model/album.model';
 import { Artist } from '../../../artists/model/artist.model';
 import { Router } from '@angular/router';
+import {UserRole} from '../../../auth/model/user.model';
+import {AuthService} from '../../../auth/auth.service';
+import {DialogType} from '../../../shared/dialog/dialog.component';
 
 @Component({
   selector: 'app-album-card',
@@ -15,7 +18,13 @@ export class AlbumCardComponent {
   photoPath: string = 'photo.jpg';
 
 
-  constructor(private router:Router){}
+  showDialog = false;
+  dialogType: DialogType = 'confirmation';
+  dialogTitle = '';
+  dialogMessage = '';
+
+
+  constructor(private router:Router,  protected authService: AuthService){}
 
   getArtistNames(): string {
   if (!this.album || !this.album.artistIds?.length) return 'Unknown artist';
@@ -33,4 +42,24 @@ export class AlbumCardComponent {
       state: { album: this.album, artists: this.artists }
     });
   }
+
+  goToEdit() {
+
+  }
+
+  deleteAlbum() {
+    if (!this.album?.albumId) return;
+
+    this.dialogType = 'confirmation';
+    this.dialogTitle = 'Are you sure?';
+    this.dialogMessage = `Do you really want to delete "${this.album.title}"?`;
+    this.showDialog = true;
+  }
+  onDialogClosed(confirmed: boolean) {
+    // Simply close the dialog for informational messages
+    this.showDialog = false;
+  }
+
+
+  protected readonly UserRole = UserRole;
 }
