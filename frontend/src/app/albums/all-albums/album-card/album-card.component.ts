@@ -10,8 +10,10 @@ import { Router } from '@angular/router';
   standalone:false
 })
 export class AlbumCardComponent {
-  @Input() album: Album | undefined; 
+  @Input() album: Album | undefined;
   @Input() artists: Artist[] = [];
+  photoPath: string = 'photo.jpg';
+
 
   constructor(private router:Router){}
 
@@ -21,7 +23,7 @@ export class AlbumCardComponent {
       .map(id => this.artists.find(a => a.artistId === id)?.name || 'Unknown artist')
       .join(', ');
   }
-  
+
   openAlbum() {
     if (!this.album || !this.album.albumId) {
       console.error('Album ID is missing:', this.album);
