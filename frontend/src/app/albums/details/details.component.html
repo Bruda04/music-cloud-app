@@ -21,6 +21,8 @@
          [class.playing]="currentTrack === track.fileKey && isPlaying"
          (click)="playTrack(track)"
     >
+
+      <button *ngIf="authService.loggedInUser?.role==UserRole.AuthUser" >★ Rate</button>
       <span>{{ track.title }}</span>
       <button class="play-btn">
         {{ currentTrack === track.fileKey && isPlaying ? '⏸Pause' : '▶ Play' }}

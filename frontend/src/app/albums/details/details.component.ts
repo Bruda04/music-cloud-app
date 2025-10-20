@@ -4,6 +4,8 @@ import { Album } from '../model/album.model';
 import { AlbumService } from '../service/album.service';
 import { TrackDTO } from '../model/album.model';
 import { Artist } from '../../artists/model/artist.model';
+import {UserRole} from '../../auth/model/user.model';
+import {AuthService} from '../../auth/auth.service';
 
 @Component({
   selector: 'app-album-details',
@@ -20,7 +22,7 @@ export class AlbumDetailsComponent implements OnInit {
 
     photoPath: string = 'photo.jpg';
 
-    constructor(private route: ActivatedRoute, private albumService: AlbumService) {}
+    constructor(private route: ActivatedRoute, private albumService: AlbumService, protected authService: AuthService) {}
 
     ngOnInit() {
         const navState = history.state;
@@ -68,4 +70,5 @@ export class AlbumDetailsComponent implements OnInit {
         });
     }
 
+  protected readonly UserRole = UserRole;
 }
