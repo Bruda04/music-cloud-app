@@ -26,9 +26,9 @@
     <button (click)="playSong()">
       {{ isPlaying ? '⏸Pause' : '▶ Play' }}
     </button>
-    <button (click)="goToEdit()">✎ Edit</button>
-    <button (click)="deleteSong()">🗑 Delete</button>
-    <button (click)="rate.emit(song.songId)">★ Rate</button>
+    <button *ngIf="authService.loggedInUser?.role==UserRole.Admin" (click)="goToEdit()">✎ Edit</button>
+    <button *ngIf="authService.loggedInUser?.role==UserRole.Admin" (click)="deleteSong()">🗑 Delete</button>
+    <button *ngIf="authService.loggedInUser?.role==UserRole.AuthUser" (click)="rate.emit(song.songId)">★ Rate</button>
   </div>
 
   <div class="other-info">

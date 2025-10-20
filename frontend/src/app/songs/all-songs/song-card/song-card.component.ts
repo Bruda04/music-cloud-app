@@ -4,6 +4,8 @@ import { Artist } from '../../../artists/model/artist.model';
 import { SongService } from '../../service/song.service';
 import { Router } from '@angular/router';
 import { DialogType } from '../../../shared/dialog/dialog.component';
+import {AuthService} from '../../../auth/auth.service';
+import {UserRole} from '../../../auth/model/user.model';
 
 @Component({
   selector: 'app-song-card',
@@ -31,7 +33,7 @@ export class SongCardComponent {
   pendingDeleteId: string | null = null;
 
 
-  constructor(private songService: SongService,private router:Router) {}
+  constructor(private songService: SongService,private router:Router, protected authService: AuthService) {}
 
   playSong() {
     if (!this.song.file) return;
@@ -111,4 +113,5 @@ export class SongCardComponent {
     });
   }
 
+  protected readonly UserRole = UserRole;
 }
