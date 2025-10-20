@@ -60,6 +60,9 @@ def lambda_handler(event, context):
         artists = list({a['artistId']: a for a in artists}.values())
         albums = list({a['albumId']: a for a in albums}.values())
 
+        artists = [{k: v for k, v in artist.items() if k not in ["createdAt"]} for artist in artists]
+        albums = [{k: v for k, v in album.items() if k not in ["createdAt", "tracks"]} for album in albums]
+
         return {
             'statusCode': 200,
             'headers': {'Access-Control-Allow-Origin': '*'},
