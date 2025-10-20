@@ -9,18 +9,19 @@ import { AllAlbumsPageComponent } from './albums/all-albums/all-albums-page/all-
 import { AlbumDetailsComponent } from './albums/details/details.component';
 import { AdminGuard } from './guards/admin.guard';
 import {AllSongsComponent} from './songs/all-songs/all-songs.component';
+import {AuthUserGuard} from './guards/authUser.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: 'home', component: HomepageComponent },
-  { path: 'artists', component: AllArtistsPageComponent},
+  { path: 'artists', component: AllArtistsPageComponent, canActivate: [AuthUserGuard]},
   { path: 'artists/create', component: CreateArtistComponent, canActivate: [AdminGuard]},
-  { path: 'albums', component: AllAlbumsPageComponent},
-  { path: 'albums/details/:id', component: AlbumDetailsComponent },
+  { path: 'albums', component: AllAlbumsPageComponent, canActivate: [AuthUserGuard]},
+  { path: 'albums/details/:id', component: AlbumDetailsComponent, canActivate: [AuthUserGuard, AdminGuard] },
   { path: 'albums/create', component: CreateAlbumComponent, canActivate: [AdminGuard]},
-  { path: 'songs', component: AllSongsComponent},
+  { path: 'songs', component: AllSongsComponent, canActivate: [AuthUserGuard]},
   { path: 'songs/create', component: CreateSongComponent, canActivate: [AdminGuard]},
-  { path: 'songs/edit/:id', component: CreateSongComponent },
+  { path: 'songs/edit/:id', component: CreateSongComponent, canActivate: [AdminGuard] },
   { path: '**', redirectTo: 'home' },
 ];
 
