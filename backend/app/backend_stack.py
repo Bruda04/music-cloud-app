@@ -28,7 +28,6 @@ class BackendStack(Stack):
             ),
             removal_policy=RemovalPolicy.DESTROY
         )
-        #self.artists_table = dynamodb.Table.from_table_name(self, "ArtistsTable", "Artists")
 
         self.genres_table = dynamodb.Table(
             self, AppConfig.GENRES_TABLE_ID,
@@ -39,7 +38,6 @@ class BackendStack(Stack):
             ),
             removal_policy=RemovalPolicy.DESTROY
         )
-        # self.genres_table = dynamodb.Table.from_table_name(self, "GenresTable", "Genres")
 
         self.songs_table = dynamodb.Table(
             self, AppConfig.SONGS_TABLE_ID,
@@ -62,7 +60,6 @@ class BackendStack(Stack):
             ),
             projection_type=dynamodb.ProjectionType.KEYS_ONLY
         )
-        # self.songs_table = dynamodb.Table.from_table_name(self, "SongsTable", "Songs")
 
         self.albums_table = dynamodb.Table(
             self, AppConfig.ALBUMS_TABLE_ID,
@@ -85,7 +82,6 @@ class BackendStack(Stack):
             ),
             projection_type=dynamodb.ProjectionType.KEYS_ONLY
         )
-        # self.albums_table = dynamodb.Table.from_table_name(self, "AlbumsTable", "Albums")
 
         self.genre_contents_table = dynamodb.Table(
             self, AppConfig.GENRE_CONTENT_TABLE_ID,
@@ -337,6 +333,20 @@ class BackendStack(Stack):
             }
         )
 
+        self.get_content_by_genre = _lambda.Function(
+            self, "GetContentByGenreLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.GET_CONTENT_BY_GENRE_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "GENRE_CONTENT_TABLE": AppConfig.GENRE_CONTENT_TABLE_NAME,
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
+                "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
         self.create_album_lambda = _lambda.Function(
             self,"CreateAlbumLambda",
             runtime=_lambda.Runtime.PYTHON_3_12,
@@ -565,6 +575,9 @@ class BackendStack(Stack):
         self.genres_table.grant_read_write_data(self.create_artist_lambda)
         self.genres_table.grant_read_write_data(self.create_song_lambda)
         self.genres_table.grant_read_write_data(self.create_album_lambda)
+        self.genre_contents_table.grant_read_data(self.get_content_by_genre)
+        self.artists_table.grant_read_data(self.get_content_by_genre)
+        self.albums_table.grant_read_data(self.get_content_by_genre)
 
         # Album lambdas
         self.albums_table.grant_read_write_data(self.create_album_lambda)
@@ -696,6 +709,18 @@ class BackendStack(Stack):
             authorization_type=apigw.AuthorizationType.COGNITO
         )
 
+        # /genres/{genreName}
+        genre_by_name = genres.add_resource("{genreName}")
+
+        # /genres/{genreName}/content
+        genre_content = genre_by_name.add_resource("content")
+        genre_content.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.get_content_by_genre),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
         # /songs
         songs = self.api.root.add_resource("songs")
         songs.add_method(
@@ -810,6 +835,12 @@ class BackendStack(Stack):
 
         # /genres
         genres.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["GET", "OPTIONS"]
+        )
+
+        # /genres/{genreName}/content
+        genre_content.add_cors_preflight(
             allow_origins=apigw.Cors.ALL_ORIGINS,
             allow_methods=["GET", "OPTIONS"]
         )

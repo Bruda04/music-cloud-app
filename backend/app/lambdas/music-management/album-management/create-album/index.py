@@ -99,7 +99,7 @@ def lambda_handler(event, context):
             genre_contents_table.put_item(
                 Item={
                     'genreName': genre,
-                    'contentKey': f'album#{album_id}',
+                    'contentKey': f'album#{body['artistId']}#{album_id}',
                 }
             )
 

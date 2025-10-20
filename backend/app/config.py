@@ -67,6 +67,7 @@ class AppConfig:
     GET_ALL_ARTISTS_LAMBDA = "app/lambdas/artist-management/get-all"
 
     GET_ALL_GENRES_LAMBDA = "app/lambdas/genre-management/get-all"
+    GET_CONTENT_BY_GENRE_LAMBDA = "app/lambdas/genre-management/get-content-by-genre"
 
     CREATE_ALBUM_LAMBDA = "app/lambdas/music-management/album-management/create-album"
     GET_10_NEW_ALBUMS_LAMBDA = "app/lambdas/music-management/album-management/get-10-new-albums"
