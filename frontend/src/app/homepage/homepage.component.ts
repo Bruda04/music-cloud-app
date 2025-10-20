@@ -4,21 +4,22 @@ import { Artist } from '../artists/model/artist.model';
 import { AllArtistsCarouselComponent } from '../artists/all-artists/all-artists-carousel/all-artists.component';
 import { AllSongsComponent } from '../songs/all-songs/all-songs.component';
 import { AllAlbumsCarouselComponent } from '../albums/all-albums/all-albums-carousel/all-albums.component';
+import {NgIf} from '@angular/common';
+import {AuthService} from '../auth/auth.service';
+import {UserRole} from '../artists/model/user.model';
 
 @Component({
   selector: 'app-root',
   templateUrl: './homepage.component.html',
   styleUrls: ['./homepage.component.css'],
   standalone: true,
-  imports: [AllSongsComponent,AllArtistsCarouselComponent,AllAlbumsCarouselComponent]
+  imports: [AllSongsComponent, AllArtistsCarouselComponent, AllAlbumsCarouselComponent, NgIf]
 })
 export class HomepageComponent implements OnInit{
   artists: Artist[]=[]
-  constructor(private artistService:ArtistService){}
+  constructor(protected authService: AuthService){}
   ngOnInit(): void {
-    // this.service.getAll().subscribe(a=>{
-    //   this.artists = a;
-    // });
-    this.artists = this.artistService.getAllMock(); // TODO: change to getAll, its like this so i dont use all aws free requests
   }
+
+  protected readonly UserRole = UserRole;
 }

@@ -1,8 +1,5 @@
-<h1>10 NEW ARTISTS:</h1>
-<app-all-artists-carousel></app-all-artists-carousel>
+<h1 *ngIf="authService.loggedInUser?.role==UserRole.Admin">Welcome Admin</h1>
+<h1 *ngIf="authService.loggedInUser?.role==UserRole.AuthUser">Welcome User</h1>
+<h1 *ngIf="!authService.loggedInUser">Welcome Guest</h1>
 
-<h1>10 NEW ALBUMS:</h1>
-<app-all-albums-carousel [artists]="artists"></app-all-albums-carousel>
 
-<h1>ALL SONGS:</h1>
-<app-all-songs [artists]="artists"></app-all-songs>
