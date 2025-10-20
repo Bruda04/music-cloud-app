@@ -37,14 +37,6 @@ def lambda_handler(event, context):
         else:
             content_key = f"song#{song_id}"
 
-        ratings_table.put_item(
-            Item={
-                'contentKey': content_key,
-                'user': user,
-                'rating': rating
-            }
-        )
-
         if album_id:
             gsi_response = albums_table.query(
                 IndexName=albums_table_index,
@@ -95,6 +87,15 @@ def lambda_handler(event, context):
                 },
                 ReturnValues="UPDATED_NEW"
             )
+
+        ratings_table.put_item(
+            Item={
+                'contentKey': content_key,
+                'user': user,
+                'rating': rating,
+                'artistId': artist_id
+            }
+        )
 
         return {
             'statusCode': 200,
