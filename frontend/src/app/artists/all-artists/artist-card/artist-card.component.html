@@ -4,4 +4,16 @@
   <div class="genres">
     <span *ngFor="let genre of artist?.genres">{{ genre }}</span>
   </div>
+  <div class="actions" style="display: flex; justify-content: flex-start; margin-top: 8px;">
+    <button style="font-size: 14px;" (click)="subscribeToArtist()">Subscribe</button>
+  </div>
 </div>
+
+
+<app-dialog
+  *ngIf="showDialog"
+  [type]="dialogType"
+  [title]="dialogTitle"
+  [message]="dialogMessage"
+  (closed)="onDialogClosed($event)">
+</app-dialog>
