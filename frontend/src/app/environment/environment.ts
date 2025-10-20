@@ -6,5 +6,5 @@ export const environment = {
     clientId: '3c7lu14e4gopdbb2vsqscrgarc',
     logoutUrl: 'https://cloudmusicapp.auth.eu-central-1.amazoncognito.com/logout?client_id=3c7lu14e4gopdbb2vsqscrgarc&logout_uri=http://localhost:4200/home',
   },
-  apiUrl: 'https://r4riagry0h.execute-api.eu-central-1.amazonaws.com/dev/'
+  apiUrl: 'https://r4riagry0h.execute-api.eu-central-1.amazonaws.com/dev'
 };

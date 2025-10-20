@@ -24,9 +24,12 @@ export class AllArtistsPageComponent implements OnInit, AfterViewInit {
   constructor(private service:ArtistService) {}
 
   ngOnInit(): void {
-    // this.service.getAll().subscribe(a=>this.artists=a);
+    // this.service.getAll().subscribe(a=>
+    //   {
+    //     this.artists = a;
+    //     this.updateDots();
+    //   });
     this.artists = this.service.getAllMock() // TODO: change to getAll
-    this.updateDots();
   }
 
   ngAfterViewInit() {
@@ -37,7 +40,7 @@ export class AllArtistsPageComponent implements OnInit, AfterViewInit {
     if (!this.scrollContainer) return;
     const container = this.scrollContainer.nativeElement;
     const cardWidth = container.firstElementChild?.clientWidth || 200;
-    
+
     this.scrollAmount += cardWidth + 16;
     if (this.scrollAmount >= container.scrollWidth) {
       this.scrollAmount = 0;

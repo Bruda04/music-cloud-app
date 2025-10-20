@@ -24,6 +24,7 @@ export class AuthService {
       if (isAuthenticated) {
         this.oidcSecurityService.getIdToken().subscribe(idToken => {
           if (idToken) {
+            console.log('ID Token:', idToken);
             const payload = this.decodeJwt(idToken);
             const group = payload['cognito:groups']?.[0];
             let role: UserRole;
@@ -49,6 +50,9 @@ export class AuthService {
             console.log('Logged in user:', user);
 
             this.userSubject.next(user);
+            if (idToken) {
+              localStorage.setItem('jwt', idToken);
+            }
           }
         });
       } else {
@@ -64,6 +68,7 @@ export class AuthService {
   logout(): void {
     if (window.sessionStorage) {
       window.sessionStorage.clear();
+      localStorage.clear();
     }
     window.location.href = environment.oidc.logoutUrl;
   }
