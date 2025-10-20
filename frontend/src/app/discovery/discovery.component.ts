@@ -2,6 +2,7 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import {Artist} from '../artists/model/artist.model';
 import {Album} from '../albums/model/album.model';
+import {DialogType} from '../shared/dialog/dialog.component';
 
 interface Genre { name: string; }
 
@@ -23,6 +24,11 @@ export class DiscoveryComponent implements OnInit {
     { name: 'R&B' }
   ];
 
+  showDialog: boolean = false;
+  dialogType: DialogType = 'message';
+  dialogTitle: string = '';
+  dialogMessage: string = '';
+
   selectedGenre: Genre | null = null;
   albumsAndArtistsForGenre: { artists: Artist[]; albums: Album[] } = { artists: [], albums: [] };
   activeDot = 0;
@@ -37,6 +43,7 @@ export class DiscoveryComponent implements OnInit {
       ],
       albums: [
         {
+          albumId: "1",
           title: 'Golden Pop',
           artistIds: ['Luna'],
           genres: ['Pop'],
@@ -48,6 +55,7 @@ export class DiscoveryComponent implements OnInit {
       artists: [{ name: 'The Waves', bio: 'Rock legends', genres: ['Rock'] }],
       albums: [
         {
+          albumId: "1",
           title: 'Rock On',
           artistIds: ['The Waves'],
           genres: ['Rock'],
@@ -71,12 +79,13 @@ export class DiscoveryComponent implements OnInit {
   }
 
   subscribeToGenre(genre: Genre, event: MouseEvent) {
-    event.stopPropagation();
-    alert(`Successfully subscribed to ${genre.name}`);
-  }
+    if (!genre) return;
 
-  openAlbum(album: Album) {
-    alert(`Open album: ${album.title}`);
+
+    this.dialogType = 'message';
+    this.dialogTitle = 'Subscribed!';
+    this.dialogMessage = `Successfully subscribed to ${genre.name}.`;
+    this.showDialog = true;
   }
 
   scrollGenres(direction: number) {
@@ -104,4 +113,10 @@ export class DiscoveryComponent implements OnInit {
     });
     this.activeDot = best;
   }
+
+  onDialogClosed(confirmed: boolean) {
+    // Simply close the dialog for informational messages
+    this.showDialog = false;
+  }
+
 }

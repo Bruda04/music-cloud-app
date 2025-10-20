@@ -48,3 +48,11 @@
     </div>
   </div>
 </div>
+
+<app-dialog
+  *ngIf="showDialog"
+  [type]="dialogType"
+  [title]="dialogTitle"
+  [message]="dialogMessage"
+  (closed)="onDialogClosed($event)">
+</app-dialog>
