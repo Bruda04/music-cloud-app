@@ -347,6 +347,7 @@ class BackendStack(Stack):
                 "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
                 "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
                 "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
                 "GENRE_CONTENTS_TABLE": AppConfig.GENRE_CONTENT_TABLE_NAME,
                 "SNS_PUBLISHING_CONTENT_TOPIC_ARN": self.publishing_content_topic.topic_arn,
                 "REGION": AppConfig.REGION
@@ -396,7 +397,9 @@ class BackendStack(Stack):
             handler="index.lambda_handler",
             code=_lambda.Code.from_asset(AppConfig.GET_ALBUM_TRACK_LAMBDA),
             timeout=Duration.seconds(10),
-            environment={
+            environment={                
+                "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
+                "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
                 "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
                 "REGION": AppConfig.REGION
             }
@@ -470,7 +473,7 @@ class BackendStack(Stack):
             timeout=Duration.seconds(10),
             environment={
                 "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
-                "SONG_TABLE_GSI_ID": AppConfig.SONGS_TABLE_GSI_ID,
+                "SONGS_TABLE_GSI_ID": AppConfig.SONGS_TABLE_GSI_ID,
                 "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
                 "RATINGS_TABLE": AppConfig.RATINGS_TABLE_NAME,
                 "REGION": AppConfig.REGION

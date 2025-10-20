@@ -1,11 +1,19 @@
 import json
 import os
-
+import decimal
 import boto3
+
+from boto3.dynamodb.types import TypeDeserializer
 
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 songs_table = dynamodb.Table(os.environ['SONGS_TABLE'])
 artists_table = dynamodb.Table(os.environ['ARTISTS_TABLE'])
+
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            return float(o)
+        return super(DecimalEncoder, self).default(o)
 
 def lambda_handler(event, context):
     try:
@@ -35,9 +43,9 @@ def lambda_handler(event, context):
             other_artists = _get_artists_by_ids(song.get('otherArtistIds', []))
             mapped_song['otherArtists'] = [
                 {
-                    'artistId': artist['artistId'],
-                    'name': artist['name'],
-                } for artist in other_artists
+                    'artistId': a['artistId'],
+                    'name': a['name'],
+                } for a in other_artists
             ]
 
             songs.append(mapped_song)
@@ -55,7 +63,7 @@ def lambda_handler(event, context):
                 "Access-Control-Allow-Methods": "OPTIONS,GET",
                 "Content-Type": "application/json"
             },
-            'body': json.dumps(result)
+            'body': json.dumps(result, cls=DecimalEncoder)
         }
 
     except Exception as e:
@@ -66,6 +74,9 @@ def lambda_handler(event, context):
 
 
 def _get_artists_by_ids(artist_ids):
+    if not artist_ids:
+        return []
+
     keys = [{'artistId': artist_id} for artist_id in artist_ids]
 
     response = dynamodb.batch_get_item(

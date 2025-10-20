@@ -21,8 +21,7 @@ export class NavbarComponent {
     configuration$ = this.oidcSecurityService.getConfiguration();
     userData$ = this.oidcSecurityService.userData$;
 
-
-    constructor(private router: Router ) {
+    constructor() {
         this.oidcSecurityService.isAuthenticated$.subscribe(({ isAuthenticated }) => {
         this.isLoggedIn = isAuthenticated;
         console.warn('authenticated: ', isAuthenticated);
@@ -32,6 +31,7 @@ export class NavbarComponent {
             if (idToken) {
               const payload = this.decodeJwt(idToken);
               const group = payload['cognito:groups']?.[0];
+              console.log('User group from token:', group);
               let role: UserRole;
               switch (group) {
                 case 'Admins':
