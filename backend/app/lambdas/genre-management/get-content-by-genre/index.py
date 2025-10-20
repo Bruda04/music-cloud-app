@@ -5,9 +5,9 @@ import os
 from boto3.dynamodb.conditions import Key
 
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
-genre_content_table = dynamodb.Table(os.environ["GENRE_CONTENT_TABLE_NAME"])
-artists_table = dynamodb.Table(os.environ["ARTISTS_TABLE_NAME"])
-albums_table = dynamodb.Table(os.environ["ALBUMS_TABLE_NAME"])
+genre_content_table = dynamodb.Table(os.environ["GENRE_CONTENT_TABLE"])
+artists_table = dynamodb.Table(os.environ["ARTISTS_TABLE"])
+albums_table = dynamodb.Table(os.environ["ALBUMS_TABLE"])
 
 def lambda_handler(event, context):
     try:

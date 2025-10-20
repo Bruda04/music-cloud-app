@@ -321,6 +321,19 @@ class BackendStack(Stack):
             }
         )
 
+        self.get_content_by_artist_lambda = _lambda.Function(
+            self, "GetContentByArtistLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.GET_CONTENT_BY_ARTIST_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
+                "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
         self.get_all_genres_lambda = _lambda.Function(
             self,"GetAllGenresLambda",
             runtime=_lambda.Runtime.PYTHON_3_12,
@@ -569,6 +582,8 @@ class BackendStack(Stack):
         self.artists_table.grant_read_data(self.get_all_artists_lambda)
         self.artists_table.grant_read_data(self.get_10_new_artists_lambda)
         self.genre_contents_table.grant_read_write_data(self.create_artist_lambda)
+        self.albums_table.grant_read_data(self.get_content_by_artist_lambda)
+        self.songs_table.grant_read_data(self.get_content_by_artist_lambda)
 
         # Genre lambda
         self.genres_table.grant_read_data(self.get_all_genres_lambda)
@@ -700,6 +715,18 @@ class BackendStack(Stack):
             authorization_type=apigw.AuthorizationType.COGNITO
         )
 
+        # /artists/{artistId}
+        artist_by_id = artists.add_resource("{artistId}")
+
+        # /artists/{artistId}/content
+        artist_content = artist_by_id.add_resource("content")
+        artist_content.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.get_content_by_artist_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
         # /genres
         genres = self.api.root.add_resource("genres")
         genres.add_method(
@@ -825,6 +852,12 @@ class BackendStack(Stack):
         artists.add_cors_preflight(
             allow_origins=apigw.Cors.ALL_ORIGINS,
             allow_methods=["GET", "POST", "OPTIONS"]
+        )
+
+        # /artists/{artistId}/content
+        artist_content.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["GET", "OPTIONS"]
         )
 
         # /artists/new10

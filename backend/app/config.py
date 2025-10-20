@@ -65,6 +65,7 @@ class AppConfig:
     CREATE_ARTIST_LAMBDA = "app/lambdas/artist-management/create-artist"
     GET_10_NEW_ARTISTS_LAMBDA = "app/lambdas/artist-management/get-10-new-artists"
     GET_ALL_ARTISTS_LAMBDA = "app/lambdas/artist-management/get-all"
+    GET_CONTENT_BY_ARTIST_LAMBDA = "app/lambdas/artist-management/get-content-by-artist"
 
     GET_ALL_GENRES_LAMBDA = "app/lambdas/genre-management/get-all"
     GET_CONTENT_BY_GENRE_LAMBDA = "app/lambdas/genre-management/get-content-by-genre"
