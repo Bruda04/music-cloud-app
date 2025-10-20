@@ -148,6 +148,20 @@ class BackendStack(Stack):
             removal_policy=RemovalPolicy.DESTROY
         )
 
+        self.listening_history_table = dynamodb.Table(
+            self, AppConfig.LISTENING_HISTORY_TABLE_ID,
+            table_name=AppConfig.LISTENING_HISTORY_TABLE_NAME,
+            partition_key=dynamodb.Attribute(
+                name="user",
+                type=dynamodb.AttributeType.STRING
+            ),
+            sort_key=dynamodb.Attribute(
+                name="timestamp",
+                type=dynamodb.AttributeType.STRING
+            ),
+            removal_policy=RemovalPolicy.DESTROY
+        )
+
         # --- Cognito User Pool ---
         self.user_pool = cognito.UserPool(
             self, AppConfig.COGNITO_USER_POOL_ID,
@@ -617,6 +631,19 @@ class BackendStack(Stack):
             }
         )
 
+        self.log_listening_history_lambda = _lambda.Function(
+            self, "LogListeningHistoryLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.LOG_LISTENING_HISTORY_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "LISTENING_HISTORY_TABLE": AppConfig.LISTENING_HISTORY_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+
         # --- Grant permissions ---
         # Artist lambdas
         self.artists_table.grant_read_write_data(self.create_artist_lambda)
@@ -686,6 +713,8 @@ class BackendStack(Stack):
         self.subscriptions_table.grant_read_data(self.update_user_feed_lambda)
         self.user_feed_table.grant_read_data(self.get_user_feed_lambda)
 
+        # Listening history lambdas
+        self.listening_history_table.grant_write_data(self.log_listening_history_lambda)
 
         # --- API Gateway ---
         self.api = apigw.RestApi(
@@ -880,6 +909,15 @@ class BackendStack(Stack):
             authorization_type=apigw.AuthorizationType.COGNITO
         )
 
+        # /history
+        history = self.api.root.add_resource("history")
+        history.add_method(
+            "POST",
+            apigw.LambdaIntegration(self.log_listening_history_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
 
         # CORS
         # /albums
@@ -976,6 +1014,12 @@ class BackendStack(Stack):
         feed.add_cors_preflight(
             allow_origins=apigw.Cors.ALL_ORIGINS,
             allow_methods=["GET", "OPTIONS"]
+        )
+
+        # /history
+        history.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["POST", "OPTIONS"]
         )
 
 

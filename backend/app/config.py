@@ -29,6 +29,9 @@ class AppConfig:
     USER_FEED_TABLE_NAME = "UserFeed"
     USER_FEED_TABLE_ID = "UserFeedTable"
 
+    LISTENING_HISTORY_TABLE_NAME = "ListeningHistory"
+    LISTENING_HISTORY_TABLE_ID = "ListeningHistoryTable"
+
     # S3 buckets
     CONTENT_BUCKET_NAME = "cloud-music-app-content"
     CONTENT_BUCKET_ID = "cloud-music-app-content-bucket"
@@ -98,6 +101,8 @@ class AppConfig:
 
     UPDATE_USER_FEED_LAMBDA = "app/lambdas/user-feed-management/update-user-feed"
     GET_USER_FEED_LAMBDA = "app/lambdas/user-feed-management/get-user-feed"
+
+    LOG_LISTENING_HISTORY_LAMBDA = "app/lambdas/listening-history/log-listening-history"
 
     POST_REGISTER_LAMBDA = "app/lambdas/cognito/post-confirmation"
     PRE_SIGNUP_LAMBDA = "app/lambdas/cognito/pre-signup"
