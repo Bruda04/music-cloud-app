@@ -5,12 +5,13 @@ import { Router } from '@angular/router';
 import {UserRole} from '../../../auth/model/user.model';
 import {AuthService} from '../../../auth/auth.service';
 import {DialogType} from '../../../shared/dialog/dialog.component';
+import {CommonModule} from '@angular/common';
 
 @Component({
   selector: 'app-album-card',
   templateUrl: './album-card.component.html',
-  styleUrls: ['../../../shared/themes/card.css'],
-  standalone:false
+  standalone: false,
+  styleUrls: ['../../../shared/themes/card.css']
 })
 export class AlbumCardComponent {
   @Input() album: Album | undefined;

@@ -10,6 +10,7 @@ import { AlbumDetailsComponent } from './albums/details/details.component';
 import { AdminGuard } from './guards/admin.guard';
 import {AllSongsComponent} from './songs/all-songs/all-songs.component';
 import {AuthUserGuard} from './guards/authUser.guard';
+import {DiscoveryComponent} from './discovery/discovery.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -22,6 +23,7 @@ const routes: Routes = [
   { path: 'songs', component: AllSongsComponent, canActivate: [AuthUserGuard]},
   { path: 'songs/create', component: CreateSongComponent, canActivate: [AdminGuard]},
   { path: 'songs/edit/:id', component: CreateSongComponent, canActivate: [AdminGuard] },
+  { path: 'discovery', component: DiscoveryComponent, canActivate: [AuthUserGuard]},
   { path: '**', redirectTo: 'home' },
 ];
 

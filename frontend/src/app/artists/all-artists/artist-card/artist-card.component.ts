@@ -6,9 +6,9 @@ import {AuthService} from '../../../auth/auth.service';
 
 @Component({
   selector: 'app-artist-card',
+  standalone: false,
   templateUrl: './artist-card.component.html',
-  styleUrls: ['../../../shared/themes/card.css'],
-  standalone:false
+  styleUrls: ['../../../shared/themes/card.css']
 })
 export class ArtistCardComponent {
   @Input() artist: Artist | undefined;
