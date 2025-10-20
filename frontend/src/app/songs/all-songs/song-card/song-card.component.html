@@ -1,7 +1,12 @@
 <div class="song-card">
   <div class="basic-info">
     <h3>{{ song.title }}</h3>
-    <p>Artists: {{ getArtistNames() }}</p>
+    <p>Artists: {{song.artist?.name}}</p>
+    <p>Other artists:
+      <span *ngFor="let a of song.otherArtists; let last = last">
+        {{ a.name }}<span *ngIf="!last">, </span>
+      </span>
+    </p>
     <div class="genres">
       <span *ngFor="let genre of song.genres">{{ genre }}</span>
     </div>
@@ -17,7 +22,7 @@
   </div>
 
   <div class="other-info">
-    <div *ngFor="let key of song.other | keyvalue">
+    <div *ngFor="let key of song.other || {} | keyvalue">
       <strong>{{ key.key }}:</strong> {{ key.value }}
     </div>
   </div>

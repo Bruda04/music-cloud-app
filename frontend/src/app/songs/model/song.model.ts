@@ -1,11 +1,16 @@
+import {Artist} from '../../artists/model/artist.model';
+
 export interface Song {
     songId?: string,
     title: string,
-    artistIds: string[],
+    artist?: { artistId:string, name:string},
     genres: string[],
     file:string, // when create: this is base64, when load: this is fileKey, when edit: not changed=fileKey, changed=base64
     fileChanged?:boolean, //for edit
+    otherArtists?:{ artistId:string, name:string}[],
     other?: Record<string,string>,
+    artistId?:string, //for create/edit
+    otherArtistIds?:string[] //for create/edit
 }
 
 export interface CreateSongResponse{

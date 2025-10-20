@@ -14,7 +14,7 @@ import { DialogType } from '../../../shared/dialog/dialog.component';
 export class SongCardComponent {
   @Input() song!: Song;
   @Input() artists: Artist[] = []; // passed from parent (so you call ArtistService only once)
-  
+
   @Output() favourite = new EventEmitter<string>();
   @Output() deleted = new EventEmitter<string>();
 
@@ -29,13 +29,6 @@ export class SongCardComponent {
 
 
   constructor(private songService: SongService,private router:Router) {}
-
-  getArtistNames(): string {
-    if (!this.song || !this.song.artistIds?.length) return 'Unknown artist';
-    return this.song.artistIds
-      .map(id => this.artists.find(a => a.artistId === id)?.name || 'Unknown artist')
-      .join(', ');
-  }
 
   playSong() {
     if (!this.song.file) return;
@@ -60,13 +53,13 @@ export class SongCardComponent {
       error: (err) => console.error('Failed to get song URL', err)
     });
   }
-  
+
   goToEdit() {
     if (this.song){
       this.router.navigate(['/songs/edit', this.song.songId]);
     }
   }
-  
+
   deleteSong() {
     if (!this.song?.songId) return;
 
@@ -83,7 +76,7 @@ export class SongCardComponent {
     if (confirmed && this.pendingDeleteId) {
       this.songService.delete(this.pendingDeleteId).subscribe({
         next: res => {
-          this.deleted.emit(this.pendingDeleteId!); 
+          this.deleted.emit(this.pendingDeleteId!);
           this.dialogType = 'message';
           this.dialogTitle = 'Deleted';
           this.dialogMessage = res.message;

@@ -12,28 +12,30 @@ import { Genre } from '../model/genre.model';
   selector: 'app-create-song',
   templateUrl: './create-song.component.html',
   styleUrls: ['../../shared/themes/forms.css'],
-  standalone:false
+  standalone: false
 })
-export class CreateSongComponent implements OnInit{
+export class CreateSongComponent implements OnInit {
   editMode = false;
 
   song: Song = {
     title: '',
-    artistIds: [],
+    artist: { artistId: '', name: '' },
+    otherArtists: [],
     genres: [],
-    file:'',
-    other:{}
+    file: '',
+    other: {}
   };
 
   artists: Artist[] = [];
   genres: Genre[] = [];
 
+  artistInput: Artist | null = null; // za main artist
+  otherArtistInput: Artist | null = null; // za other artists
   genreInput = '';
   genreInputManual = '';
-  artistInput = ''; 
   otherKey = '';
   otherValue = '';
-  
+
   loading = false;
   errorMessage = '';
   dialogType: DialogType = 'message';
@@ -41,21 +43,57 @@ export class CreateSongComponent implements OnInit{
   dialogMessage = '';
   showDialog = false;
 
-  constructor(private songService: SongService, private artistService:ArtistService, private genreService:GenreService, private router: Router,private route: ActivatedRoute) {}
+  uploadedFile?: File;
+  dragging = false;
 
-  ngOnInit(){
-    // this.artistService.getAll().subscribe(a=> this.artists = a);
-    this.artists = this.artistService.getAllMock(); // TODO: change to getAll, its like this so i dont use all aws free requests
-    // this.genreService.getAll().subscribe(g => this.genres = g);
-    this.genres = this.genreService.getAllMock(); // TODO: change to getAll, its like this so i dont use all aws free requests
+  constructor(
+    private songService: SongService,
+    private artistService: ArtistService,
+    private genreService: GenreService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
+
+  ngOnInit() {
+    this.artists = this.artistService.getAllMock(); // TODO: change to getAll
+    this.genres = this.genreService.getAllMock(); // TODO: change to getAll
+
     const songId = this.route.snapshot.paramMap.get('id');
     if (songId) {
       this.editMode = true;
-      // this.songService.getById(songId).subscribe(song => {
-      //   this.song = song;
-      // });
-      this.song=this.songService.getMockById(); //TODO: change to getById
+      this.song = this.songService.getMockById(); // TODO: change to getById
     }
+  }
+
+  setMainArtist() {
+    if (this.artistInput) {
+      this.song.artist = {
+        artistId: this.artistInput.artistId || '',
+        name: this.artistInput.name || ''
+      };
+      this.artistInput = null;
+    }
+  }
+
+  removeMainArtist() {
+    this.song.artist = { artistId: '', name: '' };
+  }
+
+  addOtherArtist() {
+    if (
+      this.otherArtistInput &&
+      !this.song.otherArtists?.some(a => a.artistId === this.otherArtistInput!.artistId)
+    ) {
+      this.song.otherArtists?.push({
+        artistId: this.otherArtistInput.artistId || '',
+        name: this.otherArtistInput.name || ''
+      });
+      this.otherArtistInput = null;
+    }
+  }
+
+  removeOtherArtist(index: number) {
+    this.song.otherArtists?.splice(index, 1);
   }
 
   addGenre() {
@@ -74,17 +112,6 @@ export class CreateSongComponent implements OnInit{
     this.song.genres.splice(index, 1);
   }
 
-  addArtist() {
-    if (this.artistInput.trim() && !this.song.artistIds.includes(this.artistInput)) {
-      this.song.artistIds.push(this.artistInput.trim());
-      this.artistInput = '';
-    }
-  }
-
-  removeArtist(index: number) {
-    this.song.artistIds.splice(index, 1);
-  }
-
   addOther() {
     if (this.otherKey.trim()) {
       this.song.other![this.otherKey.trim()] = this.otherValue;
@@ -98,21 +125,13 @@ export class CreateSongComponent implements OnInit{
   }
 
   async submit() {
-    if (!this.song.title.trim() || this.song.artistIds.length === 0 || this.song.genres.length === 0) {
-      this.errorMessage = 'Title and at least one Artist and Genre are required';
-      this.dialogType = 'error';
-      this.dialogTitle = 'Validation Error';
-      this.dialogMessage = this.errorMessage;
-      this.showDialog = true;
+    if (!this.song.title.trim() || !this.song.artist?.artistId || this.song.genres.length === 0) {
+      this.showValidationError('Title, main Artist, and at least one Genre are required');
       return;
     }
 
     if (!this.editMode && !this.uploadedFile) {
-      this.errorMessage = 'You must upload an mp3 file';
-      this.dialogType = 'error';
-      this.dialogTitle = 'Validation Error';
-      this.dialogMessage = this.errorMessage;
-      this.showDialog = true;
+      this.showValidationError('You must upload an mp3 file');
       return;
     }
 
@@ -126,8 +145,20 @@ export class CreateSongComponent implements OnInit{
         this.song.fileChanged = false;
       }
 
-      console.log(this.song)
-      const req = this.editMode ? this.songService.edit(this.song): this.songService.create(this.song);
+      const payload: any = {
+        title: this.song.title,
+        artistId: this.song.artist?.artistId,
+        otherArtistIds: this.song.otherArtists?.map(a => a.artistId),
+        genres: this.song.genres,
+        file: this.song.file,
+        fileChanged: this.song.fileChanged,
+        other: this.song.other
+      };
+
+      const req = this.editMode
+        ? this.songService.edit(payload)
+        : this.songService.create(payload);
+
       req.subscribe({
         next: res => {
           this.loading = false;
@@ -163,9 +194,6 @@ export class CreateSongComponent implements OnInit{
     const artist = this.artists.find(a => a.artistId === aId);
     return artist ? artist.name : aId;
   }
-
-  uploadedFile?: File;
-  dragging = false;
 
   onFileDropped(event: DragEvent) {
     event.preventDefault();
@@ -205,4 +233,11 @@ export class CreateSongComponent implements OnInit{
     });
   }
 
+  private showValidationError(message: string) {
+    this.errorMessage = message;
+    this.dialogType = 'error';
+    this.dialogTitle = 'Validation Error';
+    this.dialogMessage = message;
+    this.showDialog = true;
+  }
 }
