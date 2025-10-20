@@ -18,6 +18,8 @@ export class AlbumDetailsComponent implements OnInit {
     currentTrack?: string;
     isPlaying = false;
 
+    photoPath: string = 'photo.jpg';
+
     constructor(private route: ActivatedRoute, private albumService: AlbumService) {}
 
     ngOnInit() {
@@ -41,7 +43,7 @@ export class AlbumDetailsComponent implements OnInit {
         .map(id => this.artists.find(a => a.artistId === id)?.name || 'Unknown artist')
         .join(', ');
     }
-    
+
     playTrack(track:TrackDTO) {
         if (!track.fileKey) return;
 

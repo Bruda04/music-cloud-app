@@ -3,8 +3,8 @@
 }
 
 .genres span {
-  background: #333;       
-  color: #fff;            
+  background: #333;
+  color: #fff;
   border-radius: 1rem;
   padding: 0.2rem 0.6rem;
   margin: 0 0.3rem;
@@ -44,4 +44,26 @@
   color: #fff;
   font-size: 1rem;
   cursor: pointer;
+}
+
+
+.album-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.album-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.album-photo {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-left: 1rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
 }

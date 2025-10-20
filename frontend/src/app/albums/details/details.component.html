@@ -1,19 +1,25 @@
 <div class="album-details" *ngIf="album">
-  <h2>{{ album.title }}</h2>
-  <p><strong>Artists:</strong> {{ getArtistNames() }}</p>
-  <div *ngFor="let o of album.other | keyvalue">
-    <p><strong>{{ o.key }}:</strong> {{ o.value }}</p>
-  </div>
-  <div class="genres">
-    <span *ngFor="let genre of album.genres" class="genre-chip">{{ genre }}</span>
+  <div class="album-header">
+    <div class="album-info">
+      <h2>{{ album.title }}</h2>
+      <p><strong>Artists:</strong> {{ getArtistNames() }}</p>
+      <div *ngFor="let o of album.other | keyvalue">
+        <p><strong>{{ o.key }}:</strong> {{ o.value }}</p>
+      </div>
+      <div class="genres">
+        <span *ngFor="let genre of album.genres" class="genre-chip">{{ genre }}</span>
+      </div>
+    </div>
+
+    <img [src]="photoPath" alt="Album photo" class="album-photo">
   </div>
 
   <h3>Tracks</h3>
   <div class="track-list">
-    <div *ngFor="let track of album.tracks" 
-      class="track-item"
-      [class.playing]="currentTrack === track.fileKey && isPlaying"
-      (click)="playTrack(track)"
+    <div *ngFor="let track of album.tracks"
+         class="track-item"
+         [class.playing]="currentTrack === track.fileKey && isPlaying"
+         (click)="playTrack(track)"
     >
       <span>{{ track.title }}</span>
       <button class="play-btn">
