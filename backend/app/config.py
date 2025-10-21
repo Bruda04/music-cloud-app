@@ -73,7 +73,6 @@ class AppConfig:
 
     # Lambda function paths
     CREATE_ARTIST_LAMBDA = "app/lambdas/artist-management/create-artist"
-    GET_10_NEW_ARTISTS_LAMBDA = "app/lambdas/artist-management/get-10-new-artists"
     GET_ALL_ARTISTS_LAMBDA = "app/lambdas/artist-management/get-all"
     GET_CONTENT_BY_ARTIST_LAMBDA = "app/lambdas/artist-management/get-content-by-artist"
 
@@ -81,7 +80,6 @@ class AppConfig:
     GET_CONTENT_BY_GENRE_LAMBDA = "app/lambdas/genre-management/get-content-by-genre"
 
     CREATE_ALBUM_LAMBDA = "app/lambdas/music-management/album-management/create-album"
-    GET_10_NEW_ALBUMS_LAMBDA = "app/lambdas/music-management/album-management/get-10-new-albums"
     GET_ALL_ALBUMS_LAMBDA = "app/lambdas/music-management/album-management/get-all"
     GET_ALBUM_BY_ID_LAMBDA = "app/lambdas/music-management/album-management/get-by-id"
     GET_ALBUM_TRACK_LAMBDA = "app/lambdas/music-management/album-management/get-url"

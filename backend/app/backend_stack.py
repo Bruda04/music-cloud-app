@@ -333,18 +333,6 @@ class BackendStack(Stack):
             }
         )
 
-        self.get_10_new_artists_lambda = _lambda.Function(
-            self, "Get10NewArtistsLambda",
-            runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="index.lambda_handler",
-            code=_lambda.Code.from_asset(AppConfig.GET_10_NEW_ARTISTS_LAMBDA),
-            timeout=Duration.seconds(10),
-            environment={
-                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
-                "REGION": AppConfig.REGION
-            }
-        )
-
         self.get_all_artists_lambda = _lambda.Function(
             self, "GetAllArtistsLambda",
             runtime=_lambda.Runtime.PYTHON_3_12,
@@ -409,18 +397,6 @@ class BackendStack(Stack):
                 "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
                 "GENRE_CONTENTS_TABLE": AppConfig.GENRE_CONTENT_TABLE_NAME,
                 "SNS_PUBLISHING_CONTENT_TOPIC_ARN": self.publishing_content_topic.topic_arn,
-                "REGION": AppConfig.REGION
-            }
-        )
-
-        self.get_10_new_albums_lambda = _lambda.Function(
-            self,"Get10NewAlbumsLambda",
-            runtime=_lambda.Runtime.PYTHON_3_12,
-            handler="index.lambda_handler",
-            code=_lambda.Code.from_asset(AppConfig.GET_10_NEW_ALBUMS_LAMBDA),
-            timeout=Duration.seconds(10),
-            environment={
-                "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
                 "REGION": AppConfig.REGION
             }
         )
@@ -694,7 +670,6 @@ class BackendStack(Stack):
         # Artist lambdas
         self.artists_table.grant_read_write_data(self.create_artist_lambda)
         self.artists_table.grant_read_data(self.get_all_artists_lambda)
-        self.artists_table.grant_read_data(self.get_10_new_artists_lambda)
         self.genre_contents_table.grant_read_write_data(self.create_artist_lambda)
         self.albums_table.grant_read_data(self.get_content_by_artist_lambda)
         self.songs_table.grant_read_data(self.get_content_by_artist_lambda)
@@ -710,7 +685,6 @@ class BackendStack(Stack):
 
         # Album lambdas
         self.albums_table.grant_read_write_data(self.create_album_lambda)
-        self.albums_table.grant_read_data(self.get_10_new_albums_lambda)
         self.albums_table.grant_read_data(self.get_all_albums_lambda)
         self.albums_table.grant_read_data(self.get_album_by_id_lambda)
         self.content_bucket.grant_read_write(self.create_album_lambda)
@@ -807,15 +781,6 @@ class BackendStack(Stack):
             authorization_type=apigw.AuthorizationType.COGNITO
         )
 
-        # /albums/new10
-        new_albums = albums.add_resource("new10")
-        new_albums.add_method(
-            "GET",
-            apigw.LambdaIntegration(self.get_10_new_albums_lambda),
-            authorizer=self.cognito_authorizer,
-            authorization_type=apigw.AuthorizationType.COGNITO
-        )
-
         # /albums/url
         album_url = albums.add_resource("url")
 
@@ -839,15 +804,6 @@ class BackendStack(Stack):
         artists.add_method(
             "POST",
             apigw.LambdaIntegration(self.create_artist_lambda),
-            authorizer=self.cognito_authorizer,
-            authorization_type=apigw.AuthorizationType.COGNITO
-        )
-
-        # /artists/new10
-        new_artists = artists.add_resource("new10")
-        new_artists.add_method(
-            "GET",
-            apigw.LambdaIntegration(self.get_10_new_artists_lambda),
             authorizer=self.cognito_authorizer,
             authorization_type=apigw.AuthorizationType.COGNITO
         )
@@ -1002,12 +958,6 @@ class BackendStack(Stack):
             allow_methods=["GET", "DELETE", "OPTIONS"]
         )
 
-        # /albums/new10
-        new_albums.add_cors_preflight(
-            allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["GET", "OPTIONS"]
-        )
-
         # /albums/url/{key}
         album_url_by_key.add_cors_preflight(
             allow_origins=apigw.Cors.ALL_ORIGINS,
@@ -1022,12 +972,6 @@ class BackendStack(Stack):
 
         # /artists/{artistId}/content
         artist_content.add_cors_preflight(
-            allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["GET", "OPTIONS"]
-        )
-
-        # /artists/new10
-        new_artists.add_cors_preflight(
             allow_origins=apigw.Cors.ALL_ORIGINS,
             allow_methods=["GET", "OPTIONS"]
         )
