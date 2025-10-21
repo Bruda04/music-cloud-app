@@ -26,7 +26,7 @@ export class CreateArtistComponent {
 
   otherKey = '';
   otherValue = '';
-  
+
   loading = false;
   errorMessage = '';
   dialogType: DialogType = 'message';
@@ -35,10 +35,9 @@ export class CreateArtistComponent {
   showDialog = false;
 
   constructor(private artistService: ArtistService, private genreService:GenreService) {
-    // this.genreService.getAll().subscribe(g => this.genres = g);
-    this.genres = this.genreService.getAllMock(); // TODO: change to getAll, its like this so i dont use all aws free requests
+    this.genreService.getAll().subscribe(g => this.genres = g);
   }
-  
+
   addGenre() {
     const selected = this.genreInput.trim();
     const manual = this.genreInputManual.trim();

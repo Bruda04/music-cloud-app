@@ -31,7 +31,11 @@ export class AllAlbumsPageComponent implements OnInit, AfterViewInit {
         // this.artistService.getAll().subscribe(a=>this.artists=a)
         this.artists=this.artistService.getAllMock() // TODO: change to getAll
         // this.albumService.getAll().subscribe(a=>this.albums=a);
-        this.albums = this.albumService.getAllMock() // TODO: change to getAll
+
+        this.albumService.getAll().subscribe(a=>
+        {
+          this.albums = a;
+        });
         this.updateDots();
     }
 
@@ -43,7 +47,7 @@ export class AllAlbumsPageComponent implements OnInit, AfterViewInit {
         if (!this.scrollContainer) return;
         const container = this.scrollContainer.nativeElement;
         const cardWidth = container.firstElementChild?.clientWidth || 200;
-        
+
         this.scrollAmount += cardWidth + 16;
         if (this.scrollAmount >= container.scrollWidth) {
         this.scrollAmount = 0;

@@ -13,44 +13,55 @@ import { CommonModule } from '@angular/common';
   standalone: true
 })
 export class AllSongsComponent implements OnInit {
-    @Input() artists: Artist[] = []; // with this i will have only one call on it
+  @Input() artists: Artist[] = [];
 
-    songs: Song[] = [];
-    lastKey?: string;
-    limit = 5;
-    page = 1;
+  songs: Song[] = [];
+  pageKeys: (string | undefined)[] = [undefined]; // pageKeys[0] = first page start = undefined
+  page = 1;
+  limit = 5;
 
-    constructor(private songService: SongService) {}
+  constructor(private songService: SongService) {}
 
-    ngOnInit() {
-        this.loadSongs();
+  ngOnInit() {
+    this.loadSongs(this.page);
+  }
+
+  loadSongs(page: number) {
+    const lastKey = this.pageKeys[page - 1]; // start key for the requested page
+
+    this.songService.getSongs(this.limit, lastKey).subscribe(res => {
+      if (res.songs.length === 0 && page > 1) {
+        // If no songs, do not move page forward
+        return;
+      }
+
+      this.songs = res.songs;
+      this.page = page;
+
+      // Store lastKey for the next page
+      if (res.lastKey) {
+        this.pageKeys[page] = res.lastKey;
+      } else {
+        this.pageKeys[page] = undefined;
+      }
+    });
+  }
+
+  nextPage() {
+    this.loadSongs(this.page + 1);
+  }
+
+  prevPage() {
+    if (this.page > 1) {
+      this.loadSongs(this.page - 1);
     }
+  }
 
-    loadSongs(lastKey?: string) {
-        // this.songService.getSongs(this.limit, lastKey).subscribe(res => {
-        //     console.log(res)
-        //     this.songs = res.songs;
-        //     this.lastKey = res.lastKey;
-        // });
-        this.songs=this.songService.getMockSongs(); //TODO: change to getSongs, now is mock due to too many requests
-    }
+  onSongDeleted(id: string) {
+    this.loadSongs(this.page);
+  }
 
-    nextPage() {
-        if (this.lastKey) {
-        this.page++;
-        this.loadSongs(this.lastKey);
-        }
-    }
-
-    prevPage() {
-        if (this.page > 1) {
-        this.page--;
-        this.loadSongs();
-        }
-    }
-
-    onSongDeleted(id: string) {
-        this.loadSongs()
-    }
-    onRate(id: string) { console.log('Rate', id); }
+  onRate(id: string) {
+    console.log('Rate', id);
+  }
 }
