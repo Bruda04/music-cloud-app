@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { Album, AlbumTrack, TrackDTO } from '../model/album.model';
+import {Album, AlbumTrack, CreateAlbumDTO, CreateTrackDTO, TrackDTO} from '../model/album.model';
 import { ArtistService } from '../../artists/service/artist.service';
 import { Artist } from '../../artists/model/artist.model';
 import { AlbumService } from '../service/album.service';
@@ -15,15 +15,23 @@ import { GenreService } from '../../songs/service/genre.service';
   standalone: false
 })
 export class CreateAlbumComponent implements OnInit {
-    album: Album = {
+    album: CreateAlbumDTO = {
         title: '',
-        artistIds: [],
+        artistId: "",
         genres: [],
+        imageFile: "",
+        details: "",
         tracks: [],
         other: {}
     };
 
-    tracks: AlbumTrack[] = [{ title: '', file: undefined, dragging: false }];
+  imageDragging = false;
+  imageFileName = '';
+  uploadImageFile: File | undefined;
+
+
+
+  tracks: AlbumTrack[] = [{ title: '', file: undefined, dragging: false }];
     fileInputMap = new Map<AlbumTrack, HTMLInputElement>();
 
     artists: Artist[] = [];
@@ -31,7 +39,6 @@ export class CreateAlbumComponent implements OnInit {
 
     genreInput = '';
     genreInputManual = '';
-    artistInput = '';
     otherKey = '';
     otherValue = '';
 
@@ -45,8 +52,14 @@ export class CreateAlbumComponent implements OnInit {
     constructor( private artistService: ArtistService, private genreService: GenreService, private albumService: AlbumService, private router: Router) {}
 
     ngOnInit() {
-        this.artists = this.artistService.getAllMock();
-        this.genres = this.genreService.getAllMock();
+        this.artistService.getAll().subscribe(a=>
+        {
+          this.artists = a;
+        });
+        this.genreService.getAll().subscribe(a=>
+        {
+          this.genres = a;
+        });
     }
 
     addGenre() {
@@ -62,16 +75,6 @@ export class CreateAlbumComponent implements OnInit {
         this.album.genres.splice(index, 1);
     }
 
-    addArtist() {
-        if (this.artistInput.trim() && !this.album.artistIds.includes(this.artistInput)) {
-        this.album.artistIds.push(this.artistInput.trim());
-        this.artistInput = '';
-        }
-    }
-
-    removeArtist(index: number) {
-        this.album.artistIds.splice(index, 1);
-    }
 
     addOther() {
         if (this.otherKey.trim()) {
@@ -119,54 +122,86 @@ export class CreateAlbumComponent implements OnInit {
     }
 
     async submit() {
+      if (!this.album.title.trim() || this.album.artistId.length === 0 || this.album.genres.length === 0) {
+          this.showError('Title, author Artist and Genre are required');
+          return;
+      }
 
-    if (!this.album.title.trim() || this.album.artistIds.length === 0 || this.album.genres.length === 0) {
-        this.showError('Title and at least one Artist and Genre are required');
-        return;
-    }
-
-    for (let t of this.tracks) {
-        if (!t.title.trim() || !t.file) {
-        this.showError('Each track must have a title and an audio file');
-        return;
+        if (!this.album.details.trim()) {
+          this.showError('Album details are required');
+          return;
         }
-    }
 
-    this.loading = true;
+        if (!this.uploadImageFile) {
+          this.showError('Album cover image is required');
+          return;
+        }
 
-    try {
-        const tracksPayload:TrackDTO[] = await Promise.all(
-            this.tracks.map(async (t) => ({
-                title: t.title.trim(),
-                fileKey: await this.convertFileToBase64(t.file!)
-            }))
+
+        for (let t of this.tracks) {
+          if (!t.title.trim() || !t.file) {
+          this.showError('Each track must have a title and an audio file');
+          return;
+          }
+      }
+
+      this.loading = true;
+
+      try {
+
+        const tracksPayload: CreateTrackDTO[] = await Promise.all(
+          this.tracks.map(async (t) => ({
+            title: t.title.trim(),
+            file: await this.convertFileToBase64(t.file!)
+          }))
         );
 
-        const payload:Album = {
-            title: this.album.title,
-            artistIds: this.album.artistIds,
-            genres: this.album.genres,
-            tracks: tracksPayload,
-            other: this.album.other
-        };
 
-        this.albumService.create(payload).subscribe({
-        next: (res) => {
-            this.loading = false;
-            this.showMessage(res.message);
-        },
-        error: (err) => {
-            console.error(err);
-            this.loading = false;
-            this.showError('Error creating the album.');
+        let imageBase64 = "";
+        if(this.uploadImageFile) {
+           imageBase64 = await this.convertFileToBase64(this.uploadImageFile);
         }
-        });
-    } catch (err) {
-        console.error(err);
-        this.loading = false;
-        this.showError('Failed to convert files to Base64.');
-    }
-    }
+
+        const payload:CreateAlbumDTO = {
+              title: this.album.title,
+              artistId: this.album.artistId,
+              genres: this.album.genres,
+              imageFile: imageBase64,
+              tracks: tracksPayload,
+            details: this.album.details.trim(),
+          other: this.album.other
+          };
+
+          this.albumService.create(payload).subscribe({
+          next: (res) => {
+              this.loading = false;
+              this.showMessage(res.message);
+          },
+          error: (err) => {
+              console.error(err);
+              this.loading = false;
+              this.showError('Error creating the album.');
+          }
+          });
+      } catch (err) {
+          console.error(err);
+          this.loading = false;
+          this.showError('Failed to convert files to Base64.');
+      }
+      }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     showError(message: string) {
         this.errorMessage = message;
@@ -200,8 +235,35 @@ export class CreateAlbumComponent implements OnInit {
         });
     }
 
-    getArtistNameById(aId: string): string {
-        const artist = this.artists.find(a => a.artistId === aId);
-        return artist ? artist.name : aId;
+
+
+
+  onImageSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.uploadImageFile = file;  // store the File object
+      this.imageFileName = file.name;
     }
+  }
+
+  onImageDropped(event: DragEvent) {
+    event.preventDefault();
+    this.imageDragging = false;
+    if (event.dataTransfer && event.dataTransfer.files.length > 0) {
+      const file = event.dataTransfer.files[0];
+      this.uploadImageFile = file;
+      this.imageFileName = file.name;
+    }
+  }
+
+  onImageDragOver(event: DragEvent) {
+    event.preventDefault();
+    this.imageDragging = true;
+  }
+
+  onImageDragLeave(event: DragEvent) {
+    event.preventDefault();
+    this.imageDragging = false;
+  }
+
 }

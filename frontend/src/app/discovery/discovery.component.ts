@@ -42,25 +42,13 @@ export class DiscoveryComponent implements OnInit {
         { name: 'Maya', bio: 'Pop-R&B hybrid', genres: ['Pop', 'R&B'] }
       ],
       albums: [
-        {
-          albumId: "1",
-          title: 'Golden Pop',
-          artistIds: ['Luna'],
-          genres: ['Pop'],
-          tracks: []
-        }
+
       ]
     },
     "Rock": {
       artists: [{ name: 'The Waves', bio: 'Rock legends', genres: ['Rock'] }],
       albums: [
-        {
-          albumId: "1",
-          title: 'Rock On',
-          artistIds: ['The Waves'],
-          genres: ['Rock'],
-          tracks: []
-        }
+
       ]
     }
   };

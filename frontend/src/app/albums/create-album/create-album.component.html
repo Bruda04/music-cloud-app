@@ -6,20 +6,14 @@
     <input type="text" [(ngModel)]="album.title" name="title" placeholder="Album title" />
 
     <!-- Artists -->
-    <div class="array-group">
-      <label>Artists *</label>
-      <div class="array-tokens">
-        <div class="array-item" *ngFor="let aId of album.artistIds; let i = index">
-            <span>{{ getArtistNameById(aId) }}</span>
-            <button type="button" (click)="removeArtist(i)">x</button>
-        </div>
-      </div>
-      <select [(ngModel)]="artistInput" name="artistSelect">
+    <div class="form-group">
+      <label>Artist *</label>
+      <select [(ngModel)]="album.artistId" name="artistSelect">
         <option value="">-- Select artist --</option>
         <option *ngFor="let a of artists" [value]="a.artistId">{{ a.name }}</option>
       </select>
-      <button type="button" (click)="addArtist()">Add Artist</button>
     </div>
+
 
     <!-- Genres -->
     <div class="array-group">
@@ -53,6 +47,38 @@
       <button type="button" (click)="addOther()">Add Other</button>
     </div>
 
+
+
+    <!-- Details -->
+    <div class="form-group">
+      <label>Details *</label>
+      <textarea [(ngModel)]="album.details" name="details" placeholder="Enter album details" style="width: 95% !important;"></textarea>
+    </div>
+
+    <!-- Album Image -->
+    <div class="form-group">
+      <label>Album Cover *</label>
+      <div class="file-drop-zone"
+           [class.dragging]="imageDragging"
+           (drop)="onImageDropped($event)"
+           (dragover)="onImageDragOver($event)"
+           (dragleave)="onImageDragLeave($event)"
+           (click)="imageInput.click()">
+        <p *ngIf="!this.uploadImageFile">Click or drag & drop an image here</p>
+        <p *ngIf="this.uploadImageFile"><strong>{{ imageFileName }}</strong> selected</p>
+        <input type="file" #imageInput (change)="onImageSelected($event)" accept="image/*" hidden />
+      </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
     <!-- Tracks -->
     <div class="array-group">
       <label>Tracks *</label>
@@ -71,7 +97,7 @@
 
         <button type="button" (click)="removeTrack(i)" *ngIf="tracks.length > 1">Remove Track</button>
       </div>
-      <button type="button" (click)="addTrack()">Add Track</button>
+      <button type="button" (click)="addTrack()" style="background: transparent !important; border: 1px solid #50C878; color: #50C878">Add Track</button>
     </div>
 
     <button type="submit" [disabled]="loading">Create Album</button>

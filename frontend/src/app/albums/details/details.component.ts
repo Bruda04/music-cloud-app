@@ -33,17 +33,14 @@ export class AlbumDetailsComponent implements OnInit {
         } else {
             const albumId = this.route.snapshot.paramMap.get('id');
             if (albumId) {
-                // this.albumService.getById(albumId).subscribe(album => {this.album = album;});
-                this.album=this.albumService.getMock() //TODO: chamge to getById
+                this.albumService.getById(albumId).subscribe(album => {this.album = album;});
             }
         }
     }
 
     getArtistNames(): string {
-        if (!this.album?.artistIds?.length) return 'Unknown artist';
-        return this.album.artistIds
-        .map(id => this.artists.find(a => a.artistId === id)?.name || 'Unknown artist')
-        .join(', ');
+        if (!this.album?.artistId?.length) return 'Unknown artist';
+        return this.album.artistId
     }
 
     playTrack(track:TrackDTO) {

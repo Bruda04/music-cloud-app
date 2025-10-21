@@ -4,6 +4,8 @@ import boto3
 import uuid
 import os
 from datetime import datetime
+import imghdr
+
 
 s3 = boto3.client('s3')
 BUCKET = os.environ['BUCKET']
@@ -29,6 +31,48 @@ def lambda_handler(event, context):
                 'headers': _cors_headers(),
                 'body': json.dumps({'message': f'Missing required fields: {", ".join(missing)}'})
             }
+
+
+        #Image handling
+        image_bytes = base64.b64decode(body['imageFile'])
+        timestamp = int(datetime.utcnow().timestamp())
+        safe_title = body['title'].replace(' ', '_')
+
+        # Detect image type
+        image_type = imghdr.what(None, h=image_bytes)
+        if image_type not in ['jpeg', 'png']:
+            return {
+                'statusCode': 400,
+                'headers': _cors_headers(),
+                'body': json.dumps({'message': 'Only JPG and PNG images are supported.'})
+            }
+
+        # Use jpg instead of jpeg for filename
+        ext = 'jpg' if image_type == 'jpeg' else 'png'
+        image_key = f"{timestamp}-{safe_title}.{ext}"
+
+        s3.put_object(
+            Bucket=BUCKET,
+            Key=f"albums/{image_key}",
+            Body=image_bytes,
+            ContentType=f'image/{ext}'
+        )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         track_file_keys = []
         for track in body['tracks']:
@@ -83,7 +127,7 @@ def lambda_handler(event, context):
             'tracks': track_file_keys,
             'createdAt': datetime.utcnow().isoformat(),
             'details': body['details'],
-            'imageFile': body['imageFile']
+            'imageFile': image_key
         }
 
         if 'other' in body and isinstance(body['other'], dict):

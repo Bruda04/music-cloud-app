@@ -30,7 +30,7 @@ constructor(
   ngOnInit(): void {
     // Get artist data from route state (like your album navigation)
     this.artist = history.state.artist;
-    this.content = {"albums": this.albumService.getAllMock(), "songs": this.songService.getMockSongs()}
+    this.content = {"albums": this.albumService.getAll(), "songs": this.songService.getMockSongs()}
 
     // Load songs for this artist
     this.loadSongs();

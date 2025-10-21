@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import { Album } from '../../model/album.model';
 import { Artist } from '../../../artists/model/artist.model';
 import { Router } from '@angular/router';
@@ -13,10 +13,10 @@ import {CommonModule} from '@angular/common';
   standalone: false,
   styleUrls: ['../../../shared/themes/card.css']
 })
-export class AlbumCardComponent {
+export class AlbumCardComponent implements OnInit {
   @Input() album: Album | undefined;
   @Input() artists: Artist[] = [];
-  photoPath: string = 'photo.jpg';
+  photoPath: string | undefined = "";
 
 
   showDialog = false;
@@ -27,11 +27,8 @@ export class AlbumCardComponent {
 
   constructor(private router:Router,  protected authService: AuthService){}
 
-  getArtistNames(): string {
-  if (!this.album || !this.album.artistIds?.length) return 'Unknown artist';
-      return this.album.artistIds
-      .map(id => this.artists.find(a => a.artistId === id)?.name || 'Unknown artist')
-      .join(', ');
+  ngOnInit() {
+    this.photoPath = "https://cloud-music-app-content.s3.eu-central-1.amazonaws.com/albums/1761015586-Mama_mia.jpg"
   }
 
   openAlbum() {

@@ -28,14 +28,13 @@ export class AllAlbumsPageComponent implements OnInit, AfterViewInit {
     constructor(private albumService:AlbumService, private artistService: ArtistService) {}
 
     ngOnInit(): void {
-        // this.artistService.getAll().subscribe(a=>this.artists=a)
-        this.artists=this.artistService.getAllMock() // TODO: change to getAll
-        // this.albumService.getAll().subscribe(a=>this.albums=a);
 
         this.albumService.getAll().subscribe(a=>
         {
           this.albums = a;
         });
+        console.log("here")
+        console.log(this.albums)
         this.updateDots();
     }
 

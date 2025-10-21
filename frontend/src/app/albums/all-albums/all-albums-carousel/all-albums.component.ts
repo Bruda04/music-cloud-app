@@ -27,7 +27,6 @@ export class AllAlbumsCarouselComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     // this.service.get10New().subscribe(a=>this.albums=a);
-    this.albums = this.service.getAllMock() // TODO: change to get10New
     this.updateDots();
   }
 
@@ -39,7 +38,7 @@ export class AllAlbumsCarouselComponent implements OnInit, AfterViewInit {
     if (!this.scrollContainer) return;
     const container = this.scrollContainer.nativeElement;
     const cardWidth = container.firstElementChild?.clientWidth || 200;
-    
+
     this.scrollAmount += cardWidth + 16;
     if (this.scrollAmount >= container.scrollWidth) {
       this.scrollAmount = 0;
