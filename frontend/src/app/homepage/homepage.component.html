@@ -2,4 +2,4 @@
 <h1 *ngIf="authService.loggedInUser?.role==UserRole.AuthUser">Welcome User</h1>
 <h1 *ngIf="!authService.loggedInUser">Welcome Guest</h1>
 
-
+<app-feed *ngIf="authService.loggedInUser?.role==UserRole.AuthUser"/>
