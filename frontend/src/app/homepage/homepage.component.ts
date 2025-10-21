@@ -13,7 +13,7 @@ import {UserRole} from '../auth/model/user.model';
   templateUrl: './homepage.component.html',
   styleUrls: ['./homepage.component.css'],
   standalone: true,
-  imports: [AllSongsComponent, AllArtistsCarouselComponent, AllAlbumsCarouselComponent, NgIf]
+  imports: [NgIf]
 })
 export class HomepageComponent implements OnInit{
   artists: Artist[]=[]

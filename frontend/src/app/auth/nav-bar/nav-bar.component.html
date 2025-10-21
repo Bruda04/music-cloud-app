@@ -14,7 +14,7 @@
   <a class="close-btn" (click)="toggleMenu()">×</a>
   <ul>
     <li><a routerLink="/home" routerLinkActive="active" (click)="toggleMenu()">Homepage</a></li>
-    <li><a *ngIf="loggedInUser?.role!='Admin'" routerLink="/discovery" routerLinkActive="active" (click)="toggleMenu()">Discovery</a></li>
+    <li><a routerLink="/discovery" routerLinkActive="active" (click)="toggleMenu()">Discovery</a></li>
 
     <li><a routerLink="/artists" routerLinkActive="active" (click)="toggleMenu()">All artists</a></li>
     <li><a routerLink="/albums" routerLinkActive="active" (click)="toggleMenu()">All albums</a></li>

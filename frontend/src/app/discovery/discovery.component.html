@@ -30,7 +30,7 @@
   </div>
 
   <div *ngIf="selectedGenre" class="albums-section">
-    <h2 class="section-title">Artists for "{{ selectedGenre?.name }}"</h2>
+    <h2 class="section-title">Artists for "{{ selectedGenre.name }}"</h2>
     <div class="all-items-grid">
       <app-artist-card
         *ngFor="let artist of albumsAndArtistsForGenre.artists"
@@ -38,7 +38,7 @@
       ></app-artist-card>
     </div>
 
-    <h2 class="section-title">Albums for "{{ selectedGenre?.name }}"</h2>
+    <h2 class="section-title">Albums for "{{ selectedGenre.name }}"</h2>
     <div class="all-items-grid">
       <app-album-card
         *ngFor="let album of albumsAndArtistsForGenre.albums"

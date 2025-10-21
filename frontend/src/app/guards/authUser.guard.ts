@@ -8,7 +8,8 @@ export class AuthUserGuard implements CanActivate {
   constructor(private authService: AuthService, private router: Router) {}
 
   canActivate(): boolean {
-    if (this.authService.loggedInUser?.role==UserRole.AuthUser) return true;
+    console.log(this.authService.loggedInUser)
+    if (this.authService.loggedInUser?.role==UserRole.AuthUser || this.authService.loggedInUser?.role==UserRole.Admin) return true;
     this.router.navigate(['/home']);
     return false;
   }
