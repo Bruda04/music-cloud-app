@@ -54,19 +54,17 @@ def lambda_handler(event, context):
         }
 
         if 'other' in body and isinstance(body['other'], dict):
-            for k, v in body['other'].items():
-                if k not in updated_item:
-                    updated_item[k] = v
-                else:
-                    updated_item[f'other_{k}'] = v
+            updated_item["other"] = body["other"]
 
-        update_expr = "SET " + ", ".join(f"{k} = :{k}" for k in updated_item.keys())
+        expr_attr_names = {f"#{k}": k for k in updated_item.keys()}
         expr_attr_vals = {f":{k}": v for k, v in updated_item.items()}
+        update_expr = "SET " + ", ".join(f"#{k} = :{k}" for k in updated_item.keys())
 
         artists_table.update_item(
             Key={"artistId": artist_id},
             UpdateExpression=update_expr,
-            ExpressionAttributeValues=expr_attr_vals
+            ExpressionAttributeValues=expr_attr_vals,
+            ExpressionAttributeNames=expr_attr_names
         )
 
         return _response(200, {"message": "Artist updated successfully", "artistId": artist_id})
@@ -79,7 +77,9 @@ def _response(status_code, body):
     return {
         "statusCode": status_code,
         "headers": {
-            "Access-Control-Allow-Origin": "*"
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type,Authorization"
         },
         "body": json.dumps(body)
     }

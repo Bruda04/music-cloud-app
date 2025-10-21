@@ -1103,13 +1103,13 @@ class BackendStack(Stack):
         # /artists
         artists.add_cors_preflight(
             allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["GET", "POST", "OPTIONS"]
+            allow_methods=["GET", "POST","PUT", "OPTIONS"]
         )
         
         # /artists/{artistId}
         artist_by_id.add_cors_preflight(
             allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["DELETE", "PUT", "OPTIONS"]
+            allow_methods=["DELETE", "PUT", "GET", "OPTIONS"]
         )
 
         # /artists/{artistId}/content

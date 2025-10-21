@@ -40,7 +40,20 @@ constructor(private artistService: ArtistService, private genreService:GenreServ
     const artistId = this.route.snapshot.paramMap.get('id');
     if (artistId) {
       this.editMode = true;
-      this.artist = this.artistService.getMock(); // TODO: change to getById
+      this.artistService.getById(artistId).subscribe({
+        next: artistData => {
+          this.artist = artistData;
+        },
+        error: err => {
+          console.error(err);
+          this.errorMessage = 'Error loading artist data.';
+          this.dialogType = 'error';
+          this.dialogTitle = 'Error';
+          this.dialogMessage = this.errorMessage;
+          this.showDialog = true;
+        }
+      }); 
+      // this.artist = this.artistService.getMock(); // TODO: change to getById
     }
   }
 
@@ -61,6 +74,9 @@ constructor(private artistService: ArtistService, private genreService:GenreServ
   }
 
   addOther() {
+    if (!this.artist.other) {
+      this.artist.other = {}; // Initialize if undefined
+    }
     if (this.otherKey.trim()) {
       this.artist.other![this.otherKey.trim()] = this.otherValue;
       this.otherKey = '';
