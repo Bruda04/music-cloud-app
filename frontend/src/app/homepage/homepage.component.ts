@@ -8,13 +8,14 @@ import {NgIf} from '@angular/common';
 import {AuthService} from '../auth/auth.service';
 import {UserRole} from '../auth/model/user.model';
 import {Router} from '@angular/router';
+import {FeedComponent} from '../feed/feed.component';
 
 @Component({
   selector: 'app-root',
   templateUrl: './homepage.component.html',
   styleUrls: ['./homepage.component.css'],
   standalone: true,
-  imports: [NgIf]
+  imports: [NgIf, FeedComponent]
 })
 export class HomepageComponent implements OnInit{
   artists: Artist[]=[]
