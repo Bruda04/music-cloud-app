@@ -26,8 +26,6 @@ export interface AlbumTrack {
   title: string;
   file?: File;
   fileBase64?: string;
-  otherArtistIds: string[];
-  genres?: string[];
   dragging?: boolean
 }
 
