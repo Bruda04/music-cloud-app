@@ -110,7 +110,8 @@ class AppConfig:
     POST_REGISTER_LAMBDA = "app/lambdas/cognito/post-confirmation"
     PRE_SIGNUP_LAMBDA = "app/lambdas/cognito/pre-signup"
 
-    IMAGES_GET_LAMBDA = "app/lambdas/images-management/get-url"
+    IMAGES_ALBUM_GET_LAMBDA = "app/lambdas/images-management/get-url-album"
+    IMAGES_SONG_GET_LAMBDA = "app/lambdas/images-management/get-url-song"
 
     # SES
     SES_FROM_EMAIL = ""
