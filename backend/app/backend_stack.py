@@ -9,7 +9,7 @@ from aws_cdk import (
     RemovalPolicy,
     aws_iam as iam,
     aws_sns as sns,
-    aws_sns_subscriptions as subscriptions,
+    aws_sns_subscriptions as sns_subscriptions,
     aws_sqs as sqs
 )
 from constructs import Construct
@@ -603,13 +603,27 @@ class BackendStack(Stack):
                 "SES_FROM_EMAIL": AppConfig.SES_FROM_EMAIL
             }
         )
-        self.publishing_content_topic.add_subscription(subscriptions.SqsSubscription(self.notification_queue))
+        self.publishing_content_topic.add_subscription(sns_subscriptions.SqsSubscription(self.notification_queue))
         _lambda.EventSourceMapping(
             self, "NotifyLambdaEventSource",
             target=self.notify_subscribers_lambda,
             event_source_arn=self.notification_queue.queue_arn,
             batch_size=10,
             enabled=True
+        )
+
+        self.get_user_subscriptions_lambda = _lambda.Function(
+            self, "GetUserSubscriptionsLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.GET_USER_SUBSCRIPTIONS_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "SUBSCRIPTIONS_TABLE": AppConfig.SUBSCRIPTIONS_TABLE_NAME,
+                "SUBSCRIPTIONS_TABLE_GSI_ID": AppConfig.SUBSCRIPTIONS_TABLE_GSI_ID,
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
         )
 
         self.update_user_feed_lambda = _lambda.Function(
@@ -625,7 +639,7 @@ class BackendStack(Stack):
                 "REGION": AppConfig.REGION
             }
         )
-        self.publishing_content_topic.add_subscription(subscriptions.SqsSubscription(self.update_user_feed_queue))
+        self.publishing_content_topic.add_subscription(sns_subscriptions.SqsSubscription(self.update_user_feed_queue))
         _lambda.EventSourceMapping(
             self, "UpdateUserFeedLambdaEventSource",
             target=self.update_user_feed_lambda,
@@ -721,6 +735,8 @@ class BackendStack(Stack):
             actions=["ses:SendEmail", "ses:SendRawEmail"],
             resources=["*"]
         ))
+        self.subscriptions_table.grant_read_data(self.get_user_subscriptions_lambda)
+        self.artists_table.grant_read_data(self.get_user_subscriptions_lambda)
 
         # User feed lambdas
         self.update_user_feed_queue.grant_consume_messages(self.update_user_feed_lambda)
@@ -897,6 +913,16 @@ class BackendStack(Stack):
             authorization_type=apigw.AuthorizationType.COGNITO
         )
 
+        # /subscriptions
+        subscriptions = self.api.root.add_resource("subscriptions")
+        subscriptions.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.get_user_subscriptions_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
+
         # /subscribe
         subscribe = self.api.root.add_resource("subscribe")
         subscribe.add_method(
@@ -1011,6 +1037,12 @@ class BackendStack(Stack):
         rate.add_cors_preflight(
             allow_origins=apigw.Cors.ALL_ORIGINS,
             allow_methods=["POST", "OPTIONS"]
+        )
+
+        # /subscriptions
+        subscriptions.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["GET", "OPTIONS"]
         )
 
         # /subscribe

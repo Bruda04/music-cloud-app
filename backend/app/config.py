@@ -98,6 +98,7 @@ class AppConfig:
     SUBSCRIBE_CONTENT_LAMBDA = "app/lambdas/subscription-management/subscribe"
     UNSUBSCRIBE_CONTENT_LAMBDA = "app/lambdas/subscription-management/unsubscribe"
     NOTIFY_SUBSCRIBERS_LAMBDA = "app/lambdas/subscription-management/notify-subscribers"
+    GET_USER_SUBSCRIPTIONS_LAMBDA = "app/lambdas/subscription-management/get-user-subscriptions"
 
     UPDATE_USER_FEED_LAMBDA = "app/lambdas/user-feed-management/update-user-feed"
     GET_USER_FEED_LAMBDA = "app/lambdas/user-feed-management/get-user-feed"
