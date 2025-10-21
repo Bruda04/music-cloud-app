@@ -3,8 +3,6 @@ import os
 import decimal
 import boto3
 
-from boto3.dynamodb.types import TypeDeserializer
-
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 artists_table = dynamodb.Table(os.environ["ARTISTS_TABLE"])
 
@@ -32,6 +30,9 @@ def lambda_handler(event, context):
         scan_kwargs = {'Limit': limit}
         if last_key:
             scan_kwargs['ExclusiveStartKey'] = json.loads(last_key)
+
+        scan_kwargs['FilterExpression'] = "attribute_not_exists(isDeleted) OR isDeleted = :false"
+        scan_kwargs['ExpressionAttributeValues'] = {":false": False}
 
         response = artists_table.scan(**scan_kwargs)
         items = response.get('Items', [])

@@ -14,28 +14,23 @@ def lambda_handler(event, context):
     try:
         claims = event.get("requestContext", {}).get("authorizer", {}).get("claims", {})
         user = claims.get("email")
-
         if not user:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'error': 'User email not found in token'})
-            }
+            return _response(400, {'error': 'User email not found in token'})
 
         body = json.loads(event.get('body', '{}'))
-        rating = int(body['rating'])
+        rating = int(body.get('rating', 0))
         song_id = body.get('songId')
         album_id = body.get('albumId')
 
         if not song_id:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'error': 'songId is required'})
-            }
+            return _response(400, {'error': 'songId is required'})
 
         if album_id:
             content_key = f"album#{album_id}#song#{song_id}"
         else:
             content_key = f"song#{song_id}"
+
+        artist_id = None
 
         if album_id:
             gsi_response = albums_table.query(
@@ -43,13 +38,15 @@ def lambda_handler(event, context):
                 KeyConditionExpression=Key('albumId').eq(album_id)
             )
 
-            if not gsi_response['Items']:
-                raise ValueError("Album not found")
+            if not gsi_response.get('Items'):
+                return _response(404, {'error': 'Album not found'})
 
-            song_keys = gsi_response['Items'][0]
-            artist_id = song_keys['artistId']
+            album_item = gsi_response['Items'][0]
+            artist_id = album_item.get('artistId')
+            if not artist_id:
+                artist_id = "unknown-artist"
 
-            album = albums_table.get_item(Key={'albumId': album_id, 'artistId':artist_id}).get('Item')
+            album = albums_table.get_item(Key={'albumId': album_id, 'artistId': artist_id}).get('Item', {})
             if album and 'tracks' in album:
                 updated_tracks = []
                 for track in album['tracks']:
@@ -70,11 +67,11 @@ def lambda_handler(event, context):
                 KeyConditionExpression=Key('songId').eq(song_id)
             )
 
-            if not gsi_response['Items']:
-                raise ValueError("Song not found")
+            if not gsi_response.get('Items'):
+                return _response(404, {'error': 'Song not found'})
 
-            song_keys = gsi_response['Items'][0]
-            artist_id = song_keys['artistId']
+            song_item = gsi_response['Items'][0]
+            artist_id = song_item.get('artistId', 'unknown-artist')
 
             songs_table.update_item(
                 Key={'songId': song_id, 'artistId': artist_id},
@@ -93,19 +90,25 @@ def lambda_handler(event, context):
                 'contentKey': content_key,
                 'user': user,
                 'rating': rating,
-                'artistId': artist_id
+                'artistId': artist_id or "unknown-artist"
             }
         )
 
-        return {
-            'statusCode': 200,
-            'headers': {'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'message': 'Rating added successfully'})
-        }
+        return _response(200, {'message': 'Rating added successfully'})
 
     except Exception as e:
         print("Error:", e)
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': str(e)})
-        }
+        return _response(500, {'error': str(e)})
+
+
+def _response(status_code, body):
+    return {
+        'statusCode': status_code,
+        'headers': {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Methods": "OPTIONS,POST",
+            "Content-Type": "application/json"
+        },
+        'body': json.dumps(body)
+    }

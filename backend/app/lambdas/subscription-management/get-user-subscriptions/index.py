@@ -12,12 +12,8 @@ def lambda_handler(event, context):
     try:
         claims = event.get("requestContext", {}).get("authorizer", {}).get("claims", {})
         user = claims.get("email")
-
         if not user:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'error': 'User email not found in token'})
-            }
+            return _response(400, {'error': 'User email not found in token'})
 
         response = subscriptions_table.query(
             IndexName=subscriptions_table_gsi_id,
@@ -44,21 +40,28 @@ def lambda_handler(event, context):
                 artist = artist_response.get('Item')
                 if artist:
                     artists.append({
-                        'artistId': artist['artistId'],
-                        'name': artist['name'],
+                        'artistId': artist.get('artistId', 'unknown-artist'),
+                        'name': artist.get('name', 'Unknown Artist')
+                    })
+                else:
+                    artists.append({
+                        'artistId': artist_id,
+                        'name': 'Unknown Artist'
                     })
 
-        return {
-            'statusCode': 200,
-            'headers': {'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({
-                'artists': artists,
-                'genres': genres
-            })
-        }
+        return _response(200, {'artists': artists, 'genres': genres})
 
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': str(e)})
-        }
+        return _response(500, {'error': str(e)})
+
+
+def _response(status_code, body):
+    return {
+        'statusCode': status_code,
+        'headers': {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*",
+            "Content-Type": "application/json"
+        },
+        'body': json.dumps(body)
+    }

@@ -35,6 +35,14 @@ def lambda_handler(event, context):
                 'headers': _cors_headers(),
                 'body': json.dumps({'message': 'Missing file'})
             }
+            
+        artist = artists_table.get_item(Key={'artistId': body['artistId']}).get('Item')
+        if not artist or (artist and artist.get('isDeleted', False)):
+            return {
+                'statusCode': 400,
+                'headers': _cors_headers(),
+                'body': json.dumps({'message': 'Artist does not exist or has been deleted.'})
+            }
 
         required_fields = ['title', 'artistId', 'genres']
         missing = [f for f in required_fields if f not in body or not body[f]]

@@ -1,11 +1,11 @@
 import json
 import os
 from datetime import datetime
-
 import boto3
 
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 listening_history_table = dynamodb.Table(os.environ["LISTENING_HISTORY_TABLE"])
+artists_table = dynamodb.Table(os.environ["ARTISTS_TABLE"])
 
 def lambda_handler(event, context):
     try:
@@ -13,10 +13,7 @@ def lambda_handler(event, context):
         user = claims.get("email")
 
         if not user:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'error': 'User email not found in token'})
-            }
+            return _response(400, {'error': 'User email not found in token'})
 
         body = json.loads(event.get('body', '{}'))
         content_type = body.get('contentType')
@@ -25,10 +22,11 @@ def lambda_handler(event, context):
         timestamp = datetime.utcnow().isoformat()
 
         if not content_type or not content_id or not artist_id:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'error': 'contentType, contentId, and artistId are required'})
-            }
+            return _response(400, {'error': 'contentType, contentId, and artistId are required'})
+
+        artist = artists_table.get_item(Key={'artistId': artist_id}).get('Item')
+        if not artist or artist.get('isDeleted', False):
+            artist_id = 'unknown-artist'
 
         listening_history_table.put_item(
             Item={
@@ -40,14 +38,19 @@ def lambda_handler(event, context):
             }
         )
 
-        return {
-            'statusCode': 200,
-
-            'body': json.dumps({'message': 'Notifications sent successfully'})
-        }
+        return _response(200, {'message': 'Listening history recorded successfully'})
 
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': str(e)})
-        }
+        return _response(500, {'error': str(e)})
+
+def _response(status_code, body):
+    return {
+        'statusCode': status_code,
+        'headers': {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
+            'Content-Type': 'application/json'
+        },
+        'body': json.dumps(body)
+    }

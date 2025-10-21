@@ -332,6 +332,18 @@ class BackendStack(Stack):
                 "REGION": AppConfig.REGION
             }
         )
+        
+        self.delete_artist_lambda = _lambda.Function(
+            self, "DeleteArtistLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.DELETE_ARTIST_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
 
         self.get_all_artists_lambda = _lambda.Function(
             self, "GetAllArtistsLambda",
@@ -352,6 +364,7 @@ class BackendStack(Stack):
             code=_lambda.Code.from_asset(AppConfig.GET_CONTENT_BY_ARTIST_LAMBDA),
             timeout=Duration.seconds(10),
             environment={
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
                 "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
                 "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
                 "REGION": AppConfig.REGION
@@ -498,6 +511,7 @@ class BackendStack(Stack):
             environment={
                 "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
                 "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
                 "SONGS_TABLE_GSI_ID": AppConfig.SONGS_TABLE_GSI_ID,
                 "GENRE_CONTENTS_TABLE": AppConfig.GENRE_CONTENT_TABLE_NAME,
                 "REGION": AppConfig.REGION
@@ -660,6 +674,7 @@ class BackendStack(Stack):
             code=_lambda.Code.from_asset(AppConfig.LOG_LISTENING_HISTORY_LAMBDA),
             timeout=Duration.seconds(10),
             environment={
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
                 "LISTENING_HISTORY_TABLE": AppConfig.LISTENING_HISTORY_TABLE_NAME,
                 "REGION": AppConfig.REGION
             }
@@ -680,11 +695,14 @@ class BackendStack(Stack):
         # --- Grant permissions ---
         # Artist lambdas
         self.artists_table.grant_read_write_data(self.create_artist_lambda)
+        self.artists_table.grant_read_write_data(self.delete_artist_lambda)
         self.artists_table.grant_read_data(self.get_all_artists_lambda)
         self.genre_contents_table.grant_read_write_data(self.create_artist_lambda)
         self.albums_table.grant_read_data(self.get_content_by_artist_lambda)
         self.songs_table.grant_read_data(self.get_content_by_artist_lambda)
-
+        self.artists_table.grant_read_data(self.get_content_by_artist_lambda)
+        self.artists_table.grant_read_data(self.edit_song_lambda)
+        
         # Genre lambda
         self.genres_table.grant_read_data(self.get_all_genres_lambda)
         self.genres_table.grant_read_write_data(self.create_artist_lambda)
@@ -753,7 +771,8 @@ class BackendStack(Stack):
 
         # Listening history lambdas
         self.listening_history_table.grant_write_data(self.log_listening_history_lambda)
-
+        self.artists_table.grant_read_data(self.log_listening_history_lambda)
+        
         # Images lambda
         self.content_bucket.grant_read(self.images_get_lambda)
 
@@ -824,7 +843,13 @@ class BackendStack(Stack):
 
         # /artists/{artistId}
         artist_by_id = artists.add_resource("{artistId}")
-
+        artist_by_id.add_method(
+            "DELETE",
+            apigw.LambdaIntegration(self.delete_artist_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+        
         # /artists/{artistId}/content
         artist_content = artist_by_id.add_resource("content")
         artist_content.add_method(
@@ -997,6 +1022,12 @@ class BackendStack(Stack):
         artists.add_cors_preflight(
             allow_origins=apigw.Cors.ALL_ORIGINS,
             allow_methods=["GET", "POST", "OPTIONS"]
+        )
+        
+        # /artists/{artistId}
+        artist_by_id.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["DELETE", "PUT", "OPTIONS"]
         )
 
         # /artists/{artistId}/content

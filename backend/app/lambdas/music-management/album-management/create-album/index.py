@@ -32,6 +32,13 @@ def lambda_handler(event, context):
                 'body': json.dumps({'message': f'Missing required fields: {", ".join(missing)}'})
             }
 
+        artist = artists_table.get_item(Key={'artistId': body['artistId']}).get('Item')
+        if not artist or (artist and artist.get('isDeleted', False)):
+            return {
+                'statusCode': 400,
+                'headers': _cors_headers(),
+                'body': json.dumps({'message': 'Artist does not exist or has been deleted.'})
+            }
 
         #Image handling
         image_bytes = base64.b64decode(body['imageFile'])

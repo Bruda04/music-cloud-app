@@ -3,8 +3,6 @@ import os
 import decimal
 import boto3
 
-from boto3.dynamodb.types import TypeDeserializer
-
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 songs_table = dynamodb.Table(os.environ['SONGS_TABLE'])
 artists_table = dynamodb.Table(os.environ['ARTISTS_TABLE'])
@@ -34,19 +32,9 @@ def lambda_handler(event, context):
             mapped_song['file'] = song.get('fileKey')
             mapped_song['other'] = {k: v for k, v in song.items() if k not in core_fields and k not in ['fileKey', 'artistId', 'otherArtistIds']}
 
-            artist = artists_table.get_item(Key={'artistId': song['artistId']}).get('Item')
-            mapped_song['artist'] = {
-                'artistId': artist['artistId'],
-                'name': artist['name'],
-            } if artist else {}
-
+            mapped_song['artist'] = get_artist_safe(song.get('artistId'))
             other_artists = _get_artists_by_ids(song.get('otherArtistIds', []))
-            mapped_song['otherArtists'] = [
-                {
-                    'artistId': a['artistId'],
-                    'name': a['name'],
-                } for a in other_artists
-            ]
+            mapped_song['otherArtists'] = [get_artist_safe(a.get('artistId')) for a in other_artists]
 
             songs.append(mapped_song)
 
@@ -72,8 +60,20 @@ def lambda_handler(event, context):
             'body': json.dumps({'message': f'Failed to fetch songs: {str(e)}'})
         }
 
+def get_artist_safe(artist_id):
+    """Get artist from DynamoDB, return 'Unknown Artist' if not found or deleted"""
+    if not artist_id:
+        return {"artistId": "unknown-artist", "name": "Unknown Artist"}
+    try:
+        artist = artists_table.get_item(Key={'artistId': artist_id}).get('Item')
+        if not artist or artist.get('isDeleted', False):
+            return {"artistId": "unknown-artist", "name": "Unknown Artist"}
+        return {"artistId": artist.get('artistId', 'unknown-artist'), "name": artist.get('name', 'Unknown Artist')}
+    except Exception:
+        return {"artistId": "unknown-artist", "name": "Unknown Artist"}
 
 def _get_artists_by_ids(artist_ids):
+    """Batch get artists iz DynamoDB, bez obrisanih umetnika"""
     if not artist_ids:
         return []
 
@@ -86,6 +86,9 @@ def _get_artists_by_ids(artist_ids):
     )
 
     items = response.get('Responses', {}).get(artists_table.name, [])
-    deserialized = [{k: list(v.values())[0] for k, v in item.items()} for item in items]
-
-    return deserialized
+    result = []
+    for item in items:
+        if item.get('isDeleted', False):
+            continue
+        result.append({"artistId": item.get("artistId"), "name": item.get("name")})
+    return result
