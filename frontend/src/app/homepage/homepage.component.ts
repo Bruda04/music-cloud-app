@@ -7,6 +7,7 @@ import { AllAlbumsCarouselComponent } from '../albums/all-albums/all-albums-caro
 import {NgIf} from '@angular/common';
 import {AuthService} from '../auth/auth.service';
 import {UserRole} from '../auth/model/user.model';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -17,9 +18,13 @@ import {UserRole} from '../auth/model/user.model';
 })
 export class HomepageComponent implements OnInit{
   artists: Artist[]=[]
-  constructor(protected authService: AuthService){}
+  constructor(protected authService: AuthService,
+  ){}
+
   ngOnInit(): void {
   }
+
+
 
   protected readonly UserRole = UserRole;
 }

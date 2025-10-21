@@ -13,12 +13,12 @@
 <div class="sidebar" [class.open]="menuOpen" *ngIf="loggedInUser">
   <a class="close-btn" (click)="toggleMenu()">×</a>
   <ul>
-    <li><a routerLink="/home" routerLinkActive="active" (click)="toggleMenu()">Homepage</a></li>
-    <li><a routerLink="/discovery" routerLinkActive="active" (click)="toggleMenu()">Discovery</a></li>
+    <li><a *ngIf="loggedInUser?.role!=UserRole.Admin" routerLink="/home" routerLinkActive="active" (click)="toggleMenu()">Homepage</a></li>
+    <li><a *ngIf="loggedInUser?.role==UserRole.AuthUser" routerLink="/discovery" routerLinkActive="active" (click)="toggleMenu()">Discovery</a></li>
 
-    <li><a routerLink="/artists" routerLinkActive="active" (click)="toggleMenu()">All artists</a></li>
-    <li><a routerLink="/albums" routerLinkActive="active" (click)="toggleMenu()">All albums</a></li>
-    <li><a routerLink="/songs" routerLinkActive="active" (click)="toggleMenu()">All songs</a></li>
+    <li><a *ngIf="loggedInUser?.role==UserRole.AuthUser || loggedInUser?.role==UserRole.Admin" routerLink="/artists" routerLinkActive="active" (click)="toggleMenu()">All artists</a></li>
+    <li><a *ngIf="loggedInUser?.role==UserRole.AuthUser || loggedInUser?.role==UserRole.Admin" routerLink="/albums" routerLinkActive="active" (click)="toggleMenu()">All albums</a></li>
+    <li><a *ngIf="loggedInUser?.role==UserRole.AuthUser || loggedInUser?.role==UserRole.Admin" routerLink="/songs" routerLinkActive="active" (click)="toggleMenu()">All songs</a></li>
     <li><a *ngIf="loggedInUser?.role==UserRole.AuthUser" routerLink="/subscriptions" routerLinkActive="active" (click)="toggleMenu()">My subscriptions</a></li>
     <li><a *ngIf="loggedInUser?.role=='Admin'" routerLink="/artists/create" routerLinkActive="active" (click)="toggleMenu()">Create artist</a></li>
     <li><a *ngIf="loggedInUser?.role=='Admin'" routerLink="/songs/create" routerLinkActive="active" (click)="toggleMenu()">Create song</a></li>

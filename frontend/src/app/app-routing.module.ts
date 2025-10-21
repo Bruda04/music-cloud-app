@@ -13,6 +13,7 @@ import {AuthUserGuard} from './guards/authUser.guard';
 import {DiscoveryComponent} from './discovery/discovery.component';
 import {ArtistPageComponent} from './artists/all-artists/artist-page/artist-page.component';
 import {SubscriptionsComponent} from './subscriptions/subscriptions.component';
+import {RegularUserGuard} from './guards/regularUser.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -27,8 +28,8 @@ const routes: Routes = [
   { path: 'songs', component: AllSongsComponent, canActivate: [AuthUserGuard]},
   { path: 'songs/create', component: CreateSongComponent, canActivate: [AdminGuard]},
   { path: 'songs/edit/:id', component: CreateSongComponent, canActivate: [AdminGuard] },
-  { path: 'discovery', component: DiscoveryComponent, canActivate: [AuthUserGuard]},
-  { path: 'subscriptions', component: SubscriptionsComponent, canActivate: [AuthUserGuard]},
+  { path: 'discovery', component: DiscoveryComponent, canActivate: [RegularUserGuard]},
+  { path: 'subscriptions', component: SubscriptionsComponent, canActivate: [RegularUserGuard]},
   { path: '**', redirectTo: 'home' },
 ];
 
