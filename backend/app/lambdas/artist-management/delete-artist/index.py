@@ -11,7 +11,7 @@ def lambda_handler(event, context):
         if not claims.get("cognito:groups") or "Admins" not in claims.get("cognito:groups"):
             return _response(403, {"message": "Forbidden: Admins only"})
 
-        artist_id = event.get("pathParameters", {}).get("id")
+        artist_id = event.get("pathParameters", {}).get("artistId")
         if not artist_id:
             return _response(400, {"message": "Missing artistId in path parameters"})
 

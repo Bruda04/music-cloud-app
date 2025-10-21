@@ -20,6 +20,10 @@ export class ArtistService {
     return this.httpClient.put<{"message":String,"artistId":string}>(`${environment.apiUrl}/artists`, artist);
   }
 
+  delete(artistId:string): Observable<{"message":String}> {
+    return this.httpClient.delete<{"message":String}>(`${environment.apiUrl}/artists/${artistId}`);
+  }
+
   getAll(limit: number = 6, lastKey?: string): Observable<PaginatedArtists> {
     let params = new HttpParams().set('limit', limit.toString());
     if (lastKey) params = params.set('lastKey', lastKey);
