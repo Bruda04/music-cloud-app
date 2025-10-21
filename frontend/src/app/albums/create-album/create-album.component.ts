@@ -52,10 +52,7 @@ export class CreateAlbumComponent implements OnInit {
     constructor( private artistService: ArtistService, private genreService: GenreService, private albumService: AlbumService, private router: Router) {}
 
     ngOnInit() {
-        this.artistService.getAll().subscribe(a=>
-        {
-          this.artists = a;
-        });
+        this.artists = this.artistService.getAllMock()
         this.genreService.getAll().subscribe(a=>
         {
           this.genres = a;

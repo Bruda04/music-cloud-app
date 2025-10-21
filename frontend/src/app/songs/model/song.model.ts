@@ -24,6 +24,12 @@ export interface PaginatedSongs {
   lastKey?: string;
 }
 
+export interface PaginatedArtists {
+  artists: Artist[];
+  lastKey?: string;
+}
+
+
 export interface Url{
   url:string
 }
