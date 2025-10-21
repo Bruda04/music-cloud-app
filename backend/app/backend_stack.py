@@ -333,6 +333,20 @@ class BackendStack(Stack):
             }
         )
         
+        self.edit_artist_lambda = _lambda.Function(
+            self, "EditArtistLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.EDIT_ARTIST_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
+                "GENRE_CONTENTS_TABLE": AppConfig.GENRE_CONTENT_TABLE_NAME,
+                "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+        
         self.delete_artist_lambda = _lambda.Function(
             self, "DeleteArtistLambda",
             runtime=_lambda.Runtime.PYTHON_3_12,
@@ -610,6 +624,7 @@ class BackendStack(Stack):
                 "SES_FROM_EMAIL": AppConfig.SES_FROM_EMAIL
             }
         )
+       
         self.publishing_content_topic.add_subscription(sns_subscriptions.SqsSubscription(self.notification_queue))
         _lambda.EventSourceMapping(
             self, "NotifyLambdaEventSource",
@@ -702,9 +717,11 @@ class BackendStack(Stack):
         # --- Grant permissions ---
         # Artist lambdas
         self.artists_table.grant_read_write_data(self.create_artist_lambda)
+        self.artists_table.grant_read_write_data(self.edit_artist_lambda)
         self.artists_table.grant_read_write_data(self.delete_artist_lambda)
         self.artists_table.grant_read_data(self.get_all_artists_lambda)
         self.genre_contents_table.grant_read_write_data(self.create_artist_lambda)
+        self.genre_contents_table.grant_read_write_data(self.edit_artist_lambda)
         self.albums_table.grant_read_data(self.get_content_by_artist_lambda)
         self.songs_table.grant_read_data(self.get_content_by_artist_lambda)
         self.artists_table.grant_read_data(self.get_content_by_artist_lambda)
@@ -713,6 +730,7 @@ class BackendStack(Stack):
         # Genre lambda
         self.genres_table.grant_read_data(self.get_all_genres_lambda)
         self.genres_table.grant_read_write_data(self.create_artist_lambda)
+        self.genres_table.grant_read_write_data(self.edit_artist_lambda)
         self.genres_table.grant_read_write_data(self.create_song_lambda)
         self.genres_table.grant_read_write_data(self.create_album_lambda)
         self.genre_contents_table.grant_read_data(self.get_content_by_genre)
@@ -852,6 +870,12 @@ class BackendStack(Stack):
         artists.add_method(
             "POST",
             apigw.LambdaIntegration(self.create_artist_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+        artists.add_method(
+            "PUT",
+            apigw.LambdaIntegration(self.edit_artist_lambda),
             authorizer=self.cognito_authorizer,
             authorization_type=apigw.AuthorizationType.COGNITO
         )
