@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { AuthService } from '../auth.service';
-import { UserModel } from '../model/user.model';
+import {UserModel, UserRole} from '../model/user.model';
 
 @Component({
   selector: 'app-navbar',
@@ -33,4 +33,6 @@ export class NavbarComponent {
   logout(): void {
     this.authService.logout();
   }
+
+  protected readonly UserRole = UserRole;
 }

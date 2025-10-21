@@ -19,6 +19,7 @@
     <li><a routerLink="/artists" routerLinkActive="active" (click)="toggleMenu()">All artists</a></li>
     <li><a routerLink="/albums" routerLinkActive="active" (click)="toggleMenu()">All albums</a></li>
     <li><a routerLink="/songs" routerLinkActive="active" (click)="toggleMenu()">All songs</a></li>
+    <li><a *ngIf="loggedInUser?.role==UserRole.AuthUser" routerLink="/subscriptions" routerLinkActive="active" (click)="toggleMenu()">My subscriptions</a></li>
     <li><a *ngIf="loggedInUser?.role=='Admin'" routerLink="/artists/create" routerLinkActive="active" (click)="toggleMenu()">Create artist</a></li>
     <li><a *ngIf="loggedInUser?.role=='Admin'" routerLink="/songs/create" routerLinkActive="active" (click)="toggleMenu()">Create song</a></li>
     <li><a *ngIf="loggedInUser?.role=='Admin'" routerLink="/albums/create" routerLinkActive="active" (click)="toggleMenu()">Create album</a></li>
