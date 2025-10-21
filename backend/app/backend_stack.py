@@ -279,7 +279,22 @@ class BackendStack(Stack):
             bucket_name=AppConfig.CONTENT_BUCKET_NAME,
             versioned=False,
             removal_policy=RemovalPolicy.DESTROY,
+            public_read_access=True,
+            block_public_access=s3.BlockPublicAccess.BLOCK_ACLS_ONLY,
             auto_delete_objects=True
+        )
+        self.content_bucket.add_to_resource_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                principals=[iam.AnyPrincipal()],
+                actions=["s3:GetObject"],
+                resources=[f"{self.content_bucket.bucket_arn}/*"],
+            )
+        )
+        self.content_bucket.add_cors_rule(
+            allowed_methods=[s3.HttpMethods.GET],
+            allowed_origins=["*"],
+            allowed_headers=["*"]
         )
 
         # --- SNS Topics ---
