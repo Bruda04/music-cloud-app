@@ -665,6 +665,17 @@ class BackendStack(Stack):
             }
         )
 
+        self.images_get_lambda = _lambda.Function(
+            self, "ImagesGetLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.IMAGES_GET_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
 
         # --- Grant permissions ---
         # Artist lambdas
@@ -742,6 +753,9 @@ class BackendStack(Stack):
 
         # Listening history lambdas
         self.listening_history_table.grant_write_data(self.log_listening_history_lambda)
+
+        # Images lambda
+        self.content_bucket.grant_read(self.images_get_lambda)
 
         # --- API Gateway ---
         self.api = apigw.RestApi(
@@ -944,6 +958,21 @@ class BackendStack(Stack):
             authorization_type=apigw.AuthorizationType.COGNITO
         )
 
+        # /images
+        images = self.api.root.add_resource("images")
+
+        # /images/{folder}
+        images_by_folder = images.add_resource("{folder}")
+
+        # /images/{folder}/{imageKey}
+        images_by_key = images_by_folder.add_resource("{imageKey}")
+        images_by_key.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.images_get_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
 
         # CORS
         # /albums
@@ -1040,6 +1069,12 @@ class BackendStack(Stack):
         history.add_cors_preflight(
             allow_origins=apigw.Cors.ALL_ORIGINS,
             allow_methods=["POST", "OPTIONS"]
+        )
+
+        # /images/{folder}/{imageKey}
+        images_by_key.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["GET", "OPTIONS"]
         )
 
 

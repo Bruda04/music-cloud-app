@@ -6,7 +6,6 @@ s3 = boto3.client("s3")
 BUCKET = os.environ['BUCKET']
 
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
-albums_table = dynamodb.Table(os.environ['ALBUMS_TABLE'])
 genres_table = dynamodb.Table(os.environ['GENRES_TABLE'])
 
 def lambda_handler(event, context):
@@ -44,5 +43,4 @@ def _cors_headers():
     return {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "*",
-        "Access-Control-Allow-Methods": "OPTIONS,GET",
     }
