@@ -85,6 +85,7 @@ class AppConfig:
     GET_ALL_ALBUMS_LAMBDA = "app/lambdas/music-management/album-management/get-all"
     GET_ALBUM_BY_ID_LAMBDA = "app/lambdas/music-management/album-management/get-by-id"
     GET_ALBUM_TRACK_LAMBDA = "app/lambdas/music-management/album-management/get-url"
+    DELETE_ALBUM_LAMBDA = "app/lambdas/music-management/album-management/delete-album"
 
     CREATE_SONG_LAMBDA = "app/lambdas/music-management/song-management/create-song"
     DELETE_SONG_LAMBDA = "app/lambdas/music-management/song-management/delete-song"

@@ -16,6 +16,7 @@ class DecimalEncoder(json.JSONEncoder):
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 albums_table = dynamodb.Table(os.environ['ALBUMS_TABLE'])
 albums_table_gsi_id = os.environ['ALBUMS_TABLE_GSI_ID']
+artists_table = dynamodb.Table(os.environ['ARTISTS_TABLE'])
 
 def lambda_handler(event, context):
     album_id = event.get('pathParameters', {}).get('id')
@@ -49,12 +50,34 @@ def lambda_handler(event, context):
                 "body": json.dumps({"message": "Album not found"}, cls=DecimalEncoder)
             }
 
+
+        fetched_artists = {}
+
+        artist = artists_table.get_item(Key={'artistId': item['artistId']}).get('Item', {})
+        fetched_artists[artist['artistId']] = artist
+
+        tracks = []
+
+        for t in item.get("tracks", []):
+            other_artist_ids = t.get("otherArtistIds", [])
+            for oid in other_artist_ids:
+                if oid not in fetched_artists:
+                    fetched_artists[oid] = artists_table.get_item(Key={'artistId': oid}).get('Item', {})
+            track = t.copy()
+            track["artist"] = {"artistId": artist.get("artistId", ""), "name": artist.get("name", "")} if artist else {}
+            track["otherArtists"] = [
+                {"id": fetched_artists[oid]["artistId"], "name": fetched_artists[oid]["name"]}
+                for oid in other_artist_ids
+                if oid in fetched_artists
+            ]
+
+
         album = {
             "albumId": item.get("albumId"),
             "title": item.get("title"),
-            "artistId": item.get("artistId", []),
+            "artist": {"artistId": artist.get("artistId", ""), "name": artist.get("name", "")} if artist else {},
             "genres": item.get("genres", []),
-            "tracks": item.get("tracks", []),
+            "tracks": tracks,
             "details": item.get("details", {}),
             "imageFile": item.get("imageFile", "")
         }

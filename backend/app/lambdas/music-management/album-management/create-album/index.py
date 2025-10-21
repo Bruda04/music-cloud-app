@@ -53,26 +53,10 @@ def lambda_handler(event, context):
 
         s3.put_object(
             Bucket=BUCKET,
-            Key=f"albums/{image_key}",
+            Key=f"images/albums/{image_key}",
             Body=image_bytes,
             ContentType=f'image/{ext}'
         )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         track_file_keys = []
         for track in body['tracks']:
@@ -191,6 +175,5 @@ def _cors_headers():
     return {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "*",
-        "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
         "Content-Type": "application/json"
     }

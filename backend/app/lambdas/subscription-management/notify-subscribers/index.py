@@ -33,7 +33,8 @@ def lambda_handler(event, context):
                      f"Title: {content_name}\n\nCheck it out on our platform!"
 
         for user_email in all_subscribers:
-            send_email(user_email, email_body, email_subject)
+            pass
+            #send_email(user_email, email_body, email_subject)
 
         return {
             'statusCode': 200,

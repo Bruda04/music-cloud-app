@@ -433,6 +433,7 @@ class BackendStack(Stack):
             timeout=Duration.seconds(10),
             environment={
                 "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
                 "REGION": AppConfig.REGION
             }
         )
@@ -446,6 +447,7 @@ class BackendStack(Stack):
             environment={
                 "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
                 "ALBUMS_TABLE_GSI_ID": AppConfig.ALBUMS_TABLE_GSI_ID,
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
                 "REGION": AppConfig.REGION
             }
         )
@@ -460,6 +462,21 @@ class BackendStack(Stack):
                 "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
                 "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
                 "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        self.delete_album_lambda = _lambda.Function(
+            self,"DeleteAlbumLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.DELETE_ALBUM_LAMBDA),
+            timeout=Duration.seconds(20),
+            environment={
+                "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
+                "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
+                "ALBUMS_TABLE_GSI_ID": AppConfig.ALBUMS_TABLE_GSI_ID,
+                "GENRE_CONTENTS_TABLE": AppConfig.GENRE_CONTENT_TABLE_NAME,
                 "REGION": AppConfig.REGION
             }
         )
@@ -701,6 +718,11 @@ class BackendStack(Stack):
         self.publishing_content_topic.grant_publish(self.create_album_lambda)
         self.genre_contents_table.grant_read_write_data(self.create_album_lambda)
         self.artists_table.grant_read_data(self.create_album_lambda)
+        self.artists_table.grant_read_data(self.get_album_by_id_lambda)
+        self.artists_table.grant_read_data(self.get_all_albums_lambda)
+        self.albums_table.grant_read_write_data(self.delete_album_lambda)
+        self.genre_contents_table.grant_read_write_data(self.delete_album_lambda)
+        self.content_bucket.grant_read_write(self.delete_album_lambda)
 
         # Song lambdas
         self.songs_table.grant_read_write_data(self.create_song_lambda)
@@ -774,6 +796,13 @@ class BackendStack(Stack):
         album_by_id.add_method(
             "GET",
             apigw.LambdaIntegration(self.get_album_by_id_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
+        album_by_id.add_method(
+            "DELETE",
+            apigw.LambdaIntegration(self.delete_album_lambda),
             authorizer=self.cognito_authorizer,
             authorization_type=apigw.AuthorizationType.COGNITO
         )
@@ -970,7 +999,7 @@ class BackendStack(Stack):
         # /albums/{id}
         album_by_id.add_cors_preflight(
             allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["GET", "OPTIONS"]
+            allow_methods=["GET", "DELETE", "OPTIONS"]
         )
 
         # /albums/new10
