@@ -11,6 +11,7 @@ import { AdminGuard } from './guards/admin.guard';
 import {AllSongsComponent} from './songs/all-songs/all-songs.component';
 import {AuthUserGuard} from './guards/authUser.guard';
 import {DiscoveryComponent} from './discovery/discovery.component';
+import {ArtistPageComponent} from './artists/all-artists/artist-page/artist-page.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -19,6 +20,8 @@ const routes: Routes = [
   { path: 'artists/create', component: CreateArtistComponent, canActivate: [AdminGuard]},
   { path: 'albums', component: AllAlbumsPageComponent, canActivate: [AuthUserGuard]},
   { path: 'albums/details/:id', component: AlbumDetailsComponent, canActivate: [AuthUserGuard] },
+  { path: 'artists/details/:id', component: ArtistPageComponent, canActivate: [AuthUserGuard] },
+
   { path: 'albums/create', component: CreateAlbumComponent, canActivate: [AdminGuard]},
   { path: 'songs', component: AllSongsComponent, canActivate: [AuthUserGuard]},
   { path: 'songs/create', component: CreateSongComponent, canActivate: [AdminGuard]},

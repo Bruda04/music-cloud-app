@@ -1,0 +1,26 @@
+<div class="artist-page">
+  <h1 class="artist-name">{{ artist?.name }}</h1>
+  <p class="artist-bio">{{ artist?.bio }}</p>
+
+  <div class="genres">
+    <span *ngFor="let genre of artist?.genres" class="genre-chip">{{ genre }}</span>
+  </div>
+
+  <h2 class="section-title">Songs</h2>
+  <div class="songs-grid">
+    <app-song-card
+      *ngFor="let song of this.content.songs"
+      [song]="song"
+      [artists]="song.artist"
+      (deleted)="onSongDeleted($event)"
+      (rate)="onRate($event)">
+    </app-song-card>
+  </div>
+
+
+  <h2 class="section-title">Albums</h2>
+  <div class="songs-grid">
+    <app-album-card *ngFor="let album of this.content.albums" [album]="album" [artists]="this.artistService.getAllMock()"></app-album-card>
+
+  </div>
+</div>
