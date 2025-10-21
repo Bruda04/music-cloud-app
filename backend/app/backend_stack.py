@@ -359,6 +359,18 @@ class BackendStack(Stack):
             }
         )
 
+        self.get_artist_by_id_lambda = _lambda.Function(
+            self, "GetArtistByIdLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.GET_ARTIST_BY_ID_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+        
         self.get_all_artists_lambda = _lambda.Function(
             self, "GetAllArtistsLambda",
             runtime=_lambda.Runtime.PYTHON_3_12,
@@ -726,6 +738,7 @@ class BackendStack(Stack):
         self.songs_table.grant_read_data(self.get_content_by_artist_lambda)
         self.artists_table.grant_read_data(self.get_content_by_artist_lambda)
         self.artists_table.grant_read_data(self.edit_song_lambda)
+        self.artists_table.grant_read_data(self.get_artist_by_id_lambda)
         
         # Genre lambda
         self.genres_table.grant_read_data(self.get_all_genres_lambda)
@@ -885,6 +898,12 @@ class BackendStack(Stack):
         artist_by_id.add_method(
             "DELETE",
             apigw.LambdaIntegration(self.delete_artist_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+        artist_by_id.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.get_artist_by_id_lambda),
             authorizer=self.cognito_authorizer,
             authorization_type=apigw.AuthorizationType.COGNITO
         )

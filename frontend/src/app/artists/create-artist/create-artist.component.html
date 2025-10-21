@@ -1,5 +1,5 @@
 <div class="form-container">
-  <h2>Create Artist</h2>
+  <h2>{{ artist.artistId ? 'Edit Artist' : 'Create Artist' }}</h2>
 
   <form (ngSubmit)="submit()">
     <label>Name *</label>
@@ -44,7 +44,7 @@
       <button type="button" (click)="addOther()">Add Other</button>
     </div>
 
-    <button type="submit" [disabled]="loading">Create Artist</button>
+    <button type="submit" [disabled]="loading">{{ artist.artistId ? 'Update Artist' : 'Create Artist' }}</button>
     <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
   </form>
 </div>

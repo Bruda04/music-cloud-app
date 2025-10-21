@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ArtistService } from '../service/artist.service';
 import { Artist } from '../model/artist.model';
 import { DialogType } from '../../shared/dialog/dialog.component';
@@ -13,6 +13,7 @@ import { GenreService } from '../../songs/service/genre.service';
   standalone:false
 })
 export class CreateArtistComponent {
+  editMode = false;
   artist: Artist = {
     name: '',
     bio: '',
@@ -34,8 +35,13 @@ export class CreateArtistComponent {
   dialogMessage = '';
   showDialog = false;
 
-  constructor(private artistService: ArtistService, private genreService:GenreService) {
+constructor(private artistService: ArtistService, private genreService:GenreService,private route: ActivatedRoute) {
     this.genreService.getAll().subscribe(g => this.genres = g);
+    const artistId = this.route.snapshot.paramMap.get('id');
+    if (artistId) {
+      this.editMode = true;
+      this.artist = this.artistService.getMock(); // TODO: change to getById
+    }
   }
 
   addGenre() {
@@ -77,24 +83,48 @@ export class CreateArtistComponent {
     }
 
     this.loading = true;
-    this.artistService.createArtist(this.artist).subscribe({
-      next: res => {
-        console.log('Artist created:', res.artist);
-        this.loading = false;
-        this.dialogType = 'message';
-        this.dialogTitle = 'Success';
-        this.dialogMessage = 'Artist successfully created!';
-        this.showDialog = true;
-      },
-      error: err => {
-        console.error(err);
-        this.loading = false;
-        this.dialogType = 'error';
-        this.dialogTitle = 'Error';
-        this.dialogMessage = 'Error creating an artist.';
-        this.showDialog = true;
-      }
-    });
+
+    if (this.artist.artistId){
+      console.log('Editing artist:', this.artist);
+      this.artistService.editArtist(this.artist).subscribe({
+        next: res => {
+          console.log('Artist edited:', res.artistId);
+          this.loading = false;
+          this.dialogType = 'message';
+          this.dialogTitle = 'Success';
+          this.dialogMessage = res.message.toString();
+          this.showDialog = true;
+        },
+        error: err => {
+          console.error(err);
+          this.loading = false;
+          this.dialogType = 'error';
+          this.dialogTitle = 'Error';
+          this.dialogMessage = 'Error updating artist.';
+          this.showDialog = true;
+        }
+      });
+    }
+    else{
+      this.artistService.createArtist(this.artist).subscribe({
+        next: res => {
+          console.log('Artist created:', res.artist);
+          this.loading = false;
+          this.dialogType = 'message';
+          this.dialogTitle = 'Success';
+          this.dialogMessage = res.message.toString();
+          this.showDialog = true;
+        },
+        error: err => {
+          console.error(err);
+          this.loading = false;
+          this.dialogType = 'error';
+          this.dialogTitle = 'Error';
+          this.dialogMessage = 'Error creating artist.';
+          this.showDialog = true;
+        }
+      });
+    }
   }
 
   closeDialog() {
