@@ -629,6 +629,8 @@ class BackendStack(Stack):
                 "USER_FEED_TABLE": AppConfig.USER_FEED_TABLE_NAME,
                 "SUBSCRIPTIONS_TABLE": AppConfig.SUBSCRIPTIONS_TABLE_NAME,
                 "SUBSCRIPTIONS_TABLE_GSI_ID": AppConfig.SUBSCRIPTIONS_TABLE_GSI_ID,
+                "LISTENING_HISTORY_TABLE": AppConfig.LISTENING_HISTORY_TABLE_NAME,
+                "RATINGS_TABLE": AppConfig.RATINGS_TABLE_NAME,
                 "REGION": AppConfig.REGION
             }
         )
@@ -649,6 +651,11 @@ class BackendStack(Stack):
             timeout=Duration.seconds(10),
             environment={
                 "USER_FEED_TABLE": AppConfig.USER_FEED_TABLE_NAME,
+                "SONGS_TABLE": AppConfig.SONGS_TABLE_NAME,
+                "SONGS_TABLE_GSI_ID": AppConfig.SONGS_TABLE_GSI_ID,
+                "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
+                "ALBUMS_TABLE_GSI_ID": AppConfig.ALBUMS_TABLE_GSI_ID,
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
                 "REGION": AppConfig.REGION
             }
         )
@@ -749,7 +756,15 @@ class BackendStack(Stack):
         self.update_user_feed_queue.grant_consume_messages(self.update_user_feed_lambda)
         self.user_feed_table.grant_read_write_data(self.update_user_feed_lambda)
         self.subscriptions_table.grant_read_data(self.update_user_feed_lambda)
+        self.listening_history_table.grant_read_data(self.update_user_feed_lambda)
+        self.ratings_table.grant_read_data(self.update_user_feed_lambda)
+        self.albums_table.grant_read_data(self.update_user_feed_lambda)
+        self.songs_table.grant_read_data(self.update_user_feed_lambda)
+        self.artists_table.grant_read_data(self.update_user_feed_lambda)
         self.user_feed_table.grant_read_data(self.get_user_feed_lambda)
+        self.albums_table.grant_read_data(self.get_user_feed_lambda)
+        self.songs_table.grant_read_data(self.get_user_feed_lambda)
+        self.artists_table.grant_read_data(self.get_user_feed_lambda)
 
         # Listening history lambdas
         self.listening_history_table.grant_write_data(self.log_listening_history_lambda)

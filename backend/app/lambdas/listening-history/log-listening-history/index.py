@@ -20,9 +20,11 @@ def lambda_handler(event, context):
 
         body = json.loads(event.get('body', '{}'))
         content_type = body.get('contentType')
-        content_id = body.get('contentId')
+        album_id = body.get('albumId')
+        song_id = body.get('songId')
         artist_id = body.get('artistId')
         timestamp = datetime.utcnow().isoformat()
+        content_id = f'{artist_id}#{album_id}#{song_id}' if content_type == 'album' else f'{artist_id}#{song_id}'
 
         if not content_type or not content_id or not artist_id:
             return {
@@ -36,7 +38,7 @@ def lambda_handler(event, context):
                 'timestamp': timestamp,
                 'contentType': content_type,
                 'contentId': content_id,
-                'artistId': artist_id
+                'artistId': artist_id,
             }
         )
 

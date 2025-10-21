@@ -135,7 +135,7 @@ def lambda_handler(event, context):
         artist = artists_table.get_item(Key={'artistId': body['artistId']}).get('Item')
         artist_name = artist['name'] if artist else 'Unknown Artist'
 
-        publish_notification(body['artistId'], genres, artist_name, body['title'])
+        publish_notification(body['artistId'], genres, artist_name, body['title'], album_id)
 
         return {
             'statusCode': 201,
@@ -155,14 +155,15 @@ def lambda_handler(event, context):
             'body': json.dumps({'message': f'Failed to upload album: {str(e)}'})
         }
 
-def publish_notification(artist_id, genres, artist_name, album_title):
+def publish_notification(artist_id, genres, artist_name, album_title, album_id):
     payload = {
         'artistId': artist_id,
         'genres': genres,
+        'albumId': album_id,
         'metadata': {
             'from': artist_name,
             'contentName': album_title,
-            'contentType': 'album'
+            'contentType': 'album',
         }
     }
     sns_client.publish(
