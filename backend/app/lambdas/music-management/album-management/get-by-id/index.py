@@ -18,6 +18,16 @@ albums_table = dynamodb.Table(os.environ['ALBUMS_TABLE'])
 albums_table_gsi_id = os.environ['ALBUMS_TABLE_GSI_ID']
 artists_table = dynamodb.Table(os.environ['ARTISTS_TABLE'])
 
+def get_artist_safe(artist_id):
+    """Get artist or return 'Unknown Artist' if its deleted or doesn't exist."""
+    try:
+        artist = artists_table.get_item(Key={'artistId': artist_id}).get('Item')
+        if not artist or artist.get('isDeleted', False):
+            return {"artistId": "unknown-artist", "name": "Unknown Artist"}
+        return {"artistId": artist.get("artistId", ""), "name": artist.get("name", "Unknown Artist")}
+    except Exception:
+        return {"artistId": "unknown-artist", "name": "Unknown Artist"}
+
 def lambda_handler(event, context):
     album_id = event.get('pathParameters', {}).get('id')
     
@@ -50,32 +60,29 @@ def lambda_handler(event, context):
                 "body": json.dumps({"message": "Album not found"}, cls=DecimalEncoder)
             }
 
-
         fetched_artists = {}
 
-        artist = artists_table.get_item(Key={'artistId': item['artistId']}).get('Item', {})
-        fetched_artists[artist['artistId']] = artist
+        artist = get_artist_safe(item['artistId'])
+        fetched_artists[artist["artistId"]] = artist
 
         tracks = []
 
         for t in item.get("tracks", []):
             other_artist_ids = t.get("otherArtistIds", [])
+            other_artists = []
             for oid in other_artist_ids:
                 if oid not in fetched_artists:
-                    fetched_artists[oid] = artists_table.get_item(Key={'artistId': oid}).get('Item', {})
+                    fetched_artists[oid] = get_artist_safe(oid)
+                other_artists.append(fetched_artists[oid])
             track = t.copy()
-            track["artist"] = {"artistId": artist.get("artistId", ""), "name": artist.get("name", "")} if artist else {}
-            track["otherArtists"] = [
-                {"id": fetched_artists[oid]["artistId"], "name": fetched_artists[oid]["name"]}
-                for oid in other_artist_ids
-                if oid in fetched_artists
-            ]
-
+            track["artist"] = artist
+            track["otherArtists"] = other_artists
+            tracks.append(track)
 
         album = {
             "albumId": item.get("albumId"),
             "title": item.get("title"),
-            "artist": {"artistId": artist.get("artistId", ""), "name": artist.get("name", "")} if artist else {},
+            "artist": artist,
             "genres": item.get("genres", []),
             "tracks": tracks,
             "details": item.get("details", {}),

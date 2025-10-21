@@ -1,7 +1,6 @@
 import json
 import boto3
 import os
-
 from boto3.dynamodb.conditions import Key
 
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
@@ -11,14 +10,9 @@ albums_table = dynamodb.Table(os.environ["ALBUMS_TABLE"])
 
 def lambda_handler(event, context):
     try:
-        genre = event['pathParameters']['genreName']
-
+        genre = event.get('pathParameters', {}).get('genreName')
         if not genre:
-            return {
-                'statusCode': 400,
-                'headers': {'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': 'Genre name is required'})
-            }
+            return _response(400, {'error': 'Genre name is required'})
 
         response = genre_content_table.query(
             KeyConditionExpression=Key('genreName').eq(genre)
@@ -26,29 +20,19 @@ def lambda_handler(event, context):
 
         items = response.get('Items', [])
         if not items:
-            return {
-                'statusCode': 200,
-                'body': json.dumps({"artists": [], "albums": []})
-            }
+            return _response(200, {"artists": [], "albums": []})
 
         content_keys = items[0].get('contentKey', [])
 
-        artist_keys = set([key.split("#")[1] for key in content_keys if key.startswith('artist#')])
-        album_keys = {
-            (key.split("#")[1], key.split("#")[2])  # (artistId, albumId)
-            for key in content_keys if key.startswith('album#')
-        }
+        artist_keys = {key.split("#")[1] for key in content_keys if key.startswith('artist#')}
+        album_keys = {(key.split("#")[1], key.split("#")[2]) for key in content_keys if key.startswith('album#')}
 
         request_items = {}
 
         if artist_keys:
-            request_items[artists_table.name] = {
-                'Keys': [{'artistId': k} for k in artist_keys]
-            }
+            request_items[artists_table.name] = {'Keys': [{'artistId': k} for k in artist_keys]}
         if album_keys:
-            request_items[albums_table.name] = {
-                'Keys': [{ 'artistId': a, 'albumId': b} for (a, b) in album_keys]
-            }
+            request_items[albums_table.name] = {'Keys': [{'artistId': a, 'albumId': b} for (a, b) in album_keys]}
 
         batch_response = {}
         if request_items:
@@ -60,21 +44,40 @@ def lambda_handler(event, context):
         artists = list({a['artistId']: a for a in artists}.values())
         albums = list({a['albumId']: a for a in albums}.values())
 
-        artists = [{k: v for k, v in artist.items() if k not in ["createdAt"]} for artist in artists]
-        albums = [{k: v for k, v in album.items() if k not in ["createdAt", "tracks"]} for album in albums]
+        final_artists = []
+        for artist_id in artist_keys:
+            artist = next((a for a in artists if a['artistId'] == artist_id), None)
+            if not artist or artist.get('isDeleted', False):
+                final_artists.append({
+                    'artistId': artist_id,
+                    'name': 'Unknown Artist'
+                })
+            else:
+                clean_artist = {k: v for k, v in artist.items() if k not in ['createdAt']}
+                final_artists.append(clean_artist)
 
-        return {
-            'statusCode': 200,
-            'headers': {'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({
-                "artists": artists,
-                "albums": albums
-            })
-        }
+        final_albums = [
+            {k: v for k, v in album.items() if k not in ['createdAt', 'tracks']}
+            for album in albums
+        ]
+
+        return _response(200, {
+            "artists": final_artists,
+            "albums": final_albums
+        })
 
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'headers': {'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': str(e)})
-        }
+        return _response(500, {'error': str(e)})
+
+
+def _response(status_code, body):
+    return {
+        'statusCode': status_code,
+        'headers': {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS,GET',
+            'Content-Type': 'application/json'
+        },
+        'body': json.dumps(body)
+    }

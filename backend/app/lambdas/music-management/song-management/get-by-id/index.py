@@ -52,13 +52,9 @@ def lambda_handler(event, context):
             if item.get('ratingCount', 0) > 0 else 0
         )
 
-        artist = artists_table.get_item(Key={'artistId': artist_id}).get('Item')
-        mapped_song['artist'] = {'artistId': artist_id, 'name': artist['name']} if artist else {}
-
+        mapped_song['artist'] = get_artist_safe(artist_id)
         other_artists = _get_artists_by_ids(item.get('otherArtistIds', []))
-        mapped_song['otherArtists'] = [
-            {'artistId': a['artistId'], 'name': a['name']} for a in other_artists
-        ]
+        mapped_song['otherArtists'] = [get_artist_safe(a.get('artistId')) for a in other_artists]
 
         claims = event.get("requestContext", {}).get("authorizer", {}).get("claims", {})
         user = claims.get("email")
@@ -73,6 +69,30 @@ def lambda_handler(event, context):
 
     except Exception as e:
         return _response(500, {'message': f'Failed to fetch song: {str(e)}'})
+
+
+def get_artist_safe(artist_id):
+    """Get artist from DynamoDB, return 'Unknown Artist' if not found or deleted"""
+    if not artist_id:
+        return {"artistId": "unknown-artist", "name": "Unknown Artist"}
+    try:
+        artist = artists_table.get_item(Key={'artistId': artist_id}).get('Item')
+        if not artist or artist.get('isDeleted', False):
+            return {"artistId": "unknown-artist", "name": "Unknown Artist"}
+        return {"artistId": artist.get('artistId', 'unknown-artist'), "name": artist.get('name', 'Unknown Artist')}
+    except Exception:
+        return {"artistId": "unknown-artist", "name": "Unknown Artist"}
+
+
+def _get_artists_by_ids(artist_ids):
+    if not artist_ids:
+        return []
+    keys = [{'artistId': artist_id} for artist_id in artist_ids]
+    response = dynamodb.batch_get_item(
+        RequestItems={artists_table.name: {'Keys': keys}}
+    )
+    items = response.get('Responses', {}).get(artists_table.name, [])
+    return [item for item in items if not item.get('isDeleted', False)]
 
 
 def _response(status_code, body):
@@ -90,15 +110,3 @@ def _cors_headers():
         "Access-Control-Allow-Methods": "OPTIONS,GET",
         "Content-Type": "application/json"
     }
-
-
-def _get_artists_by_ids(artist_ids):
-    if not artist_ids:
-        return []
-
-    keys = [{'artistId': artist_id} for artist_id in artist_ids]
-    response = dynamodb.batch_get_item(
-        RequestItems={artists_table.name: {'Keys': keys}}
-    )
-
-    return response.get('Responses', {}).get(artists_table.name, [])
