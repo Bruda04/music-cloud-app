@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { Artist } from '../model/artist.model';
 import { environment } from '../../environment/environment';
-import { HttpClient } from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
+import {PaginatedArtists, PaginatedSongs} from '../../songs/model/song.model';
 
 @Injectable({
   providedIn: 'root'
@@ -15,12 +16,14 @@ export class ArtistService {
     return this.httpClient.post<{"message":String,"artist":Artist}>(`${environment.apiUrl}/artists`,artist);
   }
 
-  getAll(): Observable<Artist[]>{
-    return this.httpClient.get<Artist[]>(`${environment.apiUrl}/artists`);
+  getAll(limit: number = 6, lastKey?: string): Observable<PaginatedArtists> {
+    let params = new HttpParams().set('limit', limit.toString());
+    if (lastKey) params = params.set('lastKey', lastKey);
+    return this.httpClient.get<PaginatedArtists>(`${environment.apiUrl}/artists`, { params });
   }
-  
-  getAllMock():Artist[]{ 
-    //mock because its on homepage and i want to keep my requests low for now
+
+  getAllMock():Artist[]{
+    //mock because its on homepage and I want to keep my requests low for now
     return[
       { artistId: '1', name: 'John Doe', bio: 'Singer and songwriter from NY.', genres: ['Pop', 'Rock'] },
       { artistId: '2', name: 'Jane Smith', bio: 'Jazz vocalist with a smooth style.', genres: ['Jazz'] },
@@ -46,5 +49,5 @@ export class ArtistService {
   get10New(): Observable<Artist[]>{
     return this.httpClient.get<Artist[]>(`${environment.apiUrl}/artists/new10`);
   }
-  
+
 }

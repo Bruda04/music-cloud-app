@@ -32,7 +32,6 @@ export class AllSongsComponent implements OnInit {
            this.songs = res.songs;
            this.lastKey = res.lastKey;
          });
-       //this.songs=this.songService.getMockSongs(); //TODO: change to getSongs, now is mock due to too many requests
     }
 
     nextPage() {
