@@ -24,12 +24,11 @@ export class AllArtistsPageComponent implements OnInit, AfterViewInit {
   constructor(private service:ArtistService) {}
 
   ngOnInit(): void {
-    // this.service.getAll().subscribe(a=>
-    //   {
-    //     this.artists = a;
-    //     this.updateDots();
-    //   });
-    this.artists = this.service.getAllMock() // TODO: change to getAll
+    this.service.getAll().subscribe(a=>
+       {
+         this.artists = a;
+         this.updateDots();
+    });
   }
 
   ngAfterViewInit() {
