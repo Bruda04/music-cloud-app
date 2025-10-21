@@ -10,7 +10,7 @@ genres_table = dynamodb.Table(os.environ['GENRES_TABLE'])
 
 def lambda_handler(event, context):
     path_params = event.get("pathParameters") or {}
-    file_key_param = path_params.get("fileKey")
+    file_key_param = path_params.get("key")
 
     if not file_key_param:
         return {
