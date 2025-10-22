@@ -27,7 +27,6 @@ def lambda_handler(event, context):
             return _response(200, {
                 'albums': [],
                 'songs': [],
-                'artist':  artist,
                 'error': 'unknown artist'
             })
 
