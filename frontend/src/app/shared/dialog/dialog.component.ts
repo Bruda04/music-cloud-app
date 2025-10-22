@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-export type DialogType = 'confirmation' | 'error' | 'message';
+export type DialogType = 'confirmation' | 'error' | 'message' | 'rating';
 
 @Component({
   selector: 'app-dialog',
@@ -17,8 +17,16 @@ export class DialogComponent {
   @Input() message: string = '';
 
   @Output() closed = new EventEmitter<boolean>();
+  @Output() rated = new EventEmitter<number>();
+
+  rating: number = 5;
+
 
   ok() {
+    if (this.type === 'rating') {
+      this.rated.emit(this.rating);
+      return;
+    }
     this.closed.emit(true);
   }
 

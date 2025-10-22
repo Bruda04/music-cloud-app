@@ -32,6 +32,11 @@ def lambda_handler(event, context):
 
         artist_id = None
 
+        existing_rating_resp = ratings_table.get_item(
+            Key={'contentKey': content_key, 'user': user}
+        )
+        existing_rating = existing_rating_resp.get('Item', {}).get('rating')
+
         if album_id:
             gsi_response = albums_table.query(
                 IndexName=albums_table_index,
@@ -51,8 +56,12 @@ def lambda_handler(event, context):
                 updated_tracks = []
                 for track in album['tracks']:
                     if track.get('songId') == song_id:
-                        track['ratingCount'] = track.get('ratingCount', 0) + 1
-                        track['ratingSum'] = track.get('ratingSum', 0) + rating
+                        if existing_rating is not None:
+                            diff = rating - existing_rating
+                            track['ratingSum'] = track.get('ratingSum', 0) + diff
+                        else:
+                            track['ratingCount'] = track.get('ratingCount', 0) + 1
+                            track['ratingSum'] = track.get('ratingSum', 0) + rating
                     updated_tracks.append(track)
 
                 albums_table.update_item(
@@ -73,17 +82,27 @@ def lambda_handler(event, context):
             song_item = gsi_response['Items'][0]
             artist_id = song_item.get('artistId', 'unknown-artist')
 
-            songs_table.update_item(
-                Key={'songId': song_id, 'artistId': artist_id},
-                UpdateExpression="SET ratingCount = if_not_exists(ratingCount, :zero) + :inc, "
-                                 "ratingSum = if_not_exists(ratingSum, :zero) + :r",
-                ExpressionAttributeValues={
-                    ':inc': 1,
-                    ':r': rating,
-                    ':zero': 0
-                },
-                ReturnValues="UPDATED_NEW"
-            )
+            if existing_rating is not None:
+                diff = rating - existing_rating
+                songs_table.update_item(
+                    Key={'songId': song_id, 'artistId': artist_id},
+                    UpdateExpression="SET ratingSum = if_not_exists(ratingSum, :zero) + :diff",
+                    ExpressionAttributeValues={
+                        ':diff': diff,
+                        ':zero': 0
+                    }
+                )
+            else:
+                songs_table.update_item(
+                    Key={'songId': song_id, 'artistId': artist_id},
+                    UpdateExpression="SET ratingCount = if_not_exists(ratingCount, :zero) + :inc, "
+                                     "ratingSum = if_not_exists(ratingSum, :zero) + :r",
+                    ExpressionAttributeValues={
+                        ':inc': 1,
+                        ':r': rating,
+                        ':zero': 0
+                    }
+                )
 
         ratings_table.put_item(
             Item={
@@ -97,7 +116,6 @@ def lambda_handler(event, context):
         return _response(200, {'message': 'Rating added successfully'})
 
     except Exception as e:
-        print("Error:", e)
         return _response(500, {'error': str(e)})
 
 
@@ -107,7 +125,6 @@ def _response(status_code, body):
         'headers': {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Headers": "*",
-            "Access-Control-Allow-Methods": "OPTIONS,POST",
             "Content-Type": "application/json"
         },
         'body': json.dumps(body)

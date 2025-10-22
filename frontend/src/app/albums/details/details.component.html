@@ -18,15 +18,31 @@
   <div class="track-list">
     <div *ngFor="let track of album.tracks"
          class="track-item"
-         [class.playing]="currentTrack === track.fileKey && isPlaying"
-         (click)="playTrack(track)"
     >
 
-      <button *ngIf="authService.loggedInUser?.role==UserRole.AuthUser" >★ Rate</button>
+      <div class="track-actions" *ngIf="authService.loggedInUser?.role == UserRole.AuthUser">
+        <button (click)="rateTrack(track, $event)">★ Rate</button>
+        <button (click)="downloadTrack(track, $event)">⬇ Download</button>
+      </div>
+
       <span>{{ track.title }}</span>
-      <button class="play-btn">
-        {{ currentTrack === track.fileKey && isPlaying ? '⏸Pause' : '▶ Play' }}
+      <button class="play-btn"
+        [class.playing]="currentTrack === track.songId && isPlaying"
+        (click)="playTrack(track)"
+      >
+        {{ currentTrack === track.songId && isPlaying ? '⏸ Pause' : '▶ Play' }}
       </button>
     </div>
   </div>
 </div>
+
+<app-dialog
+  *ngIf="showDialog"
+  [type]="dialogType"
+  [title]="dialogTitle"
+  [message]="dialogMessage"
+  (rated)="odTrackRated($event)"
+  (closed)="onDialogClosed($event)"
+>
+</app-dialog>
+

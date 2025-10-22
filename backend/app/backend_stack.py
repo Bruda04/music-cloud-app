@@ -10,7 +10,8 @@ from aws_cdk import (
     aws_iam as iam,
     aws_sns as sns,
     aws_sns_subscriptions as sns_subscriptions,
-    aws_sqs as sqs
+    aws_sqs as sqs,
+    aws_ses as ses
 )
 from constructs import Construct
 from app.config import AppConfig
@@ -30,20 +31,13 @@ class BackendStack(Stack):
         )
 
         self.artists_table.add_global_secondary_index(
-            index_name=AppConfig.ARTISTS_TABLE_GSI_ID,
+            index_name=AppConfig.ARTISTS_TABLE_GSI_DELETED,
             partition_key=dynamodb.Attribute(
                 name="isDeleted",
                 type=dynamodb.AttributeType.NUMBER
             ),
             projection_type=dynamodb.ProjectionType.KEYS_ONLY
         )
-
-
-
-
-
-
-
 
         self.genres_table = dynamodb.Table(
             self, AppConfig.GENRES_TABLE_ID,
@@ -327,6 +321,14 @@ class BackendStack(Stack):
             retention_period=Duration.days(4)
         )
 
+        # --- SES ---
+        self.ses_identity = ses.EmailIdentity(
+            self, AppConfig.SES_EMAIL_IDENTITY_ID,
+            identity=ses.Identity.email(
+                email=AppConfig.SES_FROM_EMAIL
+            )
+        )
+
         self.update_user_feed_queue = sqs.Queue(
             self, AppConfig.SQS_UPDATE_USER_FEED_QUEUE_ID,
             queue_name=AppConfig.SQS_UPDATE_USER_FEED_QUEUE_NAME,
@@ -395,6 +397,7 @@ class BackendStack(Stack):
             timeout=Duration.seconds(10),
             environment={
                 "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
+                "ARTISTS_TABLE_GSI_DELETED": AppConfig.ARTISTS_TABLE_GSI_DELETED,
                 "REGION": AppConfig.REGION
             }
         )

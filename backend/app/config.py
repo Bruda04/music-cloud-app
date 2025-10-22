@@ -4,7 +4,7 @@ class AppConfig:
     # DynamoDB
     ARTISTS_TABLE_NAME = "Artists"
     ARTISTS_TABLE_ID = "ArtistsTable"
-    ARTISTS_TABLE_GSI_ID = "isDeleted"
+    ARTISTS_TABLE_GSI_DELETED = "isDeleted"
 
     GENRES_TABLE_NAME = "Genres"
     GENRES_TABLE_ID = "GenresTable"
@@ -71,6 +71,9 @@ class AppConfig:
     SQS_UPDATE_USER_FEED_QUEUE_NAME = "updateUserFeedQueue"
     SQS_UPDATE_USER_FEED_QUEUE_ID = "UpdateUserFeedQueueSQS"
 
+    # SES
+    SES_EMAIL_IDENTITY_ID = "SesEmailIdentity"
+    SES_FROM_EMAIL = "pkiplatform@gmail.com"
 
     # Lambda function paths
     CREATE_ARTIST_LAMBDA = "app/lambdas/artist-management/create-artist"
@@ -113,6 +116,3 @@ class AppConfig:
 
     IMAGES_ALBUM_GET_LAMBDA = "app/lambdas/images-management/get-url-album"
     IMAGES_SONG_GET_LAMBDA = "app/lambdas/images-management/get-url-song"
-
-    # SES
-    SES_FROM_EMAIL = ""

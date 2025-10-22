@@ -3,6 +3,7 @@ import { AuthService } from '../auth/auth.service';
 import {Artist} from '../artists/model/artist.model';
 import {Album} from '../albums/model/album.model';
 import {DialogType} from '../shared/dialog/dialog.component';
+import {SubscriptionService} from '../subscriptions/service/subscription.service';
 
 interface Genre { name: string; }
 
@@ -53,7 +54,7 @@ export class DiscoveryComponent implements OnInit {
     }
   };
 
-  constructor(protected authService: AuthService) {}
+  constructor(protected authService: AuthService, private subscriptionService: SubscriptionService) {}
 
   ngOnInit(): void {
     this.selectGenre(this.genres[0]);
@@ -68,12 +69,22 @@ export class DiscoveryComponent implements OnInit {
 
   subscribeToGenre(genre: Genre, event: MouseEvent) {
     if (!genre) return;
-
-
-    this.dialogType = 'message';
-    this.dialogTitle = 'Subscribed!';
-    this.dialogMessage = `Successfully subscribed to ${genre.name}.`;
-    this.showDialog = true;
+    event.stopPropagation();
+    // this.subscriptionService.subscribeToGenre(genre.name).subscribe({
+    //   next: () => {
+    //     this.dialogTitle = 'Subscribed';
+    //     this.dialogMessage = `You have subscribed to the genre: ${genre.name}.`;
+    //     this.dialogType = 'message';
+    //     this.showDialog = true;
+    //   },
+    //   error: (err) => {
+    //     console.error('Error subscribing to genre:', err);
+    //     this.dialogTitle = 'Error';
+    //     this.dialogMessage = `Failed to subscribe to genre: ${genre.name}. Please try again later.`;
+    //     this.dialogType = 'message';
+    //     this.showDialog = true;
+    //   }
+    // });
   }
 
   scrollGenres(direction: number) {

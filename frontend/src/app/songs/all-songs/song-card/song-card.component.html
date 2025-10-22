@@ -28,7 +28,9 @@
     </button>
     <button *ngIf="authService.loggedInUser?.role==UserRole.Admin" (click)="goToEdit()">✎ Edit</button>
     <button *ngIf="authService.loggedInUser?.role==UserRole.Admin" (click)="deleteSong()">🗑 Delete</button>
-    <button *ngIf="authService.loggedInUser?.role==UserRole.AuthUser" (click)="rate.emit(song.songId)">★ Rate</button>
+    <button *ngIf="authService.loggedInUser?.role==UserRole.AuthUser" (click)="rateSong()">★ Rate</button>
+    <button *ngIf="authService.loggedInUser?.role==UserRole.AuthUser" (click)="downloadSong()">⬇ Download</button>
+
   </div>
 
   <div class="other-info">
@@ -47,5 +49,6 @@
   [type]="dialogType"
   [title]="dialogTitle"
   [message]="dialogMessage"
+  (rated)="onSongRated($event)"
   (closed)="onDialogClosed($event)">
 </app-dialog>

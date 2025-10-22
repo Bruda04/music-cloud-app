@@ -5,6 +5,7 @@ import {DialogType} from '../../../shared/dialog/dialog.component';
 import {AuthService} from '../../../auth/auth.service';
 import {Router} from '@angular/router';
 import { ArtistService } from '../../service/artist.service';
+import {SubscriptionService} from '../../../subscriptions/service/subscription.service';
 
 @Component({
   selector: 'app-artist-card',
@@ -21,18 +22,31 @@ export class ArtistCardComponent {
   dialogTitle: string = '';
   dialogMessage: string = '';
 
-  constructor(private router:Router,  protected authService: AuthService, private artistServie: ArtistService){
+  constructor(private router:Router,  protected authService: AuthService, private artistServie: ArtistService, private subscriptionService: SubscriptionService) {
     this.userRole = this.authService.loggedInUser?.role;
   }
 
   subscribeToArtist(): void {
-    if (!this.artist) return;
+    if (!this.artist || !this.artist.artistId) return;
 
-    // Show success dialog
-    this.dialogType = 'message';
-    this.dialogTitle = 'Subscribed!';
-    this.dialogMessage = `Successfully subscribed to ${this.artist.name}.`;
-    this.showDialog = true;
+    // Call the subscription service
+    // this.subscriptionService.subscribeToArtist(this.artist.artistId).subscribe({
+    //   next: () => {
+    //     console.log(`Subscribed to artist with ID: ${this.artist?.artistId}`);
+    //     this.dialogType = 'message';
+    //     this.dialogTitle = 'Subscribed!';
+    //     this.dialogMessage = `Successfully subscribed to ${this.artist?.name}.`;
+    //     this.showDialog = true;
+    //   },
+    //   error: (err) => {
+    //     console.error('Error subscribing to artist:', err);
+    //     // Show error dialog
+    //     this.dialogType = 'error';
+    //     this.dialogTitle = 'Subscription Failed';
+    //     this.dialogMessage = `Failed to subscribe to ${this.artist?.name}. Please try again later.`;
+    //     this.showDialog = true;
+    //   }
+    // });
   }
 
   onDialogClosed(confirmed: boolean) {
@@ -48,13 +62,13 @@ export class ArtistCardComponent {
       state: { artist: this.artist }
     });
   }
-  
+
   delete(event: MouseEvent): void {
-    event.stopPropagation(); 
+    event.stopPropagation();
     if (!this.artist || !this.artist.artistId) {
       console.error('Artist ID is missing:', this.artist);
       return;
-    } 
+    }
 
     this.artistServie.delete(this.artist.artistId).subscribe({
       next: () => {
@@ -73,4 +87,5 @@ export class ArtistCardComponent {
     });
   }
 
+  protected readonly UserRole = UserRole;
 }
