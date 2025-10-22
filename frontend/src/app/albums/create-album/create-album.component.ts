@@ -29,30 +29,40 @@ export class CreateAlbumComponent implements OnInit {
   imageFileName = '';
   uploadImageFile: File | undefined;
 
+  selectedOtherArtist: { [key: number]: string } = {};
 
 
-  tracks: AlbumTrack[] = [{ title: '', file: undefined, dragging: false }];
-    fileInputMap = new Map<AlbumTrack, HTMLInputElement>();
+  tracks: AlbumTrack[] = [{ title: '', file: undefined, dragging: false, otherArtistIds: []}];
+  fileInputMap = new Map<AlbumTrack, HTMLInputElement>();
 
-    artists: Artist[] = [];
-    genres: Genre[] = [];
+  artists: Artist[] = [];
+  genres: Genre[] = [];
 
-    genreInput = '';
-    genreInputManual = '';
-    otherKey = '';
-    otherValue = '';
+  genreInput = '';
+  genreInputManual = '';
+  otherKey = '';
+  otherValue = '';
 
-    loading = false;
-    errorMessage = '';
-    dialogType: DialogType = 'message';
-    dialogTitle = '';
-    dialogMessage = '';
-    showDialog = false;
+  loading = false;
+  errorMessage = '';
+  dialogType: DialogType = 'message';
+  dialogTitle = '';
+  dialogMessage = '';
+  showDialog = false;
 
     constructor( private artistService: ArtistService, private genreService: GenreService, private albumService: AlbumService, private router: Router) {}
 
-    ngOnInit() {
-        this.artists = this.artistService.getAllMock()
+    getArtistNameById(id: string): string {
+      const artist = this.artists.find(a => a.artistId === id);
+      return artist ? artist.name : '';
+    }
+
+
+  ngOnInit() {
+        this.artistService.getAll().subscribe(a=>
+        {
+          this.artists = a.artists;
+        });
         this.genreService.getAll().subscribe(a=>
         {
           this.genres = a;
@@ -85,9 +95,10 @@ export class CreateAlbumComponent implements OnInit {
         delete this.album.other![key];
     }
 
-    addTrack() {
-        this.tracks.push({ title: '', file: undefined });
-    }
+  addTrack() {
+    this.tracks.push({ title: '', file: undefined, dragging: false, otherArtistIds: [] });
+  }
+
 
     removeTrack(index: number) {
         this.tracks.splice(index, 1);
@@ -149,7 +160,8 @@ export class CreateAlbumComponent implements OnInit {
         const tracksPayload: CreateTrackDTO[] = await Promise.all(
           this.tracks.map(async (t) => ({
             title: t.title.trim(),
-            file: await this.convertFileToBase64(t.file!)
+            file: await this.convertFileToBase64(t.file!),
+            otherArtistsId: t.otherArtistIds
           }))
         );
 
@@ -169,6 +181,8 @@ export class CreateAlbumComponent implements OnInit {
           other: this.album.other
           };
 
+          console.log("Album to be created")
+          console.log(payload);
           this.albumService.create(payload).subscribe({
           next: (res) => {
               this.loading = false;
@@ -261,6 +275,25 @@ export class CreateAlbumComponent implements OnInit {
   onImageDragLeave(event: DragEvent) {
     event.preventDefault();
     this.imageDragging = false;
+  }
+
+  addOtherArtist(track: AlbumTrack, artistId: string, index?: number) {
+    if (artistId && !track.otherArtistIds?.includes(artistId)) {
+      // Initialize if undefined
+      if (!track.otherArtistIds) track.otherArtistIds = [];
+
+      track.otherArtistIds.push(artistId);
+
+      // Clear selected dropdown
+      if (index !== undefined) {
+        this.selectedOtherArtist[index] = '';
+      }
+    }
+  }
+
+
+  removeOtherArtist(track: AlbumTrack, artistId: string) {
+    track.otherArtistIds = track.otherArtistIds?.filter(id => id !== artistId);
   }
 
 }
