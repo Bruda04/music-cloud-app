@@ -38,6 +38,8 @@ export class AlbumDetailsComponent implements OnInit {
 
         if (navState.album) {
             this.album = navState.album;
+            //this.album.tracks[0].ratingCount = 2
+            //this.album.tracks[0].ratingSum = 9
             this.artists = navState.artists || [];
         } else {
             const albumId = this.route.snapshot.paramMap.get('id');

@@ -28,7 +28,7 @@ export class AlbumCardComponent implements OnInit {
   constructor(private router:Router,  protected authService: AuthService){}
 
   ngOnInit() {
-    this.photoPath = "https://cloud-music-app-content.s3.eu-central-1.amazonaws.com/albums/1761015586-Mama_mia.jpg"
+    this.photoPath = "photo.jpg"
   }
 
   openAlbum() {
