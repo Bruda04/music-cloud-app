@@ -18,7 +18,6 @@ def lambda_handler(event, context):
                 'headers': {
                     "Access-Control-Allow-Origin": "*",
                     "Access-Control-Allow-Headers": "*",
-                    "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
                     "Content-Type": "application/json"
                 },
                 'body': json.dumps({'message': 'Forbidden: Admins only'})
@@ -35,7 +34,6 @@ def lambda_handler(event, context):
                 "headers": {
                     "Access-Control-Allow-Origin": "*",
                     "Access-Control-Allow-Headers": "*",
-                    "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
                     "Content-Type": "application/json"
                 },
                 "body": json.dumps({"error": "Name, Bio and at least one Genre are required"})

@@ -6,7 +6,7 @@ from boto3.dynamodb.conditions import Key
 
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 songs_table = dynamodb.Table(os.environ['SONGS_TABLE'])
-songs_table_sgi_id = os.environ['SONGS_TABLE_GSI_ID']
+songs_table_gsi_id = os.environ['SONGS_TABLE_GSI_ID']
 artists_table = dynamodb.Table(os.environ['ARTISTS_TABLE'])
 ratings_table = dynamodb.Table(os.environ['RATINGS_TABLE'])
 
@@ -26,16 +26,16 @@ def lambda_handler(event, context):
             return _response(400, {'message': 'Missing songId in path parameters'})
 
         song_keys = songs_table.query(
-            IndexName=songs_table_sgi_id,
+            IndexName=songs_table_gsi_id,
             KeyConditionExpression=Key("songId").eq(song_id)
         )
 
-        if song_keys.get('Count', 0) == 0 or not song_keys.get('Items'):
+        if not song_keys.get('Items'):
             return _response(404, {'message': 'Song not found'})
 
         artist_id = song_keys['Items'][0]['artistId']
 
-        response = songs_table.get_item(Key={'songId': song_id, 'artistId': artist_id})
+        response = songs_table.get_item(Key={'artistId': artist_id, 'songId': song_id})
         item = response.get('Item')
         if not item:
             return _response(404, {'message': 'Song not found'})
@@ -57,10 +57,10 @@ def lambda_handler(event, context):
         mapped_song['otherArtists'] = [get_artist_safe(a.get('artistId')) for a in other_artists]
 
         claims = event.get("requestContext", {}).get("authorizer", {}).get("claims", {})
-        user = claims.get("email")
+        user_email = claims.get("email")
         can_rate = True
-        if user:
-            user_rating = ratings_table.get_item(Key={'user': user, 'contentKey': f"song#{song_id}"})
+        if user_email:
+            user_rating = ratings_table.get_item(Key={'user': user_email, 'contentKey': f"song#{song_id}"})
             can_rate = 'Item' not in user_rating
 
         mapped_song["canRate"] = can_rate
@@ -72,7 +72,8 @@ def lambda_handler(event, context):
 
 
 def get_artist_safe(artist_id):
-    """Get artist or return 'Unknown Artist' if its deleted or doesn't exist."""
+    if not artist_id:
+        return {"artistId": "unknown-artist", "name": "Unknown Artist"}
     try:
         artist = artists_table.get_item(Key={'artistId': artist_id}).get('Item')
         if not artist or artist.get('isDeleted', 1):
@@ -105,6 +106,5 @@ def _cors_headers():
     return {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "*",
-        "Access-Control-Allow-Methods": "OPTIONS,GET",
         "Content-Type": "application/json"
     }

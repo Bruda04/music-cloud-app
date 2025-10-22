@@ -17,7 +17,6 @@ export class AllArtistsPageComponent implements OnInit {
   limit = 6;
   page = 1;
 
-
   constructor(private service:ArtistService) {}
 
   ngOnInit(): void {
@@ -31,9 +30,6 @@ export class AllArtistsPageComponent implements OnInit {
       this.lastKey = res.lastKey;
     });
   }
-
-
-
 
   nextPage() {
     if (this.lastKey) {

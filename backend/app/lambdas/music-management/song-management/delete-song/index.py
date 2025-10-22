@@ -17,21 +17,24 @@ def lambda_handler(event, context):
         if not claims.get("cognito:groups") or "Admins" not in claims.get("cognito:groups"):
             return _response(403, 'Forbidden: Admins only')
 
-        song_id = event.get('pathParameters', {}).get('id')
-        if not song_id:
-            return _response(400, 'Missing songId in path parameters')
+        path_params = event.get('pathParameters', {})
+        if not path_params or 'id' not in path_params:
+            return _response(400, 'Missing id in path parameters')
 
-        keys = songs_table.query(
+        song_id = path_params['id']
+
+        query_result = songs_table.query(
             IndexName=songs_table_gsi_id,
-            KeyConditionExpression=Key("songId").eq(song_id),
-            ProjectionExpression="artistId"
-        ).get("Items", [])
+            KeyConditionExpression=Key("songId").eq(song_id)
+        )
 
-        if not keys:
+        items = query_result.get("Items", [])
+        if not items:
             return _response(404, 'Song not found')
-        song_keys = keys[0]
 
-        song_resp = songs_table.get_item(Key={'songId': song_id, 'artistId': song_keys['artistId']})
+        artist_id = items[0]['artistId']
+
+        song_resp = songs_table.get_item(Key={'artistId': artist_id, 'songId': song_id})
         song = song_resp.get('Item')
         if not song:
             return _response(404, 'Song not found')
@@ -41,12 +44,11 @@ def lambda_handler(event, context):
             try:
                 s3.delete_object(Bucket=BUCKET, Key=f"songs/{file_key}")
             except Exception as e:
-                pass
+                print(f"Warning: Failed to delete song file from S3: {str(e)}")
 
-        songs_table.delete_item(Key={'songId': song_id, 'artistId': song_keys['artistId']})
+        songs_table.delete_item(Key={'artistId': artist_id, 'songId': song_id})
 
-        genres = song.get('genres', [])
-        for genre in genres:
+        for genre in song.get('genres', []):
             genre_contents_table.delete_item(
                 Key={
                     'genreName': genre,
@@ -57,6 +59,7 @@ def lambda_handler(event, context):
         return _response(200, f'Song {song_id} deleted successfully')
 
     except Exception as e:
+        print(f"Error: {e}")
         return _response(500, f'Failed to delete song: {str(e)}')
 
 

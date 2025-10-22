@@ -23,30 +23,7 @@ export class SubscriptionsComponent implements OnInit {
   constructor(private subscriptionService: SubscriptionService) {}
 
   ngOnInit(): void {
-    // this.loadSubscriptions();
-    this.locdMockSubscriptions();
-  }
-
-  private locdMockSubscriptions(): void {
-    this.subscriptions = {
-      genres: [
-        'Rock', 'Pop', 'Jazz', 'Classical',
-        'Rock', 'Pop', 'Jazz', 'Classical',
-        'Rock', 'Pop', 'Jazz', 'Classical',
-        'Rock', 'Pop', 'Jazz', 'Classical',
-        'Rock', 'Pop', 'Jazz', 'Classical',
-        'Hip-Hop', 'Electronic', 'Country'
-      ],
-      artists: [
-        { artistId: '1', name: 'Artist One' },
-        { artistId: '1', name: 'Artist One' },
-        { artistId: '1', name: 'Artist One' },
-        { artistId: '1', name: 'Artist One' },
-        { artistId: '1', name: 'Artist One' },
-        { artistId: '2', name: 'Artist Two' },
-        { artistId: '3', name: 'Artist Three' }
-      ]
-    };
+    this.loadSubscriptions();
   }
 
   private loadSubscriptions(): void {
@@ -60,8 +37,6 @@ export class SubscriptionsComponent implements OnInit {
         }
       });
   }
-
-
 
   unsubscribeFromGenre(genre: string, event: MouseEvent): void {
     event.stopPropagation();

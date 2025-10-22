@@ -37,30 +37,9 @@ export class DiscoveryComponent implements OnInit {
   albumsAndArtistsForGenre: { artists: Artist[]; albums: Album[] } = { artists: [], albums: [] };
   activeDot = 0;
 
-  private allData: {
-    [key: string]: { artists: Artist[]; albums: Album[] };
-  } = {
-    "Pop": {
-      artists: [
-        { name: 'Luna', bio: 'Pop sensation', genres: ['Pop'] },
-        { name: 'Maya', bio: 'Pop-R&B hybrid', genres: ['Pop', 'R&B'] }
-      ],
-      albums: [
-
-      ]
-    },
-    "Rock": {
-      artists: [{ name: 'The Waves', bio: 'Rock legends', genres: ['Rock'] }],
-      albums: [
-
-      ]
-    }
-  };
-
   constructor(protected authService: AuthService, private subscriptionService: SubscriptionService, private genreService: GenreService) {}
 
   ngOnInit(): void {
-    setTimeout(() => this.updateActiveDot(), 0);
     this.loadGenres()
   }
 
@@ -72,21 +51,21 @@ export class DiscoveryComponent implements OnInit {
   subscribeToGenre(genre: Genre, event: MouseEvent) {
     if (!genre) return;
     event.stopPropagation();
-    // this.subscriptionService.subscribeToGenre(genre.name).subscribe({
-    //   next: () => {
-    //     this.dialogTitle = 'Subscribed';
-    //     this.dialogMessage = `You have subscribed to the genre: ${genre.name}.`;
-    //     this.dialogType = 'message';
-    //     this.showDialog = true;
-    //   },
-    //   error: (err) => {
-    //     console.error('Error subscribing to genre:', err);
-    //     this.dialogTitle = 'Error';
-    //     this.dialogMessage = `Failed to subscribe to genre: ${genre.name}. Please try again later.`;
-    //     this.dialogType = 'message';
-    //     this.showDialog = true;
-    //   }
-    // });
+    this.subscriptionService.subscribeToGenre(genre.name).subscribe({
+      next: () => {
+        this.dialogTitle = 'Subscribed';
+        this.dialogMessage = `You have subscribed to the genre: ${genre.name}.`;
+        this.dialogType = 'message';
+        this.showDialog = true;
+      },
+      error: (err) => {
+        console.error('Error subscribing to genre:', err);
+        this.dialogTitle = 'Error';
+        this.dialogMessage = `Failed to subscribe to genre: ${genre.name}. Please try again later.`;
+        this.dialogType = 'message';
+        this.showDialog = true;
+      }
+    });
   }
 
   scrollGenres(direction: number) {
@@ -94,25 +73,6 @@ export class DiscoveryComponent implements OnInit {
     if (!list) return;
     const scrollAmount = 250;
     list.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
-    this.updateActiveDot();
-  }
-
-  @HostListener('window:resize')
-  updateActiveDot() {
-    const list = document.querySelector('.horizontal-list') as HTMLElement | null;
-    if (!list) return;
-    const children = Array.from(list.children) as HTMLElement[];
-    const scrollLeft = list.scrollLeft;
-    let best = 0;
-    let bestDiff = Infinity;
-    children.forEach((c, i) => {
-      const diff = Math.abs(c.offsetLeft - scrollLeft);
-      if (diff < bestDiff) {
-        bestDiff = diff;
-        best = i;
-      }
-    });
-    this.activeDot = best;
   }
 
   onDialogClosed(confirmed: boolean) {

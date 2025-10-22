@@ -30,23 +30,23 @@ export class ArtistCardComponent {
     if (!this.artist || !this.artist.artistId) return;
     $event.stopPropagation();
     // Call the subscription service
-    // this.subscriptionService.subscribeToArtist(this.artist.artistId).subscribe({
-    //   next: () => {
-    //     console.log(`Subscribed to artist with ID: ${this.artist?.artistId}`);
-    //     this.dialogType = 'message';
-    //     this.dialogTitle = 'Subscribed!';
-    //     this.dialogMessage = `Successfully subscribed to ${this.artist?.name}.`;
-    //     this.showDialog = true;
-    //   },
-    //   error: (err) => {
-    //     console.error('Error subscribing to artist:', err);
-    //     // Show error dialog
-    //     this.dialogType = 'error';
-    //     this.dialogTitle = 'Subscription Failed';
-    //     this.dialogMessage = `Failed to subscribe to ${this.artist?.name}. Please try again later.`;
-    //     this.showDialog = true;
-    //   }
-    // });
+    this.subscriptionService.subscribeToArtist(this.artist.artistId).subscribe({
+      next: () => {
+        console.log(`Subscribed to artist with ID: ${this.artist?.artistId}`);
+        this.dialogType = 'message';
+        this.dialogTitle = 'Subscribed!';
+        this.dialogMessage = `Successfully subscribed to ${this.artist?.name}.`;
+        this.showDialog = true;
+      },
+      error: (err) => {
+        console.error('Error subscribing to artist:', err);
+        // Show error dialog
+        this.dialogType = 'error';
+        this.dialogTitle = 'Subscription Failed';
+        this.dialogMessage = `Failed to subscribe to ${this.artist?.name}. Please try again later.`;
+        this.showDialog = true;
+      }
+    });
   }
 
   onDialogClosed(confirmed: boolean) {
@@ -89,4 +89,14 @@ export class ArtistCardComponent {
   }
 
   protected readonly UserRole = UserRole;
+
+  edit($event: PointerEvent) {
+    $event.stopPropagation();
+    if (!this.artist || !this.artist.artistId) {
+      console.error('Artist ID is missing:', this.artist);
+      return;
+    }
+    this.router.navigate(['/artists/edit/', this.artist.artistId]);
+
+  }
 }

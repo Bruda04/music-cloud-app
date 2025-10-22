@@ -1,4 +1,5 @@
 import base64
+import imghdr
 import json
 import os
 import boto3
@@ -44,7 +45,7 @@ def lambda_handler(event, context):
                 'body': json.dumps({'message': 'Artist does not exist or has been deleted.'})
             }
 
-        required_fields = ['title', 'artistId', 'genres']
+        required_fields = ['title', 'artistId', 'genres', 'imageFile']
         missing = [f for f in required_fields if f not in body or not body[f]]
         if missing:
             return {
@@ -75,6 +76,31 @@ def lambda_handler(event, context):
             except genres_table.meta.client.exceptions.ConditionalCheckFailedException:
                 pass
 
+        # Image handling
+        image_bytes = base64.b64decode(body['imageFile'])
+        timestamp = int(datetime.utcnow().timestamp())
+        safe_title = body['title'].replace(' ', '_')
+
+        # Detect image type
+        image_type = imghdr.what(None, h=image_bytes)
+        if image_type not in ['jpeg', 'png']:
+            return {
+                'statusCode': 400,
+                'headers': _cors_headers(),
+                'body': json.dumps({'message': 'Only JPG and PNG images are supported.'})
+            }
+
+        # Use jpg instead of jpeg for filename
+        ext = 'jpg' if image_type == 'jpeg' else 'png'
+        image_key = f"{timestamp}-{safe_title}.{ext}"
+
+        s3.put_object(
+            Bucket=BUCKET,
+            Key=f"images/songs/{image_key}",
+            Body=image_bytes,
+            ContentType=f'image/{ext}'
+        )
+
         song_id = str(uuid.uuid4())
         item = {
             'songId': song_id,
@@ -84,7 +110,7 @@ def lambda_handler(event, context):
             'genres': genres,
             'fileKey': key,
             'createdAt': datetime.utcnow().isoformat(),
-            'imageFile': None,
+            'imageFile': image_key,
             'lyrics': '',
             'ratingSum': 0,
             'ratingCount': 0,
@@ -157,6 +183,5 @@ def _cors_headers():
     return {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "*",
-        "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
         "Content-Type": "application/json"
     }

@@ -1,12 +1,13 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import {Component, Input, Output, EventEmitter, OnInit} from '@angular/core';
 import { Song } from '../../model/song.model';
 import { Artist } from '../../../artists/model/artist.model';
 import { SongService } from '../../service/song.service';
 import { Router } from '@angular/router';
 import { DialogType } from '../../../shared/dialog/dialog.component';
-import {AuthService} from '../../../auth/auth.service';
-import {UserRole} from '../../../auth/model/user.model';
-import {CacheService} from '../../../shared/cache/cache.service';
+import { AuthService } from '../../../auth/auth.service';
+import { UserRole } from '../../../auth/model/user.model';
+import { CacheService } from '../../../shared/cache/cache.service';
+import {ImagesService} from '../../../shared/images/service/images.service';
 
 @Component({
   selector: 'app-song-card',
@@ -14,14 +15,13 @@ import {CacheService} from '../../../shared/cache/cache.service';
   styleUrls: ['../../../shared/themes/card.css'],
   standalone: false
 })
-export class SongCardComponent {
+export class SongCardComponent implements OnInit {
   @Input() song!: Song;
 
   @Output() rate = new EventEmitter<string>();
   @Output() deleted = new EventEmitter<string>();
 
   photoPath: string = 'photo.jpg'; // placeholder image
-
 
   audio = new Audio();
   isPlaying = false;
@@ -34,7 +34,13 @@ export class SongCardComponent {
   dialogRating: number = 0;
 
 
-  constructor(private songService: SongService,private router:Router, protected authService: AuthService, private cacheService: CacheService) {}
+  constructor(private songService: SongService,private router:Router,
+              protected authService: AuthService, private cacheService: CacheService,
+              private imageService: ImagesService) {}
+
+  ngOnInit(): void {
+    this.loadImage()
+  }
 
   playSong() {
     if (!this.song.file) return;
@@ -78,7 +84,7 @@ export class SongCardComponent {
   }
 
   goToEdit() {
-    if (this.song){
+    if (this.song) {
       this.router.navigate(['/songs/edit', this.song.songId]);
     }
   }
@@ -86,6 +92,7 @@ export class SongCardComponent {
   deleteSong() {
     if (!this.song?.songId) return;
 
+    this.pendingDeleteId = this.song.songId;
     this.dialogType = 'confirmation';
     this.dialogTitle = 'Are you sure?';
     this.dialogMessage = `Do you really want to delete "${this.song.title}"?`;
@@ -96,6 +103,7 @@ export class SongCardComponent {
     this.showDialog = false;
 
     if (confirmed && this.pendingDeleteId) {
+      console.log(this.pendingDeleteId)
       this.songService.delete(this.pendingDeleteId).subscribe({
         next: res => {
           this.deleted.emit(this.pendingDeleteId!);
@@ -104,7 +112,7 @@ export class SongCardComponent {
           this.dialogMessage = res.message;
           this.showDialog = true;
         },
-        error: err => {
+        error: (err) => {
           this.dialogType = 'error';
           this.dialogTitle = 'Error';
           this.dialogMessage = err.error?.message || 'Failed to delete song';
@@ -115,7 +123,6 @@ export class SongCardComponent {
 
     this.pendingDeleteId = null;
   }
-
 
   formatDate(dateString: string): string {
     if (!dateString) return '';
@@ -132,14 +139,11 @@ export class SongCardComponent {
 
   protected readonly UserRole = UserRole;
 
-
   rateSong() {
     this.dialogMessage = `Rate the song "${this.song.title}"`;
     this.dialogType = 'rating';
     this.dialogTitle = 'Rate Song';
     this.showDialog = true;
-
-
   }
 
   onSongRated(rating: number) {
@@ -147,20 +151,20 @@ export class SongCardComponent {
     this.showDialog = false;
     if (this.dialogType === 'rating' && this.dialogRating > 0) {
       console.log('Submitting rating:', this.dialogRating);
-      // this.songService.rateSong(this.song.songId!, this.dialogRating).subscribe({
-      //   next: res => {
-      //     this.dialogType = 'message';
-      //     this.dialogTitle = 'Thank you!';
-      //     this.dialogMessage = `You rated "${this.song.title}" with ${this.dialogRating} stars.`;
-      //     this.showDialog = true;
-      //   },
-      //   error: err => {
-      //     this.dialogType = 'error';
-      //     this.dialogTitle = 'Error';
-      //     this.dialogMessage = err.error?.message || 'Failed to submit rating';
-      //     this.showDialog = true;
-      //   }
-      // });
+      this.songService.rateSong(this.song.songId!, this.dialogRating).subscribe({
+        next: res => {
+          this.dialogType = 'message';
+          this.dialogTitle = 'Thank you!';
+          this.dialogMessage = `You rated "${this.song.title}" with ${this.dialogRating} stars.`;
+          this.showDialog = true;
+        },
+        error: err => {
+          this.dialogType = 'error';
+          this.dialogTitle = 'Error';
+          this.dialogMessage = err.error?.message || 'Failed to submit rating';
+          this.showDialog = true;
+        }
+      });
       this.dialogRating = 0;
     }
   }
@@ -171,21 +175,15 @@ export class SongCardComponent {
     this.songService.getUrl(this.song.file).subscribe({
       next: async (res) => {
         try {
-          // fetch the file as blob
           const response = await fetch(res.url);
           const blob = await response.blob();
-
-          // create a temporary URL
           const blobUrl = URL.createObjectURL(blob);
-
           const link = document.createElement('a');
           link.href = blobUrl;
           link.download = this.song.title + '.mp3';
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-
-          // revoke object URL
           URL.revokeObjectURL(blobUrl);
         } catch (err) {
           console.error('Failed to download song', err);
@@ -193,16 +191,27 @@ export class SongCardComponent {
       },
       error: (err) => console.error('Failed to get song URL', err)
     });
-
   }
 
   private logPlay() {
     if (!this.song.songId || !this.song.artist?.artistId) return;
     this.songService.logPlay(this.song.songId, this.song.artist?.artistId).subscribe({
-      next: ({message}) => {
+      next: ({ message }) => {
         console.log('Play logged:', message);
       },
       error: (err) => console.error('Failed to log play', err)
+    });
+  }
+
+  private loadImage() {
+    if (!this.song.imageFile) return;
+    this.imageService.getSongImageUrl(this.song.imageFile).subscribe({
+      next: (url) => {
+        this.photoPath = url;
+      },
+      error: (err) => {
+        console.error('Failed to load song image', err);
+      }
     });
   }
 }

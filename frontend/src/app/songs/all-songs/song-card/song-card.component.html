@@ -1,13 +1,10 @@
 <div class="song-card">
 
-  <!-- Horizontal container for title + info and photo -->
   <div class="song-top" style="display: flex; gap: 1rem; align-items: stretch;">
-
-    <!-- Left side: title + info -->
     <div class="song-info" style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
       <h2>{{ song.title }}</h2>
       <p style="margin-top: 0">Artists: {{song.artist?.name}}</p>
-      <p  style="margin-top: 0">Other artists:
+      <p style="margin-top: 0">Other artists:
         <span *ngFor="let a of song.otherArtists; let last = last">
           {{ a.name }}<span *ngIf="!last">, </span>
         </span>
@@ -17,9 +14,7 @@
       </div>
     </div>
 
-    <!-- Right side: photo fills the full height -->
     <img [src]="photoPath" alt="Song photo" class="song-photo" />
-
   </div>
 
   <div class="actions">
@@ -30,7 +25,6 @@
     <button *ngIf="authService.loggedInUser?.role==UserRole.Admin" (click)="deleteSong()">🗑 Delete</button>
     <button *ngIf="authService.loggedInUser?.role==UserRole.AuthUser" (click)="rateSong()">★ Rate</button>
     <button *ngIf="authService.loggedInUser?.role==UserRole.AuthUser" (click)="downloadSong()">⬇ Download</button>
-
   </div>
 
   <div class="other-info">
@@ -42,7 +36,6 @@
   </div>
 
 </div>
-
 
 <app-dialog
   *ngIf="showDialog"

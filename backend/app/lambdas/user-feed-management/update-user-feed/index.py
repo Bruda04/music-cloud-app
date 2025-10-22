@@ -14,77 +14,90 @@ ratings_table = dynamodb.Table(os.environ["RATINGS_TABLE"])
 
 
 def lambda_handler(event, context):
-    artist_id = event["artistId"]
-    genres = event["genres"]
-    album_id = event.get("albumId")
-    song_id = event.get("songId")
-    metadata = event["metadata"]
-    content_type = metadata["contentType"]
-    content_key = f"{content_type}#{song_id or album_id}"
+    try:
+        for record in event.get('Records', []):
+            sns_message = json.loads(record['body'])
+            message_str = sns_message['Message']
+            body = json.loads(message_str)
 
-    target_users = set()
-    for genre in genres:
-        resp = subscriptions_table.query(
-            KeyConditionExpression=Key('contentKey').eq(f"genre#{genre}")
-        )
-        target_users.update([item['user'] for item in resp.get('Items', [])])
+            artist_id = body["artistId"]
 
-    resp = subscriptions_table.query(
-        KeyConditionExpression=Key('contentKey').eq(f"artist#{artist_id}")
-    )
-    target_users.update([item['user'] for item in resp.get('Items', [])])
+            genres = body["genres"]
+            album_id = body.get("albumId")
+            song_id = body.get("songId")
+            metadata = body["metadata"]
+            content_type = metadata["contentType"]
+            content_key = f"{content_type}#{song_id or album_id}"
 
-    now = datetime.utcnow()
+            target_users = set()
+            for genre in genres:
+                resp = subscriptions_table.query(
+                    KeyConditionExpression=Key('contentKey').eq(f"genre#{genre}")
+                )
+                target_users.update([item['user'] for item in resp.get('Items', [])])
 
-    for user in target_users:
-        score = 0.0
+            resp = subscriptions_table.query(
+                KeyConditionExpression=Key('contentKey').eq(f"artist#{artist_id}")
+            )
+            target_users.update([item['user'] for item in resp.get('Items', [])])
 
-        # subscription
-        score += 0.5
+            now = datetime.utcnow()
 
-        # rating history
-        rating_resp = ratings_table.query(
-            KeyConditionExpression=boto3.dynamodb.conditions.Key('user').eq(user),
-            Limit = 50
-        )
-        for r in rating_resp.get('Items', []):
-            if r['artistId'] == artist_id:
-                rating = r.get('rating', 0)
-                if rating == 0:
-                    continue
-                score += (rating - 3) / 4
+            for user in target_users:
+                score = 0.0
 
-        # Listening history
-        history_resp = listening_history_table.query(
-            KeyConditionExpression=Key('user').eq(user),
-            Limit=50,
-            ScanIndexForward=False
-        )
-        for h in history_resp.get('Items', []):
-            if set(h.get('genres', [])) & set(genres):
-                #"2023-10-01T12:00:00Z"
-                ts = datetime.fromisoformat(h['timestamp'].replace('Z', '+00:00'))
-                hours_ago = (now - ts).total_seconds() / 3600
+                # subscription
+                score += 0.5
 
-                if hours_ago < 24:
-                    score += 0.2
-                elif hours_ago < 168:
-                    score += 0.1
-                else:
-                    score += 0.05
+                # rating history
+                rating_resp = ratings_table.query(
+                    KeyConditionExpression=boto3.dynamodb.conditions.Key('user').eq(user),
+                    Limit = 50
+                )
+                for r in rating_resp.get('Items', []):
+                    if r['artistId'] == artist_id:
+                        rating = r.get('rating', 0)
+                        if rating == 0:
+                            continue
+                        score += (rating - 3) / 4
 
-                break
+                # Listening history
+                history_resp = listening_history_table.query(
+                    KeyConditionExpression=Key('user').eq(user),
+                    Limit=50,
+                    ScanIndexForward=False
+                )
+                for h in history_resp.get('Items', []):
+                    if set(h.get('genres', [])) & set(genres):
+                        #"2023-10-01T12:00:00Z"
+                        ts = datetime.fromisoformat(h['timestamp'].replace('Z', '+00:00'))
+                        hours_ago = (now - ts).total_seconds() / 3600
 
-        user_feed_table.put_item(
-            Item={
-                "user": user,
-                "timestamp": now.isoformat(),
-                "contentKey": content_key,
-                "score": score
+                        if hours_ago < 24:
+                            score += 0.2
+                        elif hours_ago < 168:
+                            score += 0.1
+                        else:
+                            score += 0.05
+
+                        break
+
+                user_feed_table.put_item(
+                    Item={
+                        "user": user,
+                        "timestamp": now.isoformat(),
+                        "contentKey": content_key,
+                        "score": score
+                    }
+                )
+
+            return {
+                'statusCode': 200,
+                'body': json.dumps({'message': f'Feed updated for {len(target_users)} users'})
             }
-        )
 
-    return {
-        'statusCode': 200,
-        'body': json.dumps({'message': f'Feed updated for {len(target_users)} users'})
-    }
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': str(e)})
+        }

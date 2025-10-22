@@ -27,10 +27,10 @@ def lambda_handler(event, context):
 
         songs = []
         for song in items:
-            core_fields = ['songId', 'title', 'genres']
+            core_fields = ['songId', 'title', 'genres', 'imageFile']
             mapped_song = {key: song.get(key, '' if key != 'genres' else []) for key in core_fields}
             mapped_song['file'] = song.get('fileKey')
-            mapped_song['other'] = {k: v for k, v in song.items() if k not in core_fields and k not in ['fileKey', 'artistId', 'otherArtistIds']}
+            mapped_song['other'] = {k: v for k, v in song.items() if k not in core_fields and k not in ['fileKey', 'artistId', 'otherArtistIds', 'imageFile']}
 
             mapped_song['artist'] = get_artist_safe(song.get('artistId'))
             other_artists = _get_artists_by_ids(song.get('otherArtistIds', []))
@@ -48,7 +48,6 @@ def lambda_handler(event, context):
             'headers': {
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Headers": "*",
-                "Access-Control-Allow-Methods": "OPTIONS,GET",
                 "Content-Type": "application/json"
             },
             'body': json.dumps(result, cls=DecimalEncoder)
@@ -86,7 +85,7 @@ def _get_artists_by_ids(artist_ids):
     items = response.get('Responses', {}).get(artists_table.name, [])
     result = []
     for item in items:
-        if item.get('isDeleted', False):
+        if item.get('isDeleted', 1) == 1:
             continue
         result.append({"artistId": item.get("artistId"), "name": item.get("name")})
     return result
