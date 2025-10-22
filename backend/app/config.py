@@ -78,6 +78,7 @@ class AppConfig:
     GET_CONTENT_BY_ARTIST_LAMBDA = "app/lambdas/artist-management/get-content-by-artist"
     DELETE_ARTIST_LAMBDA = "app/lambdas/artist-management/delete-artist"
     EDIT_ARTIST_LAMBDA = "app/lambdas/artist-management/edit-artist"
+    GET_ARTIST_BY_ID_LAMBDA = "app/lambdas/artist-management/get-by-id"
     
     GET_ALL_GENRES_LAMBDA = "app/lambdas/genre-management/get-all"
     GET_CONTENT_BY_GENRE_LAMBDA = "app/lambdas/genre-management/get-content-by-genre"
@@ -110,7 +111,8 @@ class AppConfig:
     POST_REGISTER_LAMBDA = "app/lambdas/cognito/post-confirmation"
     PRE_SIGNUP_LAMBDA = "app/lambdas/cognito/pre-signup"
 
-    IMAGES_GET_LAMBDA = "app/lambdas/images-management/get-url"
+    IMAGES_ALBUM_GET_LAMBDA = "app/lambdas/images-management/get-url-album"
+    IMAGES_SONG_GET_LAMBDA = "app/lambdas/images-management/get-url-song"
 
     # SES
     SES_FROM_EMAIL = ""

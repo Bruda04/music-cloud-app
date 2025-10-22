@@ -375,6 +375,18 @@ class BackendStack(Stack):
             }
         )
 
+        self.get_artist_by_id_lambda = _lambda.Function(
+            self, "GetArtistByIdLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.GET_ARTIST_BY_ID_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+        
         self.get_all_artists_lambda = _lambda.Function(
             self, "GetAllArtistsLambda",
             runtime=_lambda.Runtime.PYTHON_3_12,
@@ -718,11 +730,23 @@ class BackendStack(Stack):
             }
         )
 
-        self.images_get_lambda = _lambda.Function(
-            self, "ImagesGetLambda",
+        self.images_album_get_lambda = _lambda.Function(
+            self, "ImagesAlbumGetLambda",
             runtime=_lambda.Runtime.PYTHON_3_12,
             handler="index.lambda_handler",
-            code=_lambda.Code.from_asset(AppConfig.IMAGES_GET_LAMBDA),
+            code=_lambda.Code.from_asset(AppConfig.IMAGES_ALBUM_GET_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
+        self.images_song_get_lambda = _lambda.Function(
+            self, "ImagesSongGetLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.IMAGES_SONG_GET_LAMBDA),
             timeout=Duration.seconds(10),
             environment={
                 "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
@@ -742,6 +766,7 @@ class BackendStack(Stack):
         self.songs_table.grant_read_data(self.get_content_by_artist_lambda)
         self.artists_table.grant_read_data(self.get_content_by_artist_lambda)
         self.artists_table.grant_read_data(self.edit_song_lambda)
+        self.artists_table.grant_read_data(self.get_artist_by_id_lambda)
         
         # Genre lambda
         self.genres_table.grant_read_data(self.get_all_genres_lambda)
@@ -823,7 +848,8 @@ class BackendStack(Stack):
         self.artists_table.grant_read_data(self.log_listening_history_lambda)
         
         # Images lambda
-        self.content_bucket.grant_read(self.images_get_lambda)
+        self.content_bucket.grant_read(self.images_album_get_lambda)
+        self.content_bucket.grant_read(self.images_song_get_lambda)
 
         # --- API Gateway ---
         self.api = apigw.RestApi(
@@ -901,6 +927,12 @@ class BackendStack(Stack):
         artist_by_id.add_method(
             "DELETE",
             apigw.LambdaIntegration(self.delete_artist_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+        artist_by_id.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.get_artist_by_id_lambda),
             authorizer=self.cognito_authorizer,
             authorization_type=apigw.AuthorizationType.COGNITO
         )
@@ -1041,18 +1073,29 @@ class BackendStack(Stack):
         # /images
         images = self.api.root.add_resource("images")
 
-        # /images/{folder}
-        images_by_folder = images.add_resource("{folder}")
+        # /images/songs
+        images_songs = images.add_resource("songs")
 
-        # /images/{folder}/{imageKey}
-        images_by_key = images_by_folder.add_resource("{imageKey}")
-        images_by_key.add_method(
+        # /images/songs/{fileKey}
+        images_song_by_key = images_songs.add_resource("{fileKey}")
+        images_song_by_key.add_method(
             "GET",
-            apigw.LambdaIntegration(self.images_get_lambda),
+            apigw.LambdaIntegration(self.images_song_get_lambda),
             authorizer=self.cognito_authorizer,
             authorization_type=apigw.AuthorizationType.COGNITO
         )
 
+        # /images/albums
+        images_albums = images.add_resource("albums")
+
+        # /images/albums/{fileKey}
+        images_album_by_key = images_albums.add_resource("{fileKey}")
+        images_album_by_key.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.images_album_get_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
 
         # CORS
         # /albums
@@ -1076,13 +1119,13 @@ class BackendStack(Stack):
         # /artists
         artists.add_cors_preflight(
             allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["GET", "POST", "OPTIONS"]
+            allow_methods=["GET", "POST","PUT", "OPTIONS"]
         )
         
         # /artists/{artistId}
         artist_by_id.add_cors_preflight(
             allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["DELETE", "PUT", "OPTIONS"]
+            allow_methods=["DELETE", "PUT", "GET", "OPTIONS"]
         )
 
         # /artists/{artistId}/content
@@ -1157,8 +1200,14 @@ class BackendStack(Stack):
             allow_methods=["POST", "OPTIONS"]
         )
 
-        # /images/{folder}/{imageKey}
-        images_by_key.add_cors_preflight(
+        # /images/songs/{fileKey}
+        images_song_by_key.add_cors_preflight(
+            allow_origins=apigw.Cors.ALL_ORIGINS,
+            allow_methods=["GET", "OPTIONS"]
+        )
+
+        # /images/albums/{fileKey}
+        images_album_by_key.add_cors_preflight(
             allow_origins=apigw.Cors.ALL_ORIGINS,
             allow_methods=["GET", "OPTIONS"]
         )

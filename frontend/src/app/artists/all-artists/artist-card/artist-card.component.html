@@ -6,6 +6,7 @@
   </div>
   <div class="actions" style="display: flex; justify-content: flex-start; margin-top: 8px;">
     <button style="font-size: 14px;" (click)="subscribeToArtist()">Subscribe</button>
+    <button *ngIf="userRole === 'Admin'" (click)="delete($event)" style="font-size: 14px;">Delete</button>
   </div>
 </div>
 

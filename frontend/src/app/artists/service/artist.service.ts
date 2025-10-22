@@ -15,6 +15,14 @@ export class ArtistService {
   createArtist(artist: Artist): Observable<{"message":String,"artist":Artist}> {
     return this.httpClient.post<{"message":String,"artist":Artist}>(`${environment.apiUrl}/artists`,artist);
   }
+  
+  editArtist(artist: Artist): Observable<{"message":String,"artistId":string}> {
+    return this.httpClient.put<{"message":String,"artistId":string}>(`${environment.apiUrl}/artists`, artist);
+  }
+
+  delete(artistId:string): Observable<{"message":String}> {
+    return this.httpClient.delete<{"message":String}>(`${environment.apiUrl}/artists/${artistId}`);
+  }
 
   getAll(limit: number = 6, lastKey?: string): Observable<PaginatedArtists> {
     let params = new HttpParams().set('limit', limit.toString());
@@ -49,5 +57,12 @@ export class ArtistService {
   get10New(): Observable<Artist[]>{
     return this.httpClient.get<Artist[]>(`${environment.apiUrl}/artists/new10`);
   }
+  
+  getById(artistId:string): Observable<Artist>{
+    return this.httpClient.get<Artist>(`${environment.apiUrl}/artists/${artistId}`);
+  }
 
+  getMock():Artist{ 
+    return { artistId: 'b4863ec7-973b-431b-a8fb-b751a7d821f8', name: 'John Doe', bio: 'Singer and songwriter from NY.', genres: ['Pop', 'Rock'] };
+  }
 }

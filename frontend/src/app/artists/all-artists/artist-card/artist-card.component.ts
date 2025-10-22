@@ -4,6 +4,7 @@ import {UserRole} from '../../../auth/model/user.model';
 import {DialogType} from '../../../shared/dialog/dialog.component';
 import {AuthService} from '../../../auth/auth.service';
 import {Router} from '@angular/router';
+import { ArtistService } from '../../service/artist.service';
 
 @Component({
   selector: 'app-artist-card',
@@ -13,21 +14,19 @@ import {Router} from '@angular/router';
 })
 export class ArtistCardComponent {
   @Input() artist: Artist | undefined;
-  protected readonly UserRole = UserRole;
+  protected readonly userRole?: UserRole;
 
   showDialog: boolean = false;
   dialogType: DialogType = 'message';
   dialogTitle: string = '';
   dialogMessage: string = '';
 
-  constructor(private router:Router,  protected authService: AuthService){}
-
-
+  constructor(private router:Router,  protected authService: AuthService, private artistServie: ArtistService){
+    this.userRole = this.authService.loggedInUser?.role;
+  }
 
   subscribeToArtist(): void {
     if (!this.artist) return;
-
-    // Your subscription logic here (service call, etc.)
 
     // Show success dialog
     this.dialogType = 'message';
@@ -37,10 +36,8 @@ export class ArtistCardComponent {
   }
 
   onDialogClosed(confirmed: boolean) {
-    // Simply close the dialog for informational messages
     this.showDialog = false;
   }
-
 
   openArtistSongs() {
     if (!this.artist || !this.artist.artistId) {
@@ -49,6 +46,30 @@ export class ArtistCardComponent {
     }
     this.router.navigate(['/artists/details/', this.artist.artistId], {
       state: { artist: this.artist }
+    });
+  }
+  
+  delete(event: MouseEvent): void {
+    event.stopPropagation(); 
+    if (!this.artist || !this.artist.artistId) {
+      console.error('Artist ID is missing:', this.artist);
+      return;
+    } 
+
+    this.artistServie.delete(this.artist.artistId).subscribe({
+      next: () => {
+        this.dialogType = 'message';
+        this.dialogTitle = 'Deleted!';
+        this.dialogMessage = `Successfully deleted ${this.artist?.name}.`;
+        this.showDialog = true;
+      },
+      error: (err) => {
+        console.error(err);
+        this.dialogType = 'error';
+        this.dialogTitle = 'Error';
+        this.dialogMessage = `Failed to delete ${this.artist?.name}. Please try again later.`;
+        this.showDialog = true;
+      }
     });
   }
 

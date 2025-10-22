@@ -20,6 +20,7 @@ const routes: Routes = [
   { path: 'home', component: HomepageComponent },
   { path: 'artists', component: AllArtistsPageComponent, canActivate: [AuthUserGuard]},
   { path: 'artists/create', component: CreateArtistComponent, canActivate: [AdminGuard]},
+  { path: 'artists/edit/:id', component: CreateArtistComponent, canActivate: [AdminGuard]},
   { path: 'albums', component: AllAlbumsPageComponent, canActivate: [AuthUserGuard]},
   { path: 'albums/details/:id', component: AlbumDetailsComponent, canActivate: [AuthUserGuard] },
   { path: 'artists/details/:id', component: ArtistPageComponent, canActivate: [AuthUserGuard] },
