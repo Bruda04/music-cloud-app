@@ -559,6 +559,7 @@ class BackendStack(Stack):
                 "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
                 "SONGS_TABLE_GSI_ID": AppConfig.SONGS_TABLE_GSI_ID,
                 "GENRE_CONTENTS_TABLE": AppConfig.GENRE_CONTENT_TABLE_NAME,
+                "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
                 "REGION": AppConfig.REGION
             }
         )

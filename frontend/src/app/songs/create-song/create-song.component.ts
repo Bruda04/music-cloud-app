@@ -50,18 +50,29 @@ export class CreateSongComponent implements OnInit {
     private songService: SongService,
     private artistService: ArtistService,
     private genreService: GenreService,
-    private router: Router,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
-    this.artists = this.artistService.getAllMock(); // TODO: change to getAll
-    this.genres = this.genreService.getAllMock(); // TODO: change to getAll
+    this.artistService.getAll().subscribe(artists => {
+      this.artists = artists.artists;
+    });
+    // this.artists = this.artistService.getAllMock(); // TODO: change to getAll
+    
+    this.genreService.getAll().subscribe(genres => {
+      this.genres = genres;
+    });
+    // this.genres = this.genreService.getAllMock(); // TODO: change to getAll
 
     const songId = this.route.snapshot.paramMap.get('id');
+    console.log('Song ID from route:', songId);
     if (songId) {
       this.editMode = true;
-      this.song = this.songService.getMockById(); // TODO: change to getById
+      this.songService.getById(songId).subscribe(res => {
+        this.song = res;
+        console.log('Loaded song for editing:', this.song);
+      });
+      // this.song = this.songService.getMockById(); // TODO: change to getById
     }
   }
 
@@ -146,6 +157,7 @@ export class CreateSongComponent implements OnInit {
       }
 
       const payload: any = {
+        songId: this.song.songId? this.song.songId : undefined,
         title: this.song.title,
         artistId: this.song.artist?.artistId,
         otherArtistIds: this.song.otherArtists?.map(a => a.artistId),
@@ -155,6 +167,7 @@ export class CreateSongComponent implements OnInit {
         other: this.song.other
       };
 
+      console.log('Payload:', payload);
       const req = this.editMode
         ? this.songService.edit(payload)
         : this.songService.create(payload);
