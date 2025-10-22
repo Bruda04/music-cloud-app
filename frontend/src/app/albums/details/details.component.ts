@@ -136,7 +136,7 @@ export class AlbumDetailsComponent implements OnInit {
           next: res => {
             this.dialogType = 'message';
             this.dialogTitle = 'Thank you!';
-            this.dialogMessage = `You rated this track with ${this.dialogRating} stars.`;
+            this.dialogMessage = `You rated this track successfully.`;
             this.showDialog = true;
           },
           error: err => {

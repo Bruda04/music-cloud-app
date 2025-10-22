@@ -155,7 +155,7 @@ export class SongCardComponent implements OnInit {
         next: res => {
           this.dialogType = 'message';
           this.dialogTitle = 'Thank you!';
-          this.dialogMessage = `You rated "${this.song.title}" with ${this.dialogRating} stars.`;
+          this.dialogMessage = `You rated "${this.song.title}" successfully.`;
           this.showDialog = true;
         },
         error: err => {
