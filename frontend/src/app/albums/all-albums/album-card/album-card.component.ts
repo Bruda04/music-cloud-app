@@ -6,6 +6,7 @@ import {UserRole} from '../../../auth/model/user.model';
 import {AuthService} from '../../../auth/auth.service';
 import {DialogType} from '../../../shared/dialog/dialog.component';
 import {CommonModule} from '@angular/common';
+import {ImagesService} from '../../../shared/images/service/images.service';
 
 @Component({
   selector: 'app-album-card',
@@ -16,7 +17,7 @@ import {CommonModule} from '@angular/common';
 export class AlbumCardComponent implements OnInit {
   @Input() album: Album | undefined;
   @Input() artists: Artist[] = [];
-  photoPath: string | undefined = "";
+  photoPath: string | undefined = "photo.jpg";
 
 
   showDialog = false;
@@ -25,10 +26,10 @@ export class AlbumCardComponent implements OnInit {
   dialogMessage = '';
 
 
-  constructor(private router:Router,  protected authService: AuthService){}
+  constructor(private router:Router,  protected authService: AuthService, private imageService: ImagesService){}
 
   ngOnInit() {
-    this.photoPath = "photo.jpg"
+    this.loadImage();
   }
 
   openAlbum() {
@@ -60,4 +61,17 @@ export class AlbumCardComponent implements OnInit {
 
 
   protected readonly UserRole = UserRole;
+
+  private loadImage() {
+    if (this.album && this.album.imageFile) {
+      this.imageService.getAlbumImageUrl(this.album.imageFile).subscribe({
+        next: (url: string) => {
+          this.photoPath = url;
+        },
+        error: (err: any) => {
+          console.error('Error loading album image:', err);
+        }
+      });
+    }
+  }
 }

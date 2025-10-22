@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import {Component, Input, Output, EventEmitter, OnInit} from '@angular/core';
 import { Song } from '../../model/song.model';
 import { Artist } from '../../../artists/model/artist.model';
 import { SongService } from '../../service/song.service';
@@ -7,6 +7,7 @@ import { DialogType } from '../../../shared/dialog/dialog.component';
 import { AuthService } from '../../../auth/auth.service';
 import { UserRole } from '../../../auth/model/user.model';
 import { CacheService } from '../../../shared/cache/cache.service';
+import {ImagesService} from '../../../shared/images/service/images.service';
 
 @Component({
   selector: 'app-song-card',
@@ -14,7 +15,7 @@ import { CacheService } from '../../../shared/cache/cache.service';
   styleUrls: ['../../../shared/themes/card.css'],
   standalone: false
 })
-export class SongCardComponent {
+export class SongCardComponent implements OnInit {
   @Input() song!: Song;
   @Input() artists: Artist[] = []; // passed from parent (so you call ArtistService only once)
 
@@ -34,7 +35,13 @@ export class SongCardComponent {
   dialogRating: number = 0;
 
 
-  constructor(private songService: SongService,private router:Router, protected authService: AuthService, private cacheService: CacheService) {}
+  constructor(private songService: SongService,private router:Router,
+              protected authService: AuthService, private cacheService: CacheService,
+              private imageService: ImagesService) {}
+
+  ngOnInit(): void {
+    this.loadImage()
+  }
 
   playSong() {
     if (!this.song.file) return;
@@ -194,6 +201,18 @@ export class SongCardComponent {
         console.log('Play logged:', message);
       },
       error: (err) => console.error('Failed to log play', err)
+    });
+  }
+
+  private loadImage() {
+    if (!this.song.imageFile) return;
+    this.imageService.getSongImageUrl(this.song.imageFile).subscribe({
+      next: (url) => {
+        this.photoPath = url;
+      },
+      error: (err) => {
+        console.error('Failed to load song image', err);
+      }
     });
   }
 }

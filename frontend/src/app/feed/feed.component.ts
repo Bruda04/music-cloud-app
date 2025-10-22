@@ -41,7 +41,6 @@ export class FeedComponent implements OnInit {
           console.log('Feed loaded:', this.feedItems);
 
           const albums = feed.albums || [];
-          const songs = feed.songs || [];
 
           const albumObservables = albums.map(a =>
             this.imagesService.getAlbumImageUrl(a.imageFile).pipe(
@@ -50,15 +49,7 @@ export class FeedComponent implements OnInit {
             )
           );
 
-          const songObservables = songs.map(s =>
-            this.imagesService.getSongImageUrl(s.imageFile).pipe(
-              catchError(() => of(null)),
-              map(url => ({ ...s, imageUrl: url }))
-            )
-          );
-
           forkJoin(albumObservables).subscribe(albumResults => this.feedItems.albums = albumResults);
-          forkJoin(songObservables).subscribe(songResults => this.feedItems.songs = songResults);
         }
       },
       error: (err: any) => {
