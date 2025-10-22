@@ -515,6 +515,22 @@ class BackendStack(Stack):
             }
         )
 
+        self.edit_album_lambda = _lambda.Function(
+            self, "EditAlbumLambda",
+            runtime=_lambda.Runtime.PYTHON_3_12,
+            handler="index.lambda_handler",
+            code=_lambda.Code.from_asset(AppConfig.EDIT_ALBUM_LAMBDA),
+            timeout=Duration.seconds(10),
+            environment={
+                "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
+                "ALBUMS_TABLE_GSI_ID": AppConfig.ALBUMS_TABLE_GSI_ID,
+                "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
+                "GENRES_TABLE": AppConfig.GENRES_TABLE_NAME,
+                "GENRE_CONTENTS_TABLE": AppConfig.GENRE_CONTENT_TABLE_NAME,
+                "REGION": AppConfig.REGION
+            }
+        )
+
         self.create_song_lambda = _lambda.Function(
             self,"CreateSongLambda",
             runtime=_lambda.Runtime.PYTHON_3_12,
@@ -796,6 +812,11 @@ class BackendStack(Stack):
         self.albums_table.grant_read_write_data(self.delete_album_lambda)
         self.genre_contents_table.grant_read_write_data(self.delete_album_lambda)
         self.content_bucket.grant_read_write(self.delete_album_lambda)
+        self.albums_table.grant_read_write_data(self.edit_album_lambda)
+        self.genre_contents_table.grant_read_write_data(self.edit_album_lambda)
+        self.artists_table.grant_read_data(self.edit_album_lambda)
+        self.genres_table.grant_read_write_data(self.edit_album_lambda)
+
 
         # Song lambdas
         self.songs_table.grant_read_write_data(self.create_song_lambda)
@@ -873,6 +894,13 @@ class BackendStack(Stack):
         albums.add_method(
             "GET",
             apigw.LambdaIntegration(self.get_all_albums_lambda),
+            authorizer=self.cognito_authorizer,
+            authorization_type=apigw.AuthorizationType.COGNITO
+        )
+
+        albums.add_method(
+            "PUT",
+            apigw.LambdaIntegration(self.edit_album_lambda),
             authorizer=self.cognito_authorizer,
             authorization_type=apigw.AuthorizationType.COGNITO
         )
@@ -1105,7 +1133,7 @@ class BackendStack(Stack):
         # /albums
         albums.add_cors_preflight(
             allow_origins=apigw.Cors.ALL_ORIGINS,
-            allow_methods=["GET", "POST", "OPTIONS"]
+            allow_methods=["GET", "POST", "PUT", "OPTIONS"]
         )
 
         # /albums/{id}
