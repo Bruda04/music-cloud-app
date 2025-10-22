@@ -1,3 +1,4 @@
+import decimal
 import json
 import boto3
 import os
@@ -7,6 +8,12 @@ dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 genre_content_table = dynamodb.Table(os.environ["GENRE_CONTENT_TABLE"])
 artists_table = dynamodb.Table(os.environ["ARTISTS_TABLE"])
 albums_table = dynamodb.Table(os.environ["ALBUMS_TABLE"])
+
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            return float(o)
+        return super(DecimalEncoder, self).default(o)
 
 def lambda_handler(event, context):
     try:
@@ -20,9 +27,9 @@ def lambda_handler(event, context):
 
         items = response.get('Items', [])
         if not items:
-            return _response(200, {"artists": [], "albums": []})
+            return _response(200, {"artists": [], "albums": [], "message": "No content found for the specified genre."})
 
-        content_keys = items[0].get('contentKey', [])
+        content_keys = [item['contentKey'] for item in items if 'contentKey' in item]
 
         artist_keys = {key.split("#")[1] for key in content_keys if key.startswith('artist#')}
         album_keys = {(key.split("#")[1], key.split("#")[2]) for key in content_keys if key.startswith('album#')}
@@ -76,8 +83,7 @@ def _response(status_code, body):
         'headers': {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Headers': '*',
-            'Access-Control-Allow-Methods': 'OPTIONS,GET',
             'Content-Type': 'application/json'
         },
-        'body': json.dumps(body)
+        'body': json.dumps(body, cls=DecimalEncoder)
     }
