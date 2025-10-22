@@ -5,6 +5,7 @@ import boto3
 
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 artists_table = dynamodb.Table(os.environ["ARTISTS_TABLE"])
+gsi_deleted = os.environ["ARTISTS_TABLE_GSI_DELETED"]
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, o):
@@ -25,19 +26,25 @@ def convert_sets_to_lists(obj):
 def lambda_handler(event, context):
     try:
         params = event.get("queryStringParameters") or {}
-        gsi_name = os.environ["ARTISTS_TABLE_GSI_ID"]
+
 
 
         # If no query params → return all non-deleted artists
         if not params:
             response = artists_table.query(
-                IndexName=os.environ["ARTISTS_TABLE_GSI_ID"],  # Your GSI on isDeleted
+                IndexName=gsi_deleted,
                 KeyConditionExpression=boto3.dynamodb.conditions.Key('isDeleted').eq(0),
-                ProjectionExpression="artistId, #n",
-                ExpressionAttributeNames={"#n": "name"}
+                ProjectionExpression="artistId",
             )
 
-            artists = convert_sets_to_lists(response.get('Items', []))
+            artist_keys = response.get('Items', [])
+            artists = []
+            for key in artist_keys:
+                artist_id = key['artistId']
+                artist_item = artists_table.get_item(Key={'artistId': artist_id}).get('Item')
+                if artist_item:
+                    artists.append(convert_sets_to_lists(artist_item))
+
             return {
                 'statusCode': 200,
                 'headers': {
@@ -53,7 +60,7 @@ def lambda_handler(event, context):
         last_key = params.get('lastKey')
 
         query_kwargs = {
-            "IndexName": gsi_name,
+            "IndexName": gsi_deleted,
             "KeyConditionExpression": boto3.dynamodb.conditions.Key("isDeleted").eq(0),
             "Limit": limit
         }
@@ -63,11 +70,16 @@ def lambda_handler(event, context):
 
         response = artists_table.query(**query_kwargs)
 
-        items = response.get('Items', [])
-        items = convert_sets_to_lists(items)
+        artist_keys = response.get('Items', [])
+        artists = []
+        for key in artist_keys:
+            artist_id = key['artistId']
+            artist_item = artists_table.get_item(Key={'artistId': artist_id}).get('Item')
+            if artist_item:
+                artists.append(convert_sets_to_lists(artist_item))
 
         result = {
-            'artists': items,
+            'artists': artists,
             'lastKey': json.dumps(response.get('LastEvaluatedKey'), cls=DecimalEncoder)
                        if 'LastEvaluatedKey' in response else None
         }

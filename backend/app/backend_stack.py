@@ -30,7 +30,7 @@ class BackendStack(Stack):
         )
 
         self.artists_table.add_global_secondary_index(
-            index_name=AppConfig.ARTISTS_TABLE_GSI_ID,
+            index_name=AppConfig.ARTISTS_TABLE_GSI_DELETED,
             partition_key=dynamodb.Attribute(
                 name="isDeleted",
                 type=dynamodb.AttributeType.NUMBER
@@ -395,6 +395,7 @@ class BackendStack(Stack):
             timeout=Duration.seconds(10),
             environment={
                 "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
+                "ARTISTS_TABLE_GSI_DELETED": AppConfig.ARTISTS_TABLE_GSI_DELETED,
                 "REGION": AppConfig.REGION
             }
         )
