@@ -1,8 +1,6 @@
 <div class="subscriptions-page">
-  <!-- Glavni naslov -->
   <h1 class="main-title">My Subscriptions</h1>
 
-  <!-- Žanrovi -->
   <h2 class="section-title">Genres</h2>
   <div class="horizontal-list-wrapper">
     <button class="scroll-btn left" (click)="scrollGenres(-1)">‹</button>
@@ -19,7 +17,6 @@
     <button class="scroll-btn right" (click)="scrollGenres(1)">›</button>
   </div>
 
-  <!-- Artisti -->
   <h2 class="section-title">Artists</h2>
   <div class="all-items-grid">
     <div class="artist-card card" *ngFor="let artist of subscriptions?.artists">
@@ -31,7 +28,6 @@
   </div>
 </div>
 
-<!-- Dialog -->
 <app-dialog
   *ngIf="showDialog"
   [type]="dialogType"
