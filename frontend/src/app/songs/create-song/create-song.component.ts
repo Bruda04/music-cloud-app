@@ -57,12 +57,10 @@ export class CreateSongComponent implements OnInit {
     this.artistService.getAll().subscribe(artists => {
       this.artists = artists.artists;
     });
-    // this.artists = this.artistService.getAllMock(); // TODO: change to getAll
-    
+
     this.genreService.getAll().subscribe(genres => {
       this.genres = genres;
     });
-    // this.genres = this.genreService.getAllMock(); // TODO: change to getAll
 
     const songId = this.route.snapshot.paramMap.get('id');
     console.log('Song ID from route:', songId);
@@ -72,7 +70,6 @@ export class CreateSongComponent implements OnInit {
         this.song = res;
         console.log('Loaded song for editing:', this.song);
       });
-      // this.song = this.songService.getMockById(); // TODO: change to getById
     }
   }
 

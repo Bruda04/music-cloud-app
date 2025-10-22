@@ -1,6 +1,6 @@
 <div class="subscriptions-page">
   <h1 class="main-title">My Subscriptions</h1>
-  <div *ngIf="subscriptions?.genres?.length != 0 || subscriptions?.artists?.length != 0">
+  <div *ngIf="(subscriptions?.genres?.length != 0 || subscriptions?.artists?.length != 0) && this.subscriptions">
     <div *ngIf="subscriptions?.genres?.length != 0">
       <h2 class="section-title">Genres</h2>
       <div class="horizontal-list-wrapper">

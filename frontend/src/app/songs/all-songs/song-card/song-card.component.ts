@@ -145,20 +145,20 @@ export class SongCardComponent {
     this.showDialog = false;
     if (this.dialogType === 'rating' && this.dialogRating > 0) {
       console.log('Submitting rating:', this.dialogRating);
-      // this.songService.rateSong(this.song.songId!, this.dialogRating).subscribe({
-      //   next: res => {
-      //     this.dialogType = 'message';
-      //     this.dialogTitle = 'Thank you!';
-      //     this.dialogMessage = `You rated "${this.song.title}" with ${this.dialogRating} stars.`;
-      //     this.showDialog = true;
-      //   },
-      //   error: err => {
-      //     this.dialogType = 'error';
-      //     this.dialogTitle = 'Error';
-      //     this.dialogMessage = err.error?.message || 'Failed to submit rating';
-      //     this.showDialog = true;
-      //   }
-      // });
+      this.songService.rateSong(this.song.songId!, this.dialogRating).subscribe({
+        next: res => {
+          this.dialogType = 'message';
+          this.dialogTitle = 'Thank you!';
+          this.dialogMessage = `You rated "${this.song.title}" with ${this.dialogRating} stars.`;
+          this.showDialog = true;
+        },
+        error: err => {
+          this.dialogType = 'error';
+          this.dialogTitle = 'Error';
+          this.dialogMessage = err.error?.message || 'Failed to submit rating';
+          this.showDialog = true;
+        }
+      });
       this.dialogRating = 0;
     }
   }

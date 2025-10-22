@@ -30,9 +30,7 @@ export class FeedComponent implements OnInit {
   }
 
   ngOnInit() {
-    // this.loadFeed();
-    this.loadMockFeed();
-
+    this.loadFeed();
   }
 
   loadFeed() {
