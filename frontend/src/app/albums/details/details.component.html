@@ -27,10 +27,10 @@
 
       <span>{{ track.title }}</span>
       <button class="play-btn"
-        [class.playing]="currentTrack === track.fileKey && isPlaying"
+        [class.playing]="currentTrack === track.songId && isPlaying"
         (click)="playTrack(track)"
       >
-        {{ currentTrack === track.fileKey && isPlaying ? '⏸Pause' : '▶ Play' }}
+        {{ currentTrack === track.songId && isPlaying ? '⏸ Pause' : '▶ Play' }}
       </button>
     </div>
   </div>

@@ -7,6 +7,7 @@ import { Artist } from '../../artists/model/artist.model';
 import {UserRole} from '../../auth/model/user.model';
 import {AuthService} from '../../auth/auth.service';
 import {DialogType} from '../../shared/dialog/dialog.component';
+import {CacheService} from '../../shared/cache/cache.service';
 
 @Component({
   selector: 'app-album-details',
@@ -30,7 +31,7 @@ export class AlbumDetailsComponent implements OnInit {
     pendingDeleteId: string | null = null;
     dialogRating: number = 0;
 
-    constructor(private route: ActivatedRoute, private albumService: AlbumService, protected authService: AuthService) {}
+    constructor(private route: ActivatedRoute, private albumService: AlbumService, protected authService: AuthService, private  cacheService: CacheService) {}
 
     ngOnInit() {
         const navState = history.state;
@@ -60,16 +61,48 @@ export class AlbumDetailsComponent implements OnInit {
             this.isPlaying = false;
             return;
         }
-        this.albumService.getUrl(track.fileKey).subscribe({
-            next: (url) => {
-                this.audio.src = url.url;
-                this.audio.crossOrigin = 'anonymous';
-                this.audio.load();
-                this.audio.play().then(() => {
-                    this.isPlaying = true;
-                }).catch(err => console.error('Audio play failed:', err));
 
-                this.audio.onended = () => this.isPlaying = false;
+      const cached = this.cacheService.getTrack(track.songId!);
+      if (cached) {
+        console.log('Playing from cache');
+        this.audio.src = cached.data; // Base64 data URL
+        this.audio.play().then(() => {
+          this.currentTrack = track.songId;
+          this.isPlaying = true
+        })
+          .catch(err => console.error(err));
+        this.audio.onended = () => {
+          this.isPlaying = false
+          this.currentTrack = undefined;
+        };
+
+        return;
+      }
+
+
+        this.albumService.getUrl(track.fileKey).subscribe({
+            next: async (url) => {
+              try {
+                const response = await fetch(url.url);
+                const blob = await response.blob();
+                this.cacheService.saveTrack(track.songId!, track.title + '.mp3', blob);
+                console.log('Song cached');
+
+                console.log('Playing from cache after fetch');
+                this.audio.src = URL.createObjectURL(blob);
+                this.audio.play().then(() => {
+                  this.isPlaying = true
+                  this.currentTrack = track.songId;
+                })
+                  .catch(err => console.error(err));
+                this.audio.onended = () => {
+                  this.isPlaying = false
+                  this.currentTrack = undefined;
+                };
+
+              } catch (err) {
+                console.error('Failed to play song', err);
+              }
             },
             error: (err) => console.error('Failed to get track URL', err)
         });
