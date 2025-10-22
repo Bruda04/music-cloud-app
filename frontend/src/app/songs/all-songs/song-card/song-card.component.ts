@@ -47,6 +47,8 @@ export class SongCardComponent {
       return;
     }
 
+    this.logPlay();
+
     const cached = this.cacheService.getTrack(this.song.songId!);
     if (cached) {
       console.log('Playing from cache');
@@ -193,5 +195,10 @@ export class SongCardComponent {
       error: (err) => console.error('Failed to get song URL', err)
     });
 
+  }
+
+  private logPlay() {
+    if (!this.song.songId || !this.song.artist?.artistId) return;
+    this.songService.logPlay(this.song.songId, this.song.artist?.artistId);
   }
 }

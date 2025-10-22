@@ -62,6 +62,8 @@ export class AlbumDetailsComponent implements OnInit {
             return;
         }
 
+        this.logPlay(track);
+
       const cached = this.cacheService.getTrack(track.songId!);
       if (cached) {
         console.log('Playing from cache');
@@ -181,5 +183,10 @@ export class AlbumDetailsComponent implements OnInit {
       },
       error: (err) => console.error('Failed to get track URL', err)
     });
+  }
+
+  logPlay(track: TrackDTO) {
+    if (!track.songId || !this.album.albumId) return;
+    this.albumService.logPlay(this.album.albumId, track.songId, this.album.artistId)
   }
 }
