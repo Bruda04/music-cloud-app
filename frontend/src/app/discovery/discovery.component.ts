@@ -2,28 +2,31 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 import {Artist} from '../artists/model/artist.model';
 import {Album} from '../albums/model/album.model';
-import {DialogType} from '../shared/dialog/dialog.component';
+import {DialogComponent, DialogType} from '../shared/dialog/dialog.component';
 import {SubscriptionService} from '../subscriptions/service/subscription.service';
+import {SongService} from '../songs/service/song.service';
+import {GenreService} from '../songs/service/genre.service';
+import {NgForOf, NgIf} from '@angular/common';
+import {ArtistsModule} from '../artists/artists.module';
+import {AlbumsModule} from '../albums/albums.module';
 
 interface Genre { name: string; }
 
 @Component({
   selector: 'app-discovery',
-  standalone: false,
   templateUrl: './discovery.component.html',
+  standalone: true,
+  imports: [
+    NgForOf,
+    ArtistsModule,
+    NgIf,
+    AlbumsModule,
+    DialogComponent
+  ],
   styleUrls: ['./discovery.component.scss', '../shared/themes/card.css']
 })
 export class DiscoveryComponent implements OnInit {
-  genres: Genre[] = [
-    { name: 'Pop' },
-    { name: 'Rock' },
-    { name: 'Jazz' },
-    { name: 'Classical' },
-    { name: 'Hip-Hop' },
-    { name: 'Electronic' },
-    { name: 'Folk' },
-    { name: 'R&B' }
-  ];
+  genres: Genre[] = [];
 
   showDialog: boolean = false;
   dialogType: DialogType = 'message';
@@ -54,17 +57,16 @@ export class DiscoveryComponent implements OnInit {
     }
   };
 
-  constructor(protected authService: AuthService, private subscriptionService: SubscriptionService) {}
+  constructor(protected authService: AuthService, private subscriptionService: SubscriptionService, private genreService: GenreService) {}
 
   ngOnInit(): void {
-    this.selectGenre(this.genres[0]);
     setTimeout(() => this.updateActiveDot(), 0);
+    this.loadGenres()
   }
 
   selectGenre(genre: Genre) {
     this.selectedGenre = genre;
-    const data = this.allData[genre.name] || { artists: [], albums: [] };
-    this.albumsAndArtistsForGenre = data;
+    this.loadDataForGenre(genre);
   }
 
   subscribeToGenre(genre: Genre, event: MouseEvent) {
@@ -118,4 +120,28 @@ export class DiscoveryComponent implements OnInit {
     this.showDialog = false;
   }
 
+  private loadGenres() {
+    this.genreService.getAll().subscribe({
+      next: (genres) => {
+        this.genres = genres.map(g => ({ name: g.genreName }));
+      },
+      error: (err) => {
+        console.error('Error loading genres:', err);
+      }
+    });
+  }
+
+  private loadDataForGenre(genre: Genre) {
+    this.genreService.getContentByGenre(genre.name).subscribe({
+      next: (data) => {
+        this.albumsAndArtistsForGenre = {
+          artists: data.artists,
+          albums: data.albums
+        };
+      },
+      error: (err) => {
+        console.error(`Error loading data for genre ${genre.name}:`, err);
+      }
+    });
+  }
 }

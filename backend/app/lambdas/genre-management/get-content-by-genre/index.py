@@ -15,6 +15,23 @@ class DecimalEncoder(json.JSONEncoder):
             return float(o)
         return super(DecimalEncoder, self).default(o)
 
+def fetch_artist(artist_id, fetched_artists):
+    if not artist_id:
+        return None
+    if artist_id in fetched_artists:
+        return fetched_artists[artist_id]
+    resp = artists_table.get_item(Key={'artistId': artist_id})
+    artist = resp.get('Item')
+    if artist:
+        if artist.get('isDeleted', False):
+            artist_obj = {'artistId': 'Unknown-artist', 'name': 'Unknown Artist'}
+            fetched_artists[artist_id] = artist_obj
+            return artist_obj
+        artist_obj = {'artistId': artist['artistId'], 'name': artist.get('name', '')}
+        fetched_artists[artist_id] = artist_obj
+        return artist_obj
+    return None
+
 def lambda_handler(event, context):
     try:
         genre = event.get('pathParameters', {}).get('genreName')
@@ -51,14 +68,13 @@ def lambda_handler(event, context):
         artists = list({a['artistId']: a for a in artists}.values())
         albums = list({a['albumId']: a for a in albums}.values())
 
+        fetched_artists = {a['artistId']: a for a in artists}
+
         final_artists = []
         for artist_id in artist_keys:
             artist = next((a for a in artists if a['artistId'] == artist_id), None)
             if not artist or artist.get('isDeleted', False):
-                final_artists.append({
-                    'artistId': artist_id,
-                    'name': 'Unknown Artist'
-                })
+                continue
             else:
                 clean_artist = {k: v for k, v in artist.items() if k not in ['createdAt']}
                 final_artists.append(clean_artist)
@@ -66,6 +82,11 @@ def lambda_handler(event, context):
         final_albums = [
             {k: v for k, v in album.items() if k not in ['createdAt', 'tracks']}
             for album in albums
+        ]
+
+        final_albums = [
+            {**album, 'artist': fetch_artist(album['artistId'], fetched_artists)}
+            for album in final_albums
         ]
 
         return _response(200, {

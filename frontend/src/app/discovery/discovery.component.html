@@ -1,6 +1,6 @@
 <div class="genres-page">
 
-  <div class="horizontal-list-wrapper">
+  <div class="horizontal-list-wrapper" *ngIf="genres.length > 0">
     <button class="scroll-btn left" (click)="scrollGenres(-1)">‹</button>
 
     <div class="horizontal-list" #genreList>
@@ -29,22 +29,26 @@
     </div>
   </div>
 
-  <div *ngIf="selectedGenre" class="albums-section">
-    <h2 class="section-title">Artists for "{{ selectedGenre.name }}"</h2>
-    <div class="all-items-grid">
-      <app-artist-card
-        *ngFor="let artist of albumsAndArtistsForGenre.artists"
-        [artist]="artist"
-      ></app-artist-card>
+  <div *ngIf="selectedGenre" class="albums-section" >
+    <div *ngIf="albumsAndArtistsForGenre.artists.length > 0">
+      <h2 class="section-title">Artists for "{{ selectedGenre.name }}"</h2>
+      <div class="all-items-grid">
+        <app-artist-card
+          *ngFor="let artist of albumsAndArtistsForGenre.artists"
+          [artist]="artist"
+        ></app-artist-card>
+      </div>
     </div>
 
-    <h2 class="section-title">Albums for "{{ selectedGenre.name }}"</h2>
-    <div class="all-items-grid">
-      <app-album-card
-        *ngFor="let album of albumsAndArtistsForGenre.albums"
-        [album]="album"
-        [artists]="albumsAndArtistsForGenre.artists"
-      ></app-album-card>
+    <div *ngIf="albumsAndArtistsForGenre.albums.length > 0">
+      <h2 class="section-title">Albums for "{{ selectedGenre.name }}"</h2>
+      <div class="all-items-grid">
+        <app-album-card
+          *ngFor="let album of albumsAndArtistsForGenre.albums"
+          [album]="album"
+          [artists]="albumsAndArtistsForGenre.artists"
+        ></app-album-card>
+      </div>
     </div>
   </div>
 </div>

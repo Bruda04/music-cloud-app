@@ -199,6 +199,11 @@ export class SongCardComponent {
 
   private logPlay() {
     if (!this.song.songId || !this.song.artist?.artistId) return;
-    this.songService.logPlay(this.song.songId, this.song.artist?.artistId);
+    this.songService.logPlay(this.song.songId, this.song.artist?.artistId).subscribe({
+      next: ({message}) => {
+        console.log('Play logged:', message);
+      },
+      error: (err) => console.error('Failed to log play', err)
+    });
   }
 }

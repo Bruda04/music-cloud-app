@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { environment } from '../../environment/environment';
 import { HttpClient } from '@angular/common/http';
-import { Genre } from '../model/genre.model';
+import {Genre, GenreContentResponse} from '../model/genre.model';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +14,7 @@ export class GenreService {
   getAll(): Observable<Genre[]> {
     return this.httpClient.get<Genre[]>(`${environment.apiUrl}/genres`);
   }
-  
+
   getAllMock(): Genre[]{
     return [
         {genreName:"rock"},
@@ -23,5 +23,9 @@ export class GenreService {
         {genreName:"house"},
         {genreName:"r&b"}
     ]
+  }
+
+  getContentByGenre(name: string) {
+    return this.httpClient.get<GenreContentResponse>(`${environment.apiUrl}/genres/${name}/content`);
   }
 }

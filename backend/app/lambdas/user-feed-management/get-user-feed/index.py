@@ -22,6 +22,10 @@ def fetch_artist(artist_id, fetched_artists):
     resp = artists_table.get_item(Key={'artistId': artist_id})
     artist = resp.get('Item')
     if artist:
+        if artist.get('isDeleted', False):
+            artist_obj = {'artistId': 'Unknown-artist', 'name': 'Unknown Artist'}
+            fetched_artists[artist_id] = artist_obj
+            return artist_obj
         artist_obj = {'artistId': artist['artistId'], 'name': artist.get('name', '')}
         fetched_artists[artist_id] = artist_obj
         return artist_obj
@@ -95,7 +99,7 @@ def lambda_handler(event, context):
             # replace artistIds with artist objects
             artist_id = entity.get('artistId')
             artist_entity = fetch_artist(artist_id, fetched_artists)
-            entity['artist'] =  artist_entity if artist_entity else {'artistId': artist_id, 'name': 'Unknown Artist'}
+            entity['artist'] =  artist_entity if artist_entity else {'artistId': 'Unknown-artist', 'name': 'Unknown Artist'}
             entity.pop('artistId', None)
 
             if 'otherArtistIds' in entity:
@@ -105,7 +109,7 @@ def lambda_handler(event, context):
                     if other_artist:
                         other_artist_objs.append(other_artist)
                     else:
-                        other_artist_objs.append({'artistId': other_id, 'name': 'Unknown Artist'})
+                        other_artist_objs.append({'artistId': 'Unknown-artist', 'name': 'Unknown Artist'})
                 entity['otherArtists'] = other_artist_objs
                 entity.pop('otherArtistIds', None)
 
