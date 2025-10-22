@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime
+from decimal import Decimal
 
 import boto3
 from boto3.dynamodb.conditions import Key
@@ -42,8 +43,8 @@ def lambda_handler(event, context):
             target_users.update([item['user'] for item in resp.get('Items', [])])
 
             now = datetime.utcnow()
-
-            for user in target_users:
+            while target_users:
+                user = target_users.pop()
                 score = 0.0
 
                 # subscription
@@ -56,7 +57,7 @@ def lambda_handler(event, context):
                 )
                 for r in rating_resp.get('Items', []):
                     if r['artistId'] == artist_id:
-                        rating = r.get('rating', 0)
+                        rating = float(r.get('rating', 0))
                         if rating == 0:
                             continue
                         score += (rating - 3) / 4
@@ -87,14 +88,14 @@ def lambda_handler(event, context):
                         "user": user,
                         "timestamp": now.isoformat(),
                         "contentKey": content_key,
-                        "score": score
+                        "score": Decimal(str(score))
                     }
                 )
 
-            return {
-                'statusCode': 200,
-                'body': json.dumps({'message': f'Feed updated for {len(target_users)} users'})
-            }
+        return {
+            'statusCode': 200,
+            'body': json.dumps({'message': f'Feed updated for users'})
+        }
 
     except Exception as e:
         return {

@@ -29,7 +29,7 @@ def lambda_handler(event, context):
         for song in items:
             core_fields = ['songId', 'title', 'genres', 'imageFile']
             mapped_song = {key: song.get(key, '' if key != 'genres' else []) for key in core_fields}
-            mapped_song['file'] = song.get('fileKey')
+            mapped_song['fileKey'] = song.get('fileKey')
             mapped_song['other'] = {k: v for k, v in song.items() if k not in core_fields and k not in ['fileKey', 'artistId', 'otherArtistIds', 'imageFile']}
 
             mapped_song['artist'] = get_artist_safe(song.get('artistId'))
