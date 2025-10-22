@@ -3,7 +3,8 @@ import { Observable, of } from 'rxjs';
 import { Artist } from '../model/artist.model';
 import { environment } from '../../environment/environment';
 import {HttpClient, HttpParams} from '@angular/common/http';
-import {PaginatedArtists, PaginatedSongs} from '../../songs/model/song.model';
+import {PaginatedArtists, PaginatedSongs, Song} from '../../songs/model/song.model';
+import {Album} from '../../albums/model/album.model';
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +15,10 @@ export class ArtistService {
 
   createArtist(artist: Artist): Observable<{"message":String,"artist":Artist}> {
     return this.httpClient.post<{"message":String,"artist":Artist}>(`${environment.apiUrl}/artists`,artist);
+  }
+
+  getArtistContent(artistId: string | undefined): Observable<{ albums: Album[]; songs: Song[] }> {
+    return this.httpClient.get<{"albums":Album[],"songs":Song[]}>(`${environment.apiUrl}/artists/${artistId}/content`);
   }
 
   editArtist(artist: Artist): Observable<{"message":String,"artistId":string}> {

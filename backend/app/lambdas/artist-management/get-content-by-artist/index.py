@@ -15,6 +15,17 @@ class DecimalEncoder(json.JSONEncoder):
             return float(o)
         return super(DecimalEncoder, self).default(o)
 
+def get_artist_safe(artist_id):
+    """Get artist or return 'Unknown Artist' if its deleted or doesn't exist."""
+    try:
+        artist = artists_table.get_item(Key={'artistId': artist_id}).get('Item')
+        if not artist or artist.get('isDeleted', 1):
+            return {"artistId": "unknown-artist", "name": "Unknown Artist"}
+        return {"artistId": artist.get("artistId", ""), "name": artist.get("name", "Unknown Artist")}
+    except Exception:
+        return {"artistId": "unknown-artist", "name": "Unknown Artist"}
+
+
 def lambda_handler(event, context):
     try:
         artist_id = event.get('pathParameters', {}).get('artistId')
@@ -35,14 +46,68 @@ def lambda_handler(event, context):
         )
         albums = albums_response.get('Items', [])
 
+        albums_result = []
+
+        for item in albums:
+            artist_id = item.get('artistId')
+            artist = get_artist_safe(artist_id) if artist_id else {"artistId": "unknown-artist", "name": "Unknown Artist"}
+            fetched_artists = {artist["artistId"]: artist}
+            tracks = []
+            for t in item.get("tracks", []):
+                other_artist_ids = t.get("otherArtistIds", [])
+                other_artists = []
+                for oid in other_artist_ids:
+                    if oid not in fetched_artists:
+                        fetched_artists[oid] = get_artist_safe(oid)
+                    other_artists.append(fetched_artists[oid])
+                track = t.copy()
+                track["artist"] = artist
+                track["otherArtists"] = other_artists
+                tracks.append(track)
+
+            album = {
+                "albumId": item.get("albumId"),
+                "title": item.get("title"),
+                "artist": artist,
+                "genres": item.get("genres", []),
+                "tracks": tracks,
+                "details": item.get("details", {}),
+                "imageFile": item.get("imageFile", "")
+            }
+
+            albums_result.append(album)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         songs_response = songs_table.query(
             KeyConditionExpression=Key('artistId').eq(artist_id)
         )
         songs = songs_response.get('Items', [])
+        songs_result = []
+        for item in songs:
+            if item.get('isDeleted', False):
+                continue
+            songs_result.append({"artistId": item.get("artistId"), "name": item.get("name")})
+
 
         return _response(200, {
-            'albums': albums,
-            'songs': songs
+            'albums': albums_result,
+            'songs': songs_result
         })
 
     except Exception as e:

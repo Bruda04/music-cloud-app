@@ -15,7 +15,6 @@ import {CommonModule} from '@angular/common';
 })
 export class AlbumCardComponent implements OnInit {
   @Input() album: Album | undefined;
-  @Input() artists: Artist[] = [];
   photoPath: string | undefined = "";
 
 
@@ -37,7 +36,7 @@ export class AlbumCardComponent implements OnInit {
       return;
     }
     this.router.navigate(['/albums/details/', this.album.albumId], {
-      state: { album: this.album, artists: this.artists }
+      state: { album: this.album, artists: this.album.artist }
     });
   }
 

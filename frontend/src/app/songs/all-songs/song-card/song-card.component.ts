@@ -16,7 +16,6 @@ import {CacheService} from '../../../shared/cache/cache.service';
 })
 export class SongCardComponent {
   @Input() song!: Song;
-  @Input() artists: Artist[] = []; // passed from parent (so you call ArtistService only once)
 
   @Output() rate = new EventEmitter<string>();
   @Output() deleted = new EventEmitter<string>();

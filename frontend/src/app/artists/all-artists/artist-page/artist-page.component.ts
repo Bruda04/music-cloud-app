@@ -8,6 +8,7 @@ import {SongsModule} from '../../../songs/songs.module';
 import {AlbumService} from '../../../albums/service/album.service';
 import {AlbumsModule} from '../../../albums/albums.module';
 import {ArtistService} from '../../service/artist.service';
+import {Album} from '../../../albums/model/album.model';
 
 @Component({
   selector: 'app-artist-page',
@@ -17,32 +18,26 @@ import {ArtistService} from '../../service/artist.service';
 })
 export class ArtistPageComponent implements OnInit {
   artist: Artist | undefined;
-  content :any;
+  content : { albums: Album[]; songs: Song[]; } | undefined;
 
 
 constructor(
     private route: ActivatedRoute,
-    private songService: SongService,
-    private albumService: AlbumService,
     public artistService: ArtistService,
   ) {}
 
   ngOnInit(): void {
-    // Get artist data from route state (like your album navigation)
     this.artist = history.state.artist;
-    this.content = {"albums": this.albumService.getAll(), "songs": this.songService.getMockSongs()}
 
-    // Load songs for this artist
-    this.loadSongs();
+    this.loadContent();
   }
 
-  loadSongs(lastKey?: string) {
-    // Mocking for now
-    // TODO: replace with actual API
-    // this.songService.getSongs(this.artist?.artistId, lastKey).subscribe(res => {
-    //     this.songs = res.songs;
-    //     this.lastKey = res.lastKey;
-    // });
+  loadContent() {
+    this.artistService.getArtistContent(this.artist?.artistId) .subscribe(a=>
+    {
+      this.content = a;
+    });
+
   }
 
   playSong(song: Song) {
@@ -52,7 +47,7 @@ constructor(
 
 
   onSongDeleted(id: string) {
-    this.loadSongs()
+    this.loadContent()
   }
   onRate(id: string) { console.log('Rate', id); }
 }

@@ -9,9 +9,8 @@
   <h2 class="section-title">Songs</h2>
   <div class="songs-grid">
     <app-song-card
-      *ngFor="let song of this.content.songs"
+      *ngFor="let song of this.content?.songs"
       [song]="song"
-      [artists]="song.artist"
       (deleted)="onSongDeleted($event)"
       (rate)="onRate($event)">
     </app-song-card>
@@ -20,7 +19,7 @@
 
   <h2 class="section-title">Albums</h2>
   <div class="songs-grid">
-    <app-album-card *ngFor="let album of this.content.albums" [album]="album" [artists]="this.artistService.getAllMock()"></app-album-card>
+    <app-album-card *ngFor="let album of this.content?.albums" [album]="album" ></app-album-card>
 
   </div>
 </div>

@@ -16,7 +16,6 @@ import { Artist } from '../../../artists/model/artist.model';
 export class AllAlbumsPageComponent implements OnInit {
 
     albums: Album[] = [];
-    artists: Artist[] = [];
     lastKey?: string;
     limit = 6;
     page = 1;
