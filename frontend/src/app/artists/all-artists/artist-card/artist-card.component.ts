@@ -26,9 +26,9 @@ export class ArtistCardComponent {
     this.userRole = this.authService.loggedInUser?.role;
   }
 
-  subscribeToArtist(): void {
+  subscribeToArtist($event: PointerEvent): void {
     if (!this.artist || !this.artist.artistId) return;
-
+    $event.stopPropagation();
     // Call the subscription service
     // this.subscriptionService.subscribeToArtist(this.artist.artistId).subscribe({
     //   next: () => {
@@ -53,7 +53,8 @@ export class ArtistCardComponent {
     this.showDialog = false;
   }
 
-  openArtistSongs() {
+  openArtistSongs($event: PointerEvent) {
+    $event.stopPropagation();
     if (!this.artist || !this.artist.artistId) {
       console.error('Artist ID is missing:', this.artist);
       return;
