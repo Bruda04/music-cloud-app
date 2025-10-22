@@ -9,17 +9,24 @@
   <h2 class="section-title">Songs</h2>
   <div class="songs-grid">
     <app-song-card
-      *ngFor="let song of this.content?.songs"
+      *ngFor="let song of content?.songs ?? []"
       [song]="song"
       (deleted)="onSongDeleted($event)"
       (rate)="onRate($event)">
     </app-song-card>
-  </div>
 
+    <p *ngIf="(content?.songs?.length ?? 0) === 0" class="no-content">No songs published.</p>
+  </div>
 
   <h2 class="section-title">Albums</h2>
   <div class="songs-grid">
-    <app-album-card *ngFor="let album of this.content?.albums" [album]="album" ></app-album-card>
+    <app-album-card
+      *ngFor="let album of content?.albums ?? []"
+      [album]="album">
+    </app-album-card>
 
+    <p *ngIf="(content?.albums?.length ?? 0) === 0" class="no-content">No albums published.</p>
   </div>
+
+
 </div>
