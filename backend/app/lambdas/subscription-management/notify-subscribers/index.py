@@ -1,6 +1,7 @@
 import json
 import os
 import boto3
+from boto3.dynamodb.conditions import Key
 
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 subscriptions_table = dynamodb.Table(os.environ["SUBSCRIPTIONS_TABLE"])
@@ -11,7 +12,9 @@ def lambda_handler(event, context):
     try:
         all_subscribers = set()
         for record in event.get('Records', []):
-            body = json.loads(record['body'])
+            sns_message = json.loads(record['body'])
+            message_str = sns_message['Message']
+            body = json.loads(message_str)
 
             artist_id = body['artistId']
             genres = body['genres']
@@ -33,7 +36,7 @@ def lambda_handler(event, context):
                      f"Title: {content_name}\n\nCheck it out on our platform!"
 
         for user_email in all_subscribers:
-            pass
+            continue
             #send_email(user_email, email_body, email_subject)
 
         return {
@@ -50,7 +53,7 @@ def lambda_handler(event, context):
 def get_subscribers(content_type, content_id):
     content_key = f"{content_type}#{content_id}"
     response = subscriptions_table.query(
-        KeyConditionExpression=boto3.dynamodb.conditions.Key('contentKey').eq(content_key)
+        KeyConditionExpression=Key('contentKey').eq(content_key)
     )
     subscribers = [item['user'] for item in response.get('Items', [])]
     return subscribers

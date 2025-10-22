@@ -10,7 +10,8 @@ from aws_cdk import (
     aws_iam as iam,
     aws_sns as sns,
     aws_sns_subscriptions as sns_subscriptions,
-    aws_sqs as sqs
+    aws_sqs as sqs,
+    aws_ses as ses
 )
 from constructs import Construct
 from app.config import AppConfig
@@ -37,13 +38,6 @@ class BackendStack(Stack):
             ),
             projection_type=dynamodb.ProjectionType.KEYS_ONLY
         )
-
-
-
-
-
-
-
 
         self.genres_table = dynamodb.Table(
             self, AppConfig.GENRES_TABLE_ID,
@@ -325,6 +319,14 @@ class BackendStack(Stack):
             queue_name=AppConfig.SQS_NOTIFICATION_QUEUE_NAME,
             visibility_timeout=Duration.seconds(30),
             retention_period=Duration.days(4)
+        )
+
+        # --- SES ---
+        self.ses_identity = ses.EmailIdentity(
+            self, AppConfig.SES_EMAIL_IDENTITY_ID,
+            identity=ses.Identity.email(
+                email=AppConfig.SES_FROM_EMAIL
+            )
         )
 
         self.update_user_feed_queue = sqs.Queue(
