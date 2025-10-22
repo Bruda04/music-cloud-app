@@ -109,3 +109,14 @@
 .scroll-btn.right {
   right: -50px;
 }
+
+.unavailable-title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #666;
+}
+
