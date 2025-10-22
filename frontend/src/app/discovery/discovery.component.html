@@ -20,13 +20,6 @@
     </div>
 
     <button class="scroll-btn right" (click)="scrollGenres(1)">›</button>
-
-    <div class="scroll-dots" *ngIf="genres.length > 1">
-      <span
-        *ngFor="let g of genres; let i = index"
-        [class.active]="i === activeDot"
-      ></span>
-    </div>
   </div>
 
   <div *ngIf="selectedGenre" class="albums-section" >
