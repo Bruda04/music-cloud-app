@@ -161,7 +161,7 @@ export class CreateAlbumComponent implements OnInit {
           this.tracks.map(async (t) => ({
             title: t.title.trim(),
             file: await this.convertFileToBase64(t.file!),
-            otherArtistsId: t.otherArtistIds
+            otherArtistIds: t.otherArtistIds
           }))
         );
 
