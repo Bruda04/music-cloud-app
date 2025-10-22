@@ -15,16 +15,6 @@ export class GenreService {
     return this.httpClient.get<Genre[]>(`${environment.apiUrl}/genres`);
   }
 
-  getAllMock(): Genre[]{
-    return [
-        {genreName:"rock"},
-        {genreName:"pop"},
-        {genreName:"jazz"},
-        {genreName:"house"},
-        {genreName:"r&b"}
-    ]
-  }
-
   getContentByGenre(name: string) {
     return this.httpClient.get<GenreContentResponse>(`${environment.apiUrl}/genres/${name}/content`);
   }

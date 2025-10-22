@@ -33,7 +33,9 @@ export class AllAlbumsPageComponent implements OnInit {
         this.lastKey = res.lastKey;
       });
     }
-
+    onAlbumDeleted(id: string) {
+      this.loadAlbums()
+    }
 
     nextPage() {
       if (this.lastKey) {

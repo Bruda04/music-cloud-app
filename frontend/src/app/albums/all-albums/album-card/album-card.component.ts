@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import { Album } from '../../model/album.model';
 import { Artist } from '../../../artists/model/artist.model';
 import { Router } from '@angular/router';
@@ -7,6 +7,7 @@ import {AuthService} from '../../../auth/auth.service';
 import {DialogType} from '../../../shared/dialog/dialog.component';
 import {CommonModule} from '@angular/common';
 import {ImagesService} from '../../../shared/images/service/images.service';
+import {AlbumService} from '../../service/album.service';
 
 @Component({
   selector: 'app-album-card',
@@ -16,16 +17,19 @@ import {ImagesService} from '../../../shared/images/service/images.service';
 })
 export class AlbumCardComponent implements OnInit {
   @Input() album: Album | undefined;
-  photoPath: string | undefined = "photo.jpg";
+  photoPath: string | undefined = "photo.png";
 
+  pendingDeleteId: string | null = null;
 
   showDialog = false;
   dialogType: DialogType = 'confirmation';
   dialogTitle = '';
   dialogMessage = '';
+  @Output() deleted = new EventEmitter<string>();
 
 
-  constructor(private router:Router,  protected authService: AuthService, private imageService: ImagesService){}
+
+  constructor(private router:Router, private albumService: AlbumService, protected authService: AuthService, private imageService: ImagesService){}
 
   ngOnInit() {
     this.loadImage();
@@ -47,15 +51,35 @@ export class AlbumCardComponent implements OnInit {
 
   deleteAlbum() {
     if (!this.album?.albumId) return;
+    this.pendingDeleteId = this.album.albumId;
 
     this.dialogType = 'confirmation';
     this.dialogTitle = 'Are you sure?';
     this.dialogMessage = `Do you really want to delete "${this.album.title}"?`;
     this.showDialog = true;
   }
+
   onDialogClosed(confirmed: boolean) {
-    // Simply close the dialog for informational messages
     this.showDialog = false;
+
+    if (confirmed && this.pendingDeleteId) {
+      console.log(this.pendingDeleteId)
+      this.albumService.delete(this.pendingDeleteId).subscribe({
+        next: res => {
+          this.deleted.emit(this.pendingDeleteId!);
+          this.dialogType = 'message';
+          this.dialogTitle = 'Deleted';
+          this.dialogMessage = "Successfully deleted " + this.album?.title;
+          this.showDialog = true;
+        },
+        error: (err) => {
+          this.dialogType = 'error';
+          this.dialogTitle = 'Error';
+          this.dialogMessage = err.error?.message || 'Failed to delete album';
+          this.showDialog = true;
+        }
+      });
+    }
   }
 
 

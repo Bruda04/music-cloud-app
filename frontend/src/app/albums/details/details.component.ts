@@ -8,6 +8,7 @@ import {UserRole} from '../../auth/model/user.model';
 import {AuthService} from '../../auth/auth.service';
 import {DialogType} from '../../shared/dialog/dialog.component';
 import {CacheService} from '../../shared/cache/cache.service';
+import {ImagesService} from '../../shared/images/service/images.service';
 
 @Component({
   selector: 'app-album-details',
@@ -22,7 +23,7 @@ export class AlbumDetailsComponent implements OnInit {
     currentTrack?: string;
     isPlaying = false;
 
-    photoPath: string = 'photo.jpg';
+    photoPath: string | undefined = 'photo.png';
 
     showDialog = false;
     dialogType: DialogType = 'confirmation';
@@ -31,7 +32,7 @@ export class AlbumDetailsComponent implements OnInit {
     pendingDeleteId: string | null = null;
     dialogRating: number = 0;
 
-    constructor(private route: ActivatedRoute, private albumService: AlbumService, protected authService: AuthService, private  cacheService: CacheService) {}
+    constructor(private route: ActivatedRoute, private albumService: AlbumService, protected authService: AuthService, private  cacheService: CacheService, private imageService: ImagesService) {}
 
     ngOnInit() {
         const navState = history.state;
@@ -47,6 +48,9 @@ export class AlbumDetailsComponent implements OnInit {
                 this.albumService.getById(albumId).subscribe(album => {this.album = album;});
             }
         }
+
+        this.loadImage();
+
     }
 
     getArtistNames(): string {
@@ -125,6 +129,20 @@ export class AlbumDetailsComponent implements OnInit {
     this.showDialog = true;
   }
 
+  private loadImage() {
+    if (this.album && this.album.imageFile) {
+      this.imageService.getAlbumImageUrl(this.album.imageFile).subscribe({
+        next: (url: string) => {
+          this.photoPath = url;
+        },
+        error: (err: any) => {
+          console.error('Error loading album image:', err);
+        }
+      });
+    }
+  }
+
+
   odTrackRated(rating: number) {
     this.dialogRating = rating;
     this.showDialog = false;
@@ -153,6 +171,7 @@ export class AlbumDetailsComponent implements OnInit {
   }
 
   onDialogClosed(confirmed: boolean) {
+    this.showDialog = false;
 
   }
 

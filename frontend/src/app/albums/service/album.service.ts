@@ -36,4 +36,9 @@ export class AlbumService {
     return this.httpClient.get<Album>(`${environment.apiUrl}/albums/${id}`)
   }
 
+
+  delete(id:string):Observable<{"message":string}>{
+    return this.httpClient.delete<{"message":string}>(`${environment.apiUrl}/albums/${id}`);
+  }
+
 }

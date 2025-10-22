@@ -4,8 +4,9 @@
       <h2>{{ album.title }}</h2>
       <p><strong>Artists:</strong> {{ album?.artist?.name }}</p>
       <div *ngFor="let o of album.other | keyvalue">
-        <p><strong>{{ o.key }}:</strong> {{ o.value }}</p>
+
       </div>
+      <p><strong>Details: </strong> {{ album?.details }}</p>
       <div class="genres">
         <span *ngFor="let genre of album.genres" class="genre-chip">{{ genre }}</span>
       </div>

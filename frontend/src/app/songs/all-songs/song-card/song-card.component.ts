@@ -21,7 +21,7 @@ export class SongCardComponent implements OnInit {
   @Output() rate = new EventEmitter<string>();
   @Output() deleted = new EventEmitter<string>();
 
-  photoPath: string = 'photo.jpg'; // placeholder image
+  photoPath: string = 'photo.png'; // placeholder image
 
   audio = new Audio();
   isPlaying = false;
@@ -109,7 +109,7 @@ export class SongCardComponent implements OnInit {
           this.deleted.emit(this.pendingDeleteId!);
           this.dialogType = 'message';
           this.dialogTitle = 'Deleted';
-          this.dialogMessage = res.message;
+          this.dialogMessage = "Successfully deleted " + this.song.title;
           this.showDialog = true;
         },
         error: (err) => {
