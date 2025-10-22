@@ -82,7 +82,7 @@ class AppConfig:
     DELETE_ARTIST_LAMBDA = "app/lambdas/artist-management/delete-artist"
     EDIT_ARTIST_LAMBDA = "app/lambdas/artist-management/edit-artist"
     GET_ARTIST_BY_ID_LAMBDA = "app/lambdas/artist-management/get-by-id"
-    
+
     GET_ALL_GENRES_LAMBDA = "app/lambdas/genre-management/get-all"
     GET_CONTENT_BY_GENRE_LAMBDA = "app/lambdas/genre-management/get-content-by-genre"
 
@@ -91,6 +91,7 @@ class AppConfig:
     GET_ALBUM_BY_ID_LAMBDA = "app/lambdas/music-management/album-management/get-by-id"
     GET_ALBUM_TRACK_LAMBDA = "app/lambdas/music-management/album-management/get-url"
     DELETE_ALBUM_LAMBDA = "app/lambdas/music-management/album-management/delete-album"
+    EDIT_ALBUM_LAMBDA = "app/lambdas/music-management/album-management/edit-album"
 
     CREATE_SONG_LAMBDA = "app/lambdas/music-management/song-management/create-song"
     DELETE_SONG_LAMBDA = "app/lambdas/music-management/song-management/delete-song"
