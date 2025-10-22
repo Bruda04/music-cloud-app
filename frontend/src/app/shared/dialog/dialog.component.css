@@ -77,3 +77,35 @@
 .dialog-buttons button.error:hover {
   background-color: #e14c4c;
 }
+
+
+.rating-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.rating-container label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #cfcfcf;
+}
+
+.rating-input {
+  width: 70px;
+  text-align: center;
+  font-size: 1rem;
+  padding: 0.3rem;
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  background-color: #2b2b2b;
+  color: #f0f0f0;
+  outline: none;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.rating-input:focus {
+  border-color: #50c878;
+  background-color: #333;
+}
