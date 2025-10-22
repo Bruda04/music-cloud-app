@@ -92,6 +92,18 @@
       <input type="file" (change)="onFileSelected($event)" />
     </div>
 
+    <div
+      class="file-drop-zone"
+      [class.dragging]="draggingImage"
+      (drop)="onImageDropped($event)"
+      (dragover)="onDragOverImage($event)"
+      (dragleave)="onDragLeaveImage($event)"
+    >
+      <p *ngIf="!uploadedImage">Drag & drop image here or click to select</p>
+      <p *ngIf="uploadedImage"><strong>{{ uploadedImage.name }}</strong> selected</p>
+      <input type="file" accept="image/*" (change)="onImageSelected($event)" />
+    </div>
+
     <button type="submit" [disabled]="loading">
       {{ editMode ? 'Update Song' : 'Create Song' }}
     </button>

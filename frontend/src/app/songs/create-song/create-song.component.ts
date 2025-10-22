@@ -16,6 +16,8 @@ import { Genre } from '../model/genre.model';
 })
 export class CreateSongComponent implements OnInit {
   editMode = false;
+  uploadedImage?: File;
+  draggingImage = false;
 
   song: Song = {
     title: '',
@@ -153,18 +155,22 @@ export class CreateSongComponent implements OnInit {
         this.song.fileChanged = false;
       }
 
+      if (this.uploadedImage) {
+        this.song.imageFile = await this.convertFileToBase64(this.uploadedImage);
+      }
+
       const payload: any = {
-        songId: this.song.songId? this.song.songId : undefined,
+        songId: this.song.songId ? this.song.songId : undefined,
         title: this.song.title,
         artistId: this.song.artist?.artistId,
         otherArtistIds: this.song.otherArtists?.map(a => a.artistId),
         genres: this.song.genres,
         file: this.song.file,
         fileChanged: this.song.fileChanged,
+        imageFile: this.song.imageFile,
         other: this.song.other
       };
 
-      console.log('Payload:', payload);
       const req = this.editMode
         ? this.songService.edit(payload)
         : this.songService.create(payload);
@@ -242,6 +248,31 @@ export class CreateSongComponent implements OnInit {
       reader.onerror = error => reject(error);
     });
   }
+  onImageDropped(event: DragEvent) {
+  event.preventDefault();
+  this.draggingImage = false;
+  if (event.dataTransfer && event.dataTransfer.files.length > 0) {
+    this.uploadedImage = event.dataTransfer.files[0];
+  }
+}
+
+onImageSelected(event: any) {
+  const file = event.target.files[0];
+  if (file) {
+    this.uploadedImage = file;
+  }
+}
+
+onDragOverImage(event: DragEvent) {
+  event.preventDefault();
+  this.draggingImage = true;
+}
+
+onDragLeaveImage(event: DragEvent) {
+  event.preventDefault();
+  this.draggingImage = false;
+}
+
 
   private showValidationError(message: string) {
     this.errorMessage = message;
