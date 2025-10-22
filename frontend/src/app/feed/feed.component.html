@@ -1,26 +1,17 @@
 <div class="feed-container">
-  <!-- Songs Section -->
-  <h2 class="section-title" style="margin: 1.5rem 0 1rem 0;">Songs</h2>
+  <!-- 🔹 Songs Section -->
+  <h2 class="section-title">Songs</h2>
   <div class="horizontal-list-wrapper">
-    <div class="horizontal-list" #songList>
-      <div class="card" *ngFor="let song of feedItems.songs">
-        <div class="basic-info">
-          <img [src]="song.imageUrl" alt="{{song.title}}" class="album-photo">
-          <div>
-            <h3>{{ song.title }}</h3>
-            <p>{{ song.artist.name }}</p>
-            <div class="genres">
-              <span *ngFor="let g of song.genres">{{ g }}</span>
-              <p><strong>Rating:</strong> {{ (song.ratingSum / song.ratingCount) | number:'1.1-1' }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="song-grid">
+      <app-song-card
+        *ngFor="let song of getPaginatedSongs()"
+        [song]="song">
+      </app-song-card>
     </div>
 
-    <div class="pagination" style="margin-top: 0.5rem;">
-      <button (click)="scrollPrev(songList)"><</button>
-      <button (click)="scrollNext(songList)">></button>
+    <div class="pagination" style="padding: 20px">
+      <button (click)="prevSongPage()" [disabled]="songPage === 1"><</button>
+      <button (click)="nextSongPage()" [disabled]="!hasNextSongPage()">></button>
     </div>
   </div>
 
@@ -28,9 +19,13 @@
   <h2 class="section-title" style="margin: 1.5rem 0 1rem 0;">Albums</h2>
   <div class="horizontal-list-wrapper">
     <div class="horizontal-list" #albumList>
-      <div class="card" *ngFor="let album of feedItems.albums">
+      <div
+        class="card clickable"
+        *ngFor="let album of feedItems.albums"
+        (click)="goToAlbumDetails(album.albumId)"
+      >
         <div class="basic-info">
-          <img [src]="album.imageUrl" alt="{{ album.title }}" class="album-photo">
+          <img [src]="album.imageUrl" alt="{{ album.title }}" class="album-photo" />
           <div>
             <h3>{{ album.title }}</h3>
             <p>{{ album.artist.name }}</p>

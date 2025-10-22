@@ -4,6 +4,8 @@ import {FeedResponseModel} from './model/feedResponseModel';
 import {AsyncPipe, DecimalPipe, NgForOf, NgIf} from '@angular/common';
 import {ImagesService} from '../shared/images/service/images.service';
 import {catchError, forkJoin, map, of} from 'rxjs';
+import {SongsModule} from '../songs/songs.module';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-feed',
@@ -15,6 +17,7 @@ import {catchError, forkJoin, map, of} from 'rxjs';
     NgIf,
     DecimalPipe,
     AsyncPipe,
+    SongsModule,
   ]
 })
 export class FeedComponent implements OnInit {
@@ -23,7 +26,7 @@ export class FeedComponent implements OnInit {
     albums: []
   };
 
-  constructor(private feedService: FeedService, protected imagesService: ImagesService) {
+  constructor(private feedService: FeedService, protected imagesService: ImagesService, private router: Router) {
   }
 
   ngOnInit() {
@@ -66,12 +69,36 @@ export class FeedComponent implements OnInit {
     });
   }
 
+  songLimit = 5;
+  songPage = 1;
+
+  getPaginatedSongs() {
+    const start = (this.songPage - 1) * this.songLimit;
+    return this.feedItems.songs.slice(start, start + this.songLimit);
+  }
+
+  hasNextSongPage(): boolean {
+    return this.songPage * this.songLimit < this.feedItems.songs.length;
+  }
+
+  nextSongPage() {
+    if (this.hasNextSongPage()) this.songPage++;
+  }
+
+  prevSongPage() {
+    if (this.songPage > 1) this.songPage--;
+  }
+
   scrollNext(list: HTMLElement) {
     list.scrollBy({ left: 300, behavior: 'smooth' });
   }
 
   scrollPrev(list: HTMLElement) {
     list.scrollBy({ left: -300, behavior: 'smooth' });
+  }
+
+  goToAlbumDetails(albumId: string) {
+    this.router.navigate(['/albums/details', albumId]);
   }
 
 
