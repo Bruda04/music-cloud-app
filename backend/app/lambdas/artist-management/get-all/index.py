@@ -2,6 +2,8 @@ import json
 import os
 import decimal
 import boto3
+from boto3.dynamodb.conditions import Key
+
 
 dynamodb = boto3.resource('dynamodb', region_name=os.environ["REGION"])
 artists_table = dynamodb.Table(os.environ["ARTISTS_TABLE"])
@@ -31,8 +33,8 @@ def lambda_handler(event, context):
         # If no query params → return all non-deleted artists
         if not params:
             response = artists_table.query(
-                IndexName=os.environ["ARTISTS_TABLE_GSI_ID"],  # Your GSI on isDeleted
-                KeyConditionExpression=boto3.dynamodb.conditions.Key('isDeleted').eq(0),
+                IndexName=os.environ["ARTISTS_TABLE_GSI_ID"],  # my GSI on isDeleted
+                KeyConditionExpression=Key('isDeleted').eq(0),
                 ProjectionExpression="artistId, #n",
                 ExpressionAttributeNames={"#n": "name"}
             )
@@ -54,7 +56,7 @@ def lambda_handler(event, context):
 
         query_kwargs = {
             "IndexName": gsi_name,
-            "KeyConditionExpression": boto3.dynamodb.conditions.Key("isDeleted").eq(0),
+            "KeyConditionExpression": Key("isDeleted").eq(0),
             "Limit": limit
         }
 

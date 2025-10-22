@@ -82,6 +82,8 @@
     <!-- Tracks -->
     <div class="array-group">
       <label>Tracks *</label>
+
+
       <div *ngFor="let t of tracks; let i = index" class="track-item">
         <input type="text" [(ngModel)]="t.title" name="trackTitle{{i}}" placeholder="Track title" />
         <div class="file-drop-zone"
@@ -95,8 +97,33 @@
         <input type="file" #fileInput (change)="onFileSelected($event, t)" />
         </div>
 
+
+        <!-- Other Artists Section -->
+        <div class="array-group">
+          <label>Other Artists (optional)</label>
+          <div class="array-tokens">
+            <div class="array-item" *ngFor="let id of t.otherArtistIds">
+              <span>{{ getArtistNameById(id) }}</span>
+              <button type="button" (click)="removeOtherArtist(t, id)">x</button>
+            </div>
+          </div>
+          <select [(ngModel)]="selectedOtherArtist[i]" name="otherArtistSelect{{i}}">
+            <option value="">-- Select artist --</option>
+            <ng-container *ngFor="let a of artists">
+              <option *ngIf="a.artistId !== album.artistId" [value]="a.artistId">
+                {{ a.name }}
+              </option>
+            </ng-container>
+
+          </select>
+          <button type="button" style="padding: 0.65rem 1.3rem; align-self: flex-start;" (click)="addOtherArtist(t, selectedOtherArtist[i], i)">Add Artist</button>
+        </div>
+
         <button type="button" (click)="removeTrack(i)" *ngIf="tracks.length > 1">Remove Track</button>
       </div>
+
+
+
       <button type="button" (click)="addTrack()" style="background: transparent !important; border: 1px solid #50C878; color: #50C878">Add Track</button>
     </div>
 

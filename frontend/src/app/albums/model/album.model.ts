@@ -26,7 +26,8 @@ export interface AlbumTrack {
   title: string;
   file?: File;
   fileBase64?: string;
-  dragging?: boolean
+  dragging?: boolean;
+  otherArtistIds?: string[];
 }
 
 export interface TrackDTO {
