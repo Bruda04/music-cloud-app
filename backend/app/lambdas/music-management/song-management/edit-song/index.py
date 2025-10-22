@@ -1,4 +1,5 @@
 import base64
+import imghdr
 import json
 import os
 import boto3
@@ -44,7 +45,7 @@ def lambda_handler(event, context):
                 'body': json.dumps({'message': 'Artist does not exist or has been deleted.'})
             }
 
-        required_fields = ['title', 'artistId', 'genres', 'file', 'otherArtistIds']
+        required_fields = ['title', 'artistId', 'genres', 'file', 'imageFile']
         missing = [f for f in required_fields if f not in body or not body[f]]
         if missing:
             return {
@@ -93,6 +94,30 @@ def lambda_handler(event, context):
         genres_to_add = list(set(genres) - set(item.get('genres', [])))
         genres_to_remove = list(set(item.get('genres', [])) - set(genres))
 
+        # Image handling
+        image_bytes = base64.b64decode(body['imageFile'])
+        timestamp = int(datetime.utcnow().timestamp())
+        safe_title = body['title'].replace(' ', '_')
+
+        # Detect image type
+        image_type = imghdr.what(None, h=image_bytes)
+        if image_type not in ['jpeg', 'png']:
+            return {
+                'statusCode': 400,
+                'headers': _cors_headers(),
+                'body': json.dumps({'message': 'Only JPG and PNG images are supported.'})
+            }
+
+        ext = 'jpg' if image_type == 'jpeg' else 'png'
+        image_key = f"{timestamp}-{safe_title}.{ext}"
+
+        s3.put_object(
+            Bucket=BUCKET,
+            Key=f"images/songs/{image_key}",
+            Body=image_bytes,
+            ContentType=f'image/{ext}'
+        )
+        
         item.update({
             'songId': song_id,
             'title': body.get('title', existing_song.get('title')),
@@ -100,6 +125,7 @@ def lambda_handler(event, context):
             'otherArtistIds': body.get('otherArtistIds', existing_song.get('otherArtistIds', [])),
             'genres': genres,
             'fileKey': key,
+            'imageFile':image_key,
             'updatedAt': datetime.utcnow().isoformat()
         })
 
