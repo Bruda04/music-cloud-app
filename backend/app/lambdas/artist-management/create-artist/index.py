@@ -57,7 +57,8 @@ def lambda_handler(event, context):
             "artistId": artist_id,
             "name": name,
             "bio": bio,
-            "genres":  [g.lower() for g in genres if g] ,
+            "genres":  [g.lower() for g in genres if g],
+            "isDeleted": 0,
             "createdAt": datetime.utcnow().isoformat()
         }
 

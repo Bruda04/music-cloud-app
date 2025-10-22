@@ -4,6 +4,7 @@ class AppConfig:
     # DynamoDB
     ARTISTS_TABLE_NAME = "Artists"
     ARTISTS_TABLE_ID = "ArtistsTable"
+    ARTISTS_TABLE_GSI_ID = "isDeleted"
 
     GENRES_TABLE_NAME = "Genres"
     GENRES_TABLE_ID = "GenresTable"

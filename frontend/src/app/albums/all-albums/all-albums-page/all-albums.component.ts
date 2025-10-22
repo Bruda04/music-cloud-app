@@ -13,95 +13,41 @@ import { Artist } from '../../../artists/model/artist.model';
   imports:[AlbumsModule,CommonModule],
   standalone: true
 })
-export class AllAlbumsPageComponent implements OnInit, AfterViewInit {
+export class AllAlbumsPageComponent implements OnInit {
 
     albums: Album[] = [];
     artists: Artist[] = [];
-    displayDots: number[] = [];
-    activeIndex = 0;
-
-    scrollAmount = 0;
-    intervalId: any;
-
-    @ViewChild('scrollContainer') scrollContainer!: ElementRef<HTMLDivElement>;
+    lastKey?: string;
+    limit = 6;
+    page = 1;
 
     constructor(private albumService:AlbumService, private artistService: ArtistService) {}
 
     ngOnInit(): void {
-
-        this.albumService.getAll().subscribe(a=>
-        {
-          this.albums = a;
-        });
-        console.log("here")
-        console.log(this.albums)
-        this.updateDots();
+      this.loadAlbums()
     }
 
-    ngAfterViewInit() {
-        this.intervalId = setInterval(() => this.scrollNext(), 5000);
+    loadAlbums(lastKey?: string){
+      this.albumService.getAll(this.limit, lastKey).subscribe(res=>
+      {
+        this.albums = res.albums;
+        this.lastKey = res.lastKey;
+      });
     }
 
-    scrollNext() {
-        if (!this.scrollContainer) return;
-        const container = this.scrollContainer.nativeElement;
-        const cardWidth = container.firstElementChild?.clientWidth || 200;
 
-        this.scrollAmount += cardWidth + 16;
-        if (this.scrollAmount >= container.scrollWidth) {
-        this.scrollAmount = 0;
-        this.activeIndex = 0;
-        } else {
-        this.activeIndex = (this.activeIndex + 1) % this.albums.length;
-        }
-
-        container.scrollTo({ left: this.scrollAmount, behavior: 'smooth' });
-        this.updateDots();
+    nextPage() {
+      if (this.lastKey) {
+        this.page++;
+        this.loadAlbums(this.lastKey);
+      }
     }
 
-    onScroll() {
-        if (!this.scrollContainer) return;
-        const container = this.scrollContainer.nativeElement;
-        const cardWidth = container.firstElementChild?.clientWidth || 200;
-        this.activeIndex = Math.round(container.scrollLeft / (cardWidth + 16)) % this.albums.length;
-        this.updateDots();
+    prevPage() {
+      if (this.page > 1) {
+        this.page--;
+        this.loadAlbums();
+      }
     }
 
-    updateDots() {
-        const total = this.albums.length;
-        const active = this.activeIndex;
-        const windowSize = 5;
-        const dots: number[] = [];
-
-        if (total <= windowSize) {
-        for (let i = 0; i < total; i++) dots.push(i);
-        } else {
-        dots.push(0); // first
-
-        let start = Math.max(active - 1, 1);
-        let end = Math.min(active + 1, total - 2);
-
-        for (let i = start; i <= end; i++) {
-            if (i !== 0 && i !== total - 1) dots.push(i);
-        }
-
-        dots.push(total - 1); // last
-
-        while (dots.length < windowSize) {
-            if (dots[1] > 1) {
-            dots.splice(1, 0, dots[1] - 1);
-            } else if (dots[dots.length - 2] < total - 2) {
-            dots.splice(dots.length - 1, 0, dots[dots.length - 2] + 1);
-            } else {
-            break;
-            }
-        }
-        }
-
-        this.displayDots = dots;
-    }
-
-    ngOnDestroy() {
-        clearInterval(this.intervalId);
-    }
 }

@@ -1,4 +1,5 @@
 import {Artist} from '../../artists/model/artist.model';
+import {Album} from '../../albums/model/album.model';
 
 export interface Song {
     songId?: string,
@@ -28,6 +29,12 @@ export interface PaginatedArtists {
   artists: Artist[];
   lastKey?: string;
 }
+
+export interface PaginatedAlbums {
+  albums: Album[];
+  lastKey?: string;
+}
+
 
 
 export interface Url{

@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environment/environment';
-import { HttpClient } from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {Album, CreateAlbumDTO, CreateAlbumResponse} from '../model/album.model';
-import { Url } from '../../songs/model/song.model';
+import {PaginatedAlbums, PaginatedArtists, Url} from '../../songs/model/song.model';
 
 @Injectable({providedIn: 'root'})
 export class AlbumService {
@@ -14,17 +14,10 @@ export class AlbumService {
     return this.httpClient.post<CreateAlbumResponse>(`${environment.apiUrl}/albums`,album);
   }
 
-  getAll():Observable<Album[]>{
-    return this.httpClient.get<Album[]>(`${environment.apiUrl}/albums`)
-  }
-
-  getAllMock(): Album[]{
-    return [
-    ]
-  }
-
-  get10New():Observable<Album[]>{
-    return this.httpClient.get<Album[]>(`${environment.apiUrl}/albums/new10`);
+  getAll(limit: number = 6, lastKey?: string): Observable<PaginatedAlbums> {
+    let params = new HttpParams().set('limit', limit.toString());
+    if (lastKey) params = params.set('lastKey', lastKey);
+    return this.httpClient.get<PaginatedAlbums>(`${environment.apiUrl}/albums`, { params });
   }
 
   getUrl(fileKey:string):Observable<Url>{

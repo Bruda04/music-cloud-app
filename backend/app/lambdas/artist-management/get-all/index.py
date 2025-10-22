@@ -24,17 +24,45 @@ def convert_sets_to_lists(obj):
 
 def lambda_handler(event, context):
     try:
-        limit = int(event.get('queryStringParameters', {}).get('limit', 10))
-        last_key = event.get('queryStringParameters', {}).get('lastKey', None)
+        params = event.get("queryStringParameters") or {}
+        gsi_name = os.environ["ARTISTS_TABLE_GSI_ID"]
 
-        scan_kwargs = {'Limit': limit}
+
+        # If no query params → return all non-deleted artists
+        if not params:
+            response = artists_table.query(
+                IndexName=os.environ["ARTISTS_TABLE_GSI_ID"],  # Your GSI on isDeleted
+                KeyConditionExpression=boto3.dynamodb.conditions.Key('isDeleted').eq(0),
+                ProjectionExpression="artistId, #n",
+                ExpressionAttributeNames={"#n": "name"}
+            )
+
+            artists = convert_sets_to_lists(response.get('Items', []))
+            return {
+                'statusCode': 200,
+                'headers': {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers": "*",
+                    "Content-Type": "application/json"
+                },
+                'body': json.dumps({'artists': artists}, cls=DecimalEncoder)
+            }
+
+
+        limit = int(params.get('limit', 10))
+        last_key = params.get('lastKey')
+
+        query_kwargs = {
+            "IndexName": gsi_name,
+            "KeyConditionExpression": boto3.dynamodb.conditions.Key("isDeleted").eq(0),
+            "Limit": limit
+        }
+
         if last_key:
-            scan_kwargs['ExclusiveStartKey'] = json.loads(last_key)
+            query_kwargs['ExclusiveStartKey'] = json.loads(last_key)
 
-        scan_kwargs['FilterExpression'] = "attribute_not_exists(isDeleted) OR isDeleted = :false"
-        scan_kwargs['ExpressionAttributeValues'] = {":false": False}
+        response = artists_table.query(**query_kwargs)
 
-        response = artists_table.scan(**scan_kwargs)
         items = response.get('Items', [])
         items = convert_sets_to_lists(items)
 

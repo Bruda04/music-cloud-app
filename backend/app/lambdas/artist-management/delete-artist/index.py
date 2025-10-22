@@ -22,7 +22,7 @@ def lambda_handler(event, context):
         artists_table.update_item(
             Key={"artistId": artist_id},
             UpdateExpression="SET isDeleted = :val",
-            ExpressionAttributeValues={":val": True}
+            ExpressionAttributeValues={":val": 1}
         )
 
         return _response(200, {"message": f"Artist {artist_id} marked as deleted"})
