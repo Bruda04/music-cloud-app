@@ -16,8 +16,8 @@
     </div>
 
     <div class="dialog-buttons">
-      <button *ngIf="type === 'confirmation' || type === 'rating'" (click)="cancel()">Cancel</button>
-      <button (click)="ok()">{{ type === 'error' ? 'OK' : 'OK' }}</button>
+      <button *ngIf="type === 'confirmation' || type === 'rating' || type === 'deletion'" (click)="cancel()">Cancel</button>
+      <button (click)="ok()">OK</button>
     </div>
   </div>
 </div>

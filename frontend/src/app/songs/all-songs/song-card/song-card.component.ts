@@ -4,9 +4,9 @@ import { Artist } from '../../../artists/model/artist.model';
 import { SongService } from '../../service/song.service';
 import { Router } from '@angular/router';
 import { DialogType } from '../../../shared/dialog/dialog.component';
-import {AuthService} from '../../../auth/auth.service';
-import {UserRole} from '../../../auth/model/user.model';
-import {CacheService} from '../../../shared/cache/cache.service';
+import { AuthService } from '../../../auth/auth.service';
+import { UserRole } from '../../../auth/model/user.model';
+import { CacheService } from '../../../shared/cache/cache.service';
 
 @Component({
   selector: 'app-song-card',
@@ -22,7 +22,6 @@ export class SongCardComponent {
   @Output() deleted = new EventEmitter<string>();
 
   photoPath: string = 'photo.jpg'; // placeholder image
-
 
   audio = new Audio();
   isPlaying = false;
@@ -79,7 +78,7 @@ export class SongCardComponent {
   }
 
   goToEdit() {
-    if (this.song){
+    if (this.song) {
       this.router.navigate(['/songs/edit', this.song.songId]);
     }
   }
@@ -87,6 +86,7 @@ export class SongCardComponent {
   deleteSong() {
     if (!this.song?.songId) return;
 
+    this.pendingDeleteId = this.song.songId;
     this.dialogType = 'confirmation';
     this.dialogTitle = 'Are you sure?';
     this.dialogMessage = `Do you really want to delete "${this.song.title}"?`;
@@ -97,6 +97,7 @@ export class SongCardComponent {
     this.showDialog = false;
 
     if (confirmed && this.pendingDeleteId) {
+      console.log(this.pendingDeleteId)
       this.songService.delete(this.pendingDeleteId).subscribe({
         next: res => {
           this.deleted.emit(this.pendingDeleteId!);
@@ -105,7 +106,7 @@ export class SongCardComponent {
           this.dialogMessage = res.message;
           this.showDialog = true;
         },
-        error: err => {
+        error: (err) => {
           this.dialogType = 'error';
           this.dialogTitle = 'Error';
           this.dialogMessage = err.error?.message || 'Failed to delete song';
@@ -116,7 +117,6 @@ export class SongCardComponent {
 
     this.pendingDeleteId = null;
   }
-
 
   formatDate(dateString: string): string {
     if (!dateString) return '';
@@ -133,14 +133,11 @@ export class SongCardComponent {
 
   protected readonly UserRole = UserRole;
 
-
   rateSong() {
     this.dialogMessage = `Rate the song "${this.song.title}"`;
     this.dialogType = 'rating';
     this.dialogTitle = 'Rate Song';
     this.showDialog = true;
-
-
   }
 
   onSongRated(rating: number) {
@@ -172,21 +169,15 @@ export class SongCardComponent {
     this.songService.getUrl(this.song.file).subscribe({
       next: async (res) => {
         try {
-          // fetch the file as blob
           const response = await fetch(res.url);
           const blob = await response.blob();
-
-          // create a temporary URL
           const blobUrl = URL.createObjectURL(blob);
-
           const link = document.createElement('a');
           link.href = blobUrl;
           link.download = this.song.title + '.mp3';
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-
-          // revoke object URL
           URL.revokeObjectURL(blobUrl);
         } catch (err) {
           console.error('Failed to download song', err);
@@ -194,13 +185,12 @@ export class SongCardComponent {
       },
       error: (err) => console.error('Failed to get song URL', err)
     });
-
   }
 
   private logPlay() {
     if (!this.song.songId || !this.song.artist?.artistId) return;
     this.songService.logPlay(this.song.songId, this.song.artist?.artistId).subscribe({
-      next: ({message}) => {
+      next: ({ message }) => {
         console.log('Play logged:', message);
       },
       error: (err) => console.error('Failed to log play', err)
