@@ -34,6 +34,17 @@
           </ng-container>
           )
         </ng-container>
+
+
+         <ng-container *ngIf="track.ratingCount > 0">
+          — <span class="rating">
+            ★ {{ (track.ratingSum / track.ratingCount) | number:'1.1-1' }}
+          </span>
+          <span class="rating-count">({{ track.ratingCount }})</span>
+        </ng-container>
+        <ng-container *ngIf="!track.ratingCount">
+          — <span class="rating">No ratings yet</span>
+        </ng-container>
       </span>
 
 
