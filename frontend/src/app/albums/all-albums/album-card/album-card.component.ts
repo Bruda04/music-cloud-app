@@ -66,11 +66,13 @@ export class AlbumCardComponent implements OnInit {
       console.log(this.pendingDeleteId)
       this.albumService.delete(this.pendingDeleteId).subscribe({
         next: res => {
-          this.deleted.emit(this.pendingDeleteId!);
           this.dialogType = 'message';
           this.dialogTitle = 'Deleted';
           this.dialogMessage = "Successfully deleted " + this.album?.title;
           this.showDialog = true;
+          setTimeout(() => {
+            this.deleted.emit(this.pendingDeleteId!);
+          }, 5500);
         },
         error: (err) => {
           this.dialogType = 'error';

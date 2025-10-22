@@ -29,7 +29,6 @@ export class AlbumDetailsComponent implements OnInit {
     dialogType: DialogType = 'confirmation';
     dialogTitle = '';
     dialogMessage = '';
-    pendingDeleteId: string | null = null;
     dialogRating: number = 0;
 
     constructor(private route: ActivatedRoute, private albumService: AlbumService, protected authService: AuthService, private  cacheService: CacheService, private imageService: ImagesService) {}
