@@ -61,14 +61,12 @@ def lambda_handler(event, context):
         }
 
 def get_artist_safe(artist_id):
-    """Get artist from DynamoDB, return 'Unknown Artist' if not found or deleted"""
-    if not artist_id:
-        return {"artistId": "unknown-artist", "name": "Unknown Artist"}
+    """Get artist or return 'Unknown Artist' if its deleted or doesn't exist."""
     try:
         artist = artists_table.get_item(Key={'artistId': artist_id}).get('Item')
-        if not artist or artist.get('isDeleted', False):
+        if not artist or artist.get('isDeleted', 1):
             return {"artistId": "unknown-artist", "name": "Unknown Artist"}
-        return {"artistId": artist.get('artistId', 'unknown-artist'), "name": artist.get('name', 'Unknown Artist')}
+        return {"artistId": artist.get("artistId", ""), "name": artist.get("name", "Unknown Artist")}
     except Exception:
         return {"artistId": "unknown-artist", "name": "Unknown Artist"}
 

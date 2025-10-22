@@ -1,7 +1,7 @@
 <div class="card" (click)="openAlbum()" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
   <div class="card-text">
     <h3>{{ album?.title }}</h3>
-    <p>Author: {{album?.artistId}}</p>
+    <p>Author: {{album?.artist?.name}}</p>
     <div class="genres">
       <span *ngFor="let genre of album?.genres">{{ genre }}</span>
     </div>

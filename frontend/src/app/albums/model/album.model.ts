@@ -1,5 +1,8 @@
+import {Artist} from '../../artists/model/artist.model';
+
 export interface Album {
   albumId?: string;
+  artist?: Artist;
   title: string;
   artistId: string;           // main artist ID
   genres: string[];
@@ -32,6 +35,7 @@ export interface AlbumTrack {
 
 export interface TrackDTO {
   songId: string;
+  otherArtists: Artist[];
   title: string;
   fileKey: string;
   artistId: string;

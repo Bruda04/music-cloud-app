@@ -2,7 +2,7 @@
   <div class="album-header">
     <div class="album-info">
       <h2>{{ album.title }}</h2>
-      <p><strong>Artists:</strong> {{ getArtistNames() }}</p>
+      <p><strong>Artists:</strong> {{ album?.artist?.name }}</p>
       <div *ngFor="let o of album.other | keyvalue">
         <p><strong>{{ o.key }}:</strong> {{ o.value }}</p>
       </div>
@@ -25,7 +25,18 @@
         <button (click)="downloadTrack(track, $event)">⬇ Download</button>
       </div>
 
-      <span>{{ track.title }}</span>
+      <span>
+        {{ track.title }}
+              <ng-container *ngIf="track.otherArtists?.length">
+          (ft.
+          <ng-container *ngFor="let a of track.otherArtists; let last = last">
+            {{ a.name }}<span *ngIf="!last">, </span>
+          </ng-container>
+          )
+        </ng-container>
+      </span>
+
+
       <button class="play-btn"
         [class.playing]="currentTrack === track.songId && isPlaying"
         (click)="playTrack(track)"
