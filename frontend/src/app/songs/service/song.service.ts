@@ -65,6 +65,14 @@ export class SongService {
     return this.httpClient.get<Song>(`${environment.apiUrl}/songs/${id}`);
   }
 
+  rateSong(songId:string, rating:number):Observable<{"message":string}>{
+    return this.httpClient.post<{"message":string}>(`${environment.apiUrl}/rate`, {songId, rating});
+  }
+
+  logPlay(songId:string, artistId: string):Observable<{"message":string}>{
+    return this.httpClient.post<{"message":string}>(`${environment.apiUrl}/history`, {songId, artistId, contentType: 'song'});
+  }
+
   getMockById(): Song{
    return {
       songId: "cd67114b-e440-4822-849d-26b956a8b3fc",

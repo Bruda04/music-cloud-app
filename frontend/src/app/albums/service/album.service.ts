@@ -14,6 +14,14 @@ export class AlbumService {
     return this.httpClient.post<CreateAlbumResponse>(`${environment.apiUrl}/albums`,album);
   }
 
+  rateAlbumSong(songId: string, albumId:string, rating:number): Observable<{"message":string}> {
+    return this.httpClient.post<{"message":string}>(`${environment.apiUrl}/rate`,{albumId, rating, songId});
+  }
+
+  logPlay(albumId: string, songId:string, artistId: string):Observable<{"message":string}>{
+    return this.httpClient.post<{"message":string}>(`${environment.apiUrl}/history`, {songId, artistId, contentType: 'album', albumId});
+  }
+
   getAll(limit: number = 6, lastKey?: string): Observable<PaginatedAlbums> {
     let params = new HttpParams().set('limit', limit.toString());
     if (lastKey) params = params.set('lastKey', lastKey);
