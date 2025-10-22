@@ -103,8 +103,7 @@ export class FeedComponent implements OnInit {
 
 
   loadMockFeed() {
-    this.feedItems = { songs: [], albums: [] };
-    return
+
     const artistA: any = { artistId: 'a1', name: 'Artist A' };
     const artistB: any = { artistId: 'b2', name: 'Artist B' };
     const artistC: any = { artistId: 'c3', name: 'Artist C' };

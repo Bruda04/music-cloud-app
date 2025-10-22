@@ -1,11 +1,11 @@
-<div class="card" (click)="openArtistSongs()">
+<div class="card" (click)="openArtistSongs($event)">
   <h3>{{ artist?.name }}</h3>
   <p>{{ artist?.bio }}</p>
   <div class="genres">
     <span *ngFor="let genre of artist?.genres">{{ genre }}</span>
   </div>
   <div class="actions" style="display: flex; justify-content: flex-start; margin-top: 8px;">
-    <button style="font-size: 14px;" *ngIf="userRole === UserRole.AuthUser" (click)="subscribeToArtist()">Subscribe</button>
+    <button style="font-size: 14px;" *ngIf="userRole === UserRole.AuthUser" (click)="subscribeToArtist($event)">Subscribe</button>
     <button *ngIf="userRole === UserRole.Admin" (click)="delete($event)" style="font-size: 14px;">Delete</button>
   </div>
 </div>

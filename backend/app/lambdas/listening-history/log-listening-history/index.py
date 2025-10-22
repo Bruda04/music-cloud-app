@@ -28,7 +28,7 @@ def lambda_handler(event, context):
 
         artist = artists_table.get_item(Key={'artistId': artist_id}).get('Item')
         if not artist or artist.get('isDeleted', False):
-            artist_id = 'unknown-artist'
+            return _response(200, {'message': 'Listening history skipped for unknown artist'})
 
         listening_history_table.put_item(
             Item={
