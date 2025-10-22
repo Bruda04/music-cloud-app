@@ -21,7 +21,7 @@ class DecimalEncoder(json.JSONEncoder):
 
 def lambda_handler(event, context):
     try:
-        song_id = event.get('pathParameters', {}).get('songId')
+        song_id = event.get('pathParameters', {}).get('id')
         if not song_id:
             return _response(400, {'message': 'Missing songId in path parameters'})
 
@@ -106,6 +106,5 @@ def _cors_headers():
     return {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "*",
-        "Access-Control-Allow-Methods": "OPTIONS,GET",
         "Content-Type": "application/json"
     }

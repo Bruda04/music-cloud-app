@@ -36,7 +36,7 @@ def lambda_handler(event, context):
         claims = event.get("requestContext", {}).get("authorizer", {}).get("claims", {})
         user = claims.get("email")
         if not user:
-            return {'statusCode': 400, 'body': json.dumps({'error': 'User email not found in token'})}
+            return {'statusCode': 400, 'body': json.dumps({'error': 'User email not found in token'}), 'headers': _cors_headers()}
 
         resp = user_feed_table.query(
             KeyConditionExpression=Key('user').eq(user),
@@ -45,7 +45,7 @@ def lambda_handler(event, context):
         )
         items = resp.get('Items', [])
         if not items:
-            return {'statusCode': 200, 'body': json.dumps({'songs': [], 'albums': []})}
+            return {'statusCode': 200, 'body': json.dumps({'songs': [], 'albums': []}), 'headers': _cors_headers()}
 
         timestamps = [datetime.datetime.fromisoformat(i['timestamp']) for i in items]
         newest = max(timestamps)
@@ -126,7 +126,18 @@ def lambda_handler(event, context):
         songs.sort(key=lambda x: x['weighted_score'], reverse=True)
         albums.sort(key=lambda x: x['weighted_score'], reverse=True)
 
-        return {'statusCode': 200, 'body': json.dumps({'songs': songs, 'albums': albums})}
+        return {'statusCode': 200,
+                'headers': _cors_headers(),
+                'body': json.dumps({'songs': songs, 'albums': albums})}
 
     except Exception as e:
-        return {'statusCode': 500, 'body': json.dumps({'error': str(e)})}
+        return {'statusCode': 500,
+                'headers': _cors_headers(),
+                'body': json.dumps({'error': str(e)})}
+
+def _cors_headers():
+    return {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*",
+        "Content-Type": "application/json"
+    }

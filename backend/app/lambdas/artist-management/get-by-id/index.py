@@ -1,3 +1,4 @@
+import decimal
 import json
 import os
 import boto3
@@ -5,6 +6,12 @@ from boto3.dynamodb.conditions import Key
 
 dynamodb = boto3.resource('dynamodb')
 artists_table = dynamodb.Table(os.environ['ARTISTS_TABLE'])
+
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            return float(o)
+        return super(DecimalEncoder, self).default(o)
 
 def lambda_handler(event, context):
     try:
@@ -19,7 +26,6 @@ def lambda_handler(event, context):
                 'headers': {
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Headers': 'Content-Type',
-                    'Access-Control-Allow-Methods': 'GET'
                 },
                 'body': json.dumps({'message': 'Artist not found'})
             }
@@ -29,9 +35,8 @@ def lambda_handler(event, context):
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Allow-Methods': 'GET'
             },
-            'body': json.dumps(artist)
+            'body': json.dumps(artist, cls=DecimalEncoder)
         }
 
     except Exception as e:
@@ -41,7 +46,6 @@ def lambda_handler(event, context):
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Allow-Methods': 'GET'
             },
             'body': json.dumps({'message': f"Error fetching artist: {str(e)}"})
         }
