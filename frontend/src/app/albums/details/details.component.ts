@@ -118,4 +118,35 @@ export class AlbumDetailsComponent implements OnInit {
   onDialogClosed(confirmed: boolean) {
 
   }
+
+  downloadTrack(track:TrackDTO, $event: PointerEvent) {
+    $event.stopPropagation();
+    if (!track.fileKey) return;
+
+    this.albumService.getUrl(track.fileKey).subscribe({
+      next: async (res) => {
+        try {
+          // fetch the file as blob
+          const response = await fetch(res.url);
+          const blob = await response.blob();
+
+          // create a temporary URL
+          const blobUrl = URL.createObjectURL(blob);
+
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = track.title + '.mp3';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          // revoke object URL
+          URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+          console.error('Failed to download track', err);
+        }
+      },
+      error: (err) => console.error('Failed to get track URL', err)
+    });
+  }
 }

@@ -147,4 +147,35 @@ export class SongCardComponent {
       this.dialogRating = 0;
     }
   }
+
+  downloadSong() {
+    if (!this.song.file) return;
+
+    this.songService.getUrl(this.song.file).subscribe({
+      next: async (res) => {
+        try {
+          // fetch the file as blob
+          const response = await fetch(res.url);
+          const blob = await response.blob();
+
+          // create a temporary URL
+          const blobUrl = URL.createObjectURL(blob);
+
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = this.song.title + '.mp3';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          // revoke object URL
+          URL.revokeObjectURL(blobUrl);
+        } catch (err) {
+          console.error('Failed to download song', err);
+        }
+      },
+      error: (err) => console.error('Failed to get song URL', err)
+    });
+
+  }
 }
