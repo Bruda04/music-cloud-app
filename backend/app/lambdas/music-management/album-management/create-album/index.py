@@ -23,7 +23,7 @@ def lambda_handler(event, context):
     try:
         body = json.loads(event.get('body', '{}'))
 
-        required_fields = ['title', 'artistId', 'genres', 'tracks', 'details', 'imageFile']
+        required_fields = ['title', 'artistId', 'genres', 'tracks', 'details']
         missing = [f for f in required_fields if f not in body or not body[f]]
         if missing:
             return {
@@ -55,41 +55,33 @@ def lambda_handler(event, context):
             }
 
         # Use jpg instead of jpeg for filename
-        ext = 'jpg' if image_type == 'jpeg' else 'png'
-        image_key = f"{timestamp}-{safe_title}.{ext}"
+        image_key = f"{timestamp}-{safe_title}.png"
 
-        s3.put_object(
-            Bucket=BUCKET,
-            Key=f"images/albums/{image_key}",
-            Body=image_bytes,
-            ContentType=f'image/{ext}'
+        image_upload_url = s3.generate_presigned_url(
+            'put_object',
+            Params={'Bucket': BUCKET, 'Key': f'images/albums/{image_key}', 'ContentType': 'image/png'},
+            ExpiresIn=3600
         )
 
-        track_file_keys = []
-        for track in body['tracks']:
-            if 'file' not in track or not track['file']:
-                return {
-                    'statusCode': 400,
-                    'headers': _cors_headers(),
-                    'body': json.dumps({'message': f'Missing file for track {track.get("title", "")}'})
-                }
 
-            file_bytes = base64.b64decode(track['file'])
+        track_file_keys = []
+        track_upload_urls = []
+        for track in body['tracks']:
             timestamp = int(datetime.utcnow().timestamp())
             safe_title = track.get('title', 'track').replace(' ', '_')
-            key = f"{timestamp}-{safe_title}.mp3"
+            track_key = f"{timestamp}-{safe_title}.mp3"
 
-            s3.put_object(
-                Bucket=BUCKET,
-                Key=f"albums/{key}",
-                Body=file_bytes,
-                ContentType='audio/mpeg'
+            song_upload_url = s3.generate_presigned_url(
+                'put_object',
+                Params={'Bucket': BUCKET, 'Key': f'albums/{track_key}', 'ContentType': 'audio/mpeg'},
+                ExpiresIn=3600
             )
+            track_upload_urls.append(song_upload_url)
 
             track_file_keys.append({
                 'songId': str(uuid.uuid4()),
                 'title': track.get('title', ''),
-                'fileKey': key,
+                'fileKey': track_key,
                 'artistId': body['artistId'],
                 'otherArtistIds': track.get('otherArtistIds', []),
                 'lyrics': '',
@@ -150,7 +142,9 @@ def lambda_handler(event, context):
             'body': json.dumps({
                 'message': 'Album and tracks uploaded successfully',
                 'albumId': album_id,
-                'tracks': track_file_keys
+                'tracks': track_file_keys,
+                'trackUploadUrls': track_upload_urls,
+                'imageUploadUrl': image_upload_url,
             })
         }
 

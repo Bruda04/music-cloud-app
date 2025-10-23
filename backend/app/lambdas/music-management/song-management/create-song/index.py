@@ -1,5 +1,3 @@
-import base64
-import imghdr
 import json
 import os
 import boto3
@@ -72,7 +70,6 @@ def lambda_handler(event, context):
         safe_title = body['title'].replace(' ', '_')
 
 
-        # Use jpg instead of jpeg for filename
         image_key = f"{timestamp}-{safe_title}.png"
 
         image_upload_url = s3.generate_presigned_url(

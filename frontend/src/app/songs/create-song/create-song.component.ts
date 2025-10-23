@@ -151,16 +151,12 @@ export class CreateSongComponent implements OnInit {
     this.loading = true;
 
     try {
-      if (this.uploadedFile) {
-        this.song.file = await this.convertFileToBase64(this.uploadedFile);
+      if (this.uploadedFile || this.uploadedImage) {
         this.song.fileChanged = true;
       } else {
         this.song.fileChanged = false;
       }
 
-      if (this.uploadedImage) {
-        this.song.imageFile = await this.convertFileToBase64(this.uploadedImage);
-      }
 
       const payload: any = {
         songId: this.song.songId ? this.song.songId : undefined,

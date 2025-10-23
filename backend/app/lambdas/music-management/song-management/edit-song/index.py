@@ -45,7 +45,7 @@ def lambda_handler(event, context):
                 'body': json.dumps({'message': 'Artist does not exist or has been deleted.'})
             }
 
-        required_fields = ['title', 'artistId', 'genres', 'file', 'imageFile']
+        required_fields = ['title', 'artistId', 'genres']
         missing = [f for f in required_fields if f not in body or not body[f]]
         if missing:
             return {
@@ -71,7 +71,11 @@ def lambda_handler(event, context):
         existing_song_resp = songs_table.get_item(Key={'songId': song_id, 'artistId': song_keys['Items'][0]['artistId']})
         existing_song = existing_song_resp.get('Item')
 
-        key = body.get('file')
+        song_key = existing_song.get('fileKey')
+        image_key = existing_song.get('imageFile')
+        song_upload_url = None
+        image_upload_url = None
+
         if body.get('fileChanged', False):
             if not existing_song:
                 return {
@@ -80,43 +84,29 @@ def lambda_handler(event, context):
                     'body': json.dumps({'message': 'Song not found'})
                 }
 
-            file_bytes = base64.b64decode(body['file'])
-            key = existing_song.get('fileKey', f"{int(datetime.utcnow().timestamp())}-{body['title'].replace(' ', '_')}.mp3")
+            song_key = existing_song.get('fileKey', f"{int(datetime.utcnow().timestamp())}-{body['title'].replace(' ', '_')}.mp3")
 
-            s3.put_object(
-                Bucket=BUCKET,
-                Key=f"songs/{key}",
-                Body=file_bytes,
-                ContentType='audio/mpeg'
+            song_upload_url = s3.generate_presigned_url(
+                'put_object',
+                Params={'Bucket': BUCKET, 'Key': f'songs/{song_key}', 'ContentType': 'audio/mpeg'},
+                ExpiresIn=3600
+            )
+
+            timestamp = int(datetime.utcnow().timestamp())
+            safe_title = body['title'].replace(' ', '_')
+            image_key = existing_song.get("imageFile", f"{timestamp}-{safe_title}.png")
+
+            image_upload_url = s3.generate_presigned_url(
+                'put_object',
+                Params={'Bucket': BUCKET, 'Key': f'images/songs/{image_key}', 'ContentType': 'image/png'},
+                ExpiresIn=3600
             )
 
         item = existing_song.copy()
         genres_to_add = list(set(genres) - set(item.get('genres', [])))
         genres_to_remove = list(set(item.get('genres', [])) - set(genres))
 
-        # Image handling
-        image_bytes = base64.b64decode(body['imageFile'])
-        timestamp = int(datetime.utcnow().timestamp())
-        safe_title = body['title'].replace(' ', '_')
 
-        # Detect image type
-        image_type = imghdr.what(None, h=image_bytes)
-        if image_type not in ['jpeg', 'png']:
-            return {
-                'statusCode': 400,
-                'headers': _cors_headers(),
-                'body': json.dumps({'message': 'Only JPG and PNG images are supported.'})
-            }
-
-        ext = 'jpg' if image_type == 'jpeg' else 'png'
-        image_key = f"{timestamp}-{safe_title}.{ext}"
-
-        s3.put_object(
-            Bucket=BUCKET,
-            Key=f"images/songs/{image_key}",
-            Body=image_bytes,
-            ContentType=f'image/{ext}'
-        )
         
         item.update({
             'songId': song_id,
@@ -124,7 +114,7 @@ def lambda_handler(event, context):
             'artistId': body.get('artistId', existing_song.get('artistId')),
             'otherArtistIds': body.get('otherArtistIds', existing_song.get('otherArtistIds', [])),
             'genres': genres,
-            'fileKey': key,
+            'fileKey': song_key,
             'imageFile':image_key,
             'updatedAt': datetime.utcnow().isoformat()
         })
@@ -140,7 +130,10 @@ def lambda_handler(event, context):
         return {
             'statusCode': 201,
             'headers': _cors_headers(),
-            'body': json.dumps({'message': 'Song updated successfully', 'songId': song_id})
+            'body': json.dumps({'message': 'Song updated successfully',
+                                'songUploadUrl': song_upload_url,
+                                'imageUploadUrl': image_upload_url,
+                                'songId': song_id})
         }
 
     except Exception as e:
