@@ -32,6 +32,7 @@ export class CreateAlbumComponent implements OnInit {
 
   selectedOtherArtist: { [key: number]: string } = {};
   editMode = false;
+  editAlbumId: string | null | undefined;
 
 
   tracks: AlbumTrack[] = [{ title: '', file: undefined, dragging: false, otherArtistIds: []}];
@@ -72,6 +73,7 @@ export class CreateAlbumComponent implements OnInit {
 
 
     const albumId = this.route.snapshot.paramMap.get('id');
+    this.editAlbumId = this.route.snapshot.paramMap.get('id');
     if (albumId) {
       this.editMode = true;
       this.albumService.getById(albumId).subscribe({
@@ -247,6 +249,20 @@ export class CreateAlbumComponent implements OnInit {
 
 
         if (this.editMode) {
+          if(this.editAlbumId != null){
+            payload.albumId = this.editAlbumId
+          }
+
+          if (!this.uploadImageFile) {
+            delete payload.imageFile;
+          }
+          payload.tracks = payload.tracks?.map(t => {
+            const copy = { ...t };
+            if (!t.file) delete copy.file;
+            return copy;
+          });
+
+
           this.albumService.edit(payload).subscribe({
             next: (res) => {
               this.loading = false;

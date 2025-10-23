@@ -19,9 +19,10 @@ export interface CreateAlbumDTO {
   artistId: string;           // main artist ID
   genres: string[];
   details: string;
-  imageFile: string;
-  tracks: CreateTrackDTO[];
+  imageFile?: string;
+  tracks?: CreateTrackDTO[];
   other?: Record<string, string>;
+  albumId?: string;
 }
 
 
@@ -48,7 +49,7 @@ export interface TrackDTO {
 
 export interface CreateTrackDTO {
   title: string;
-  file: string;
+  file?: string;
   artistId?: string;
   otherArtistIds?: string[];
   genres?: string[];
