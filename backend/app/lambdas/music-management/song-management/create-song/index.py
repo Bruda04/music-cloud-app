@@ -77,7 +77,7 @@ def lambda_handler(event, context):
 
         image_upload_url = s3.generate_presigned_url(
             'put_object',
-            Params={'Bucket': BUCKET, 'Key': 'images/songs/{image_key}', 'ContentType': 'image/png'},
+            Params={'Bucket': BUCKET, 'Key': f'images/songs/{image_key}', 'ContentType': 'image/png'},
             ExpiresIn=3600
         )
 
