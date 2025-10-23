@@ -28,6 +28,16 @@
   </div>
 
   <div class="other-info">
+    <ng-container *ngIf="song.ratingCount && song.ratingSum && song.ratingCount > 0">
+      — <span class="rating">
+        ★ {{ (song.ratingSum / song.ratingCount) | number:'1.1-1' }}
+      </span>
+      <span class="rating-count">({{ song.ratingCount }})</span>
+    </ng-container>
+    <ng-container *ngIf="!song.ratingCount">
+      — <span class="rating">No ratings yet</span>
+    </ng-container>
+    
     <div *ngFor="let key of song.other || {} | keyvalue">
       <strong>{{ key.key }}:</strong>&nbsp;
       <span *ngIf="key.key === 'createdAt'">{{ formatDate(key.value) }}</span>

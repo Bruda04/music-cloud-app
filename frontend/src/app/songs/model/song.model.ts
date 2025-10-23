@@ -14,6 +14,8 @@ export interface Song {
     otherArtistIds?:string[] //for create/edit
     imageFile?:string, // when create/edit: base64, when load: fileKey
     fileKey?:string, // when load: fileKey
+    ratingSum?:number,
+    ratingCount?:number
 }
 
 export interface CreateSongResponse{
@@ -38,8 +40,6 @@ export interface PaginatedAlbums {
   albums: Album[];
   lastKey?: string;
 }
-
-
 
 export interface Url{
   url:string

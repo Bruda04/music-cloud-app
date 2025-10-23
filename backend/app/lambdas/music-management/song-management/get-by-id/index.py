@@ -45,13 +45,11 @@ def lambda_handler(event, context):
         mapped_song['file'] = item.get('fileKey')
         mapped_song['other'] = {
             k: v for k, v in item.items()
-            if k not in core_fields + ['fileKey', 'artistId', 'otherArtistIds', 'ratingSum', 'ratingCount']
+            if k not in core_fields + ['fileKey', 'artistId', 'otherArtistIds', 'ratingSum', 'ratingCount', 'createdAt', 'updatedAt', 'isDeleted']
         }
-        mapped_song['rating'] = (
-            item.get('ratingSum', 0) / item.get('ratingCount', 1)
-            if item.get('ratingCount', 0) > 0 else 0
-        )
-
+        mapped_song['ratingSum'] = item.get('ratingSum', 0)
+        mapped_song['ratingCount'] = item.get('ratingCount', 0)
+        
         mapped_song['artist'] = get_artist_safe(artist_id)
         other_artists = _get_artists_by_ids(item.get('otherArtistIds', []))
         mapped_song['otherArtists'] = [get_artist_safe(a.get('artistId')) for a in other_artists]

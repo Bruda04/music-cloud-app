@@ -90,7 +90,7 @@ def lambda_handler(event, context):
             "imageFile": item.get("imageFile", "")
         }
 
-        reserved_keys = {"albumId", "title", "artistId", "genres", "tracks", "details", "imageFile"}
+        reserved_keys = {"albumId", "title", "artistId", "genres", "tracks", "details", "imageFile", "createdAt", "updatedAt", "isDeleted"}
         album["other"] = {k: v for k, v in item.items() if k not in reserved_keys}
 
         return {
