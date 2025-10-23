@@ -26,6 +26,7 @@ const routes: Routes = [
   { path: 'artists/details/:id', component: ArtistPageComponent, canActivate: [AuthUserGuard] },
 
   { path: 'albums/create', component: CreateAlbumComponent, canActivate: [AdminGuard]},
+  { path: 'albums/edit/:id', component: CreateAlbumComponent, canActivate: [AdminGuard]},
   { path: 'songs', component: AllSongsComponent, canActivate: [AuthUserGuard]},
   { path: 'songs/create', component: CreateSongComponent, canActivate: [AdminGuard]},
   { path: 'songs/edit/:id', component: CreateSongComponent, canActivate: [AdminGuard] },

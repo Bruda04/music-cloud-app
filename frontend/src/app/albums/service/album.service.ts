@@ -14,6 +14,10 @@ export class AlbumService {
     return this.httpClient.post<CreateAlbumResponse>(`${environment.apiUrl}/albums`,album);
   }
 
+  edit(album: CreateAlbumDTO): Observable<CreateAlbumResponse> {
+    return this.httpClient.put<CreateAlbumResponse>(`${environment.apiUrl}/albums`,album);
+  }
+
   rateAlbumSong(songId: string, albumId:string, rating:number): Observable<{"message":string}> {
     return this.httpClient.post<{"message":string}>(`${environment.apiUrl}/rate`,{albumId, rating, songId});
   }

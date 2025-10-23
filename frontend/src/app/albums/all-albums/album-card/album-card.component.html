@@ -8,7 +8,7 @@
 
     <div class="actions" style="display: flex; justify-content: flex-start; margin-top: 8px;">
       <button *ngIf="authService.loggedInUser?.role==UserRole.Admin" style="font-size: 14px;"
-              (click)="goToEdit(); $event.stopPropagation()">✎ Edit</button>
+              (click)="goToEdit($event); $event.stopPropagation()">✎ Edit</button>
       <button *ngIf="authService.loggedInUser?.role==UserRole.Admin" style="font-size: 14px;"
               (click)="deleteAlbum(); $event.stopPropagation()">🗑 Delete</button>
     </div>

@@ -45,9 +45,16 @@ export class AlbumCardComponent implements OnInit {
     });
   }
 
-  goToEdit() {
+  goToEdit($event: PointerEvent) {
+    $event.stopPropagation();
+    if (!this.album || !this.album.albumId) {
+      console.error('Album ID is missing:', this.album);
+      return;
+    }
+    this.router.navigate(['/albums/edit/', this.album.albumId]);
 
   }
+
 
   deleteAlbum() {
     if (!this.album?.albumId) return;
