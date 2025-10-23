@@ -172,9 +172,9 @@ export class SongCardComponent implements OnInit {
   }
 
   downloadSong() {
-    if (!this.song.file) return;
+    if (!this.song.fileKey) return;
 
-    this.songService.getUrl(this.song.file).subscribe({
+    this.songService.getUrl(this.song.fileKey).subscribe({
       next: async (res) => {
         try {
           const response = await fetch(res.url);
