@@ -25,6 +25,7 @@
     <button *ngIf="authService.loggedInUser?.role==UserRole.Admin" (click)="deleteSong()">🗑 Delete</button>
     <button *ngIf="authService.loggedInUser?.role==UserRole.AuthUser" (click)="rateSong()">★ Rate</button>
     <button *ngIf="authService.loggedInUser?.role==UserRole.AuthUser" (click)="downloadSong()">⬇ Download</button>
+    <button *ngIf="authService.loggedInUser" (click)="lyrics()">Lyrics</button>
   </div>
 
   <div class="other-info">
@@ -38,11 +39,13 @@
       — <span class="rating">No ratings yet</span>
     </ng-container>
     
-    <div *ngFor="let key of song.other || {} | keyvalue">
-      <strong>{{ key.key }}:</strong>&nbsp;
-      <span *ngIf="key.key === 'createdAt'">{{ formatDate(key.value) }}</span>
-      <span *ngIf="key.key !== 'createdAt'">{{ key.value }}</span>
-    </div>
+    <ng-container *ngFor="let key of (song?.other | keyvalue)">
+      <div *ngIf="key.key !== 'lyrics'">
+        <strong>{{ key.key }}:</strong>&nbsp;
+        <span>{{ key.value }}</span>
+      </div>
+    </ng-container>
+
   </div>
 
 </div>

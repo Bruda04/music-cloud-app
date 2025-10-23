@@ -99,6 +99,22 @@ export class SongCardComponent implements OnInit {
     this.showDialog = true;
   }
 
+  lyrics() {
+    const lyrics = this.song?.other?.['lyrics'];
+    if (typeof lyrics === 'string' && lyrics.trim() !== '') {
+      this.dialogType = 'message';
+      this.dialogTitle = `Lyrics for "${this.song.title}"`;
+      this.dialogMessage = lyrics;
+      this.showDialog = true;
+    }
+    else{
+      this.dialogType = 'message';
+      this.dialogTitle = 'No Lyrics Found';
+      this.dialogMessage = `Lyrics for "${this.song.title}" are not available.`;
+      this.showDialog = true;
+    }
+  }
+
   onDialogClosed(confirmed: boolean) {
     this.showDialog = false;
 
