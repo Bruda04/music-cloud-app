@@ -66,7 +66,9 @@ def lambda_handler(event, context):
         }
 
         if last_key:
-            query_kwargs['ExclusiveStartKey'] = json.loads(last_key)
+            raw = json.loads(last_key)
+            raw['isDeleted'] = 0
+            query_kwargs['ExclusiveStartKey'] = raw
 
         response = artists_table.query(**query_kwargs)
 
@@ -89,7 +91,6 @@ def lambda_handler(event, context):
             'headers': {
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Headers": "*",
-                "Access-Control-Allow-Methods": "OPTIONS,GET",
                 "Content-Type": "application/json"
             },
             'body': json.dumps(result, cls=DecimalEncoder)
