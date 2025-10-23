@@ -1,5 +1,7 @@
 <div class="form-container">
-  <h2>Create Album</h2>
+  <h2>{{ editMode ? 'Edit Album' : 'Create Album' }}</h2>
+
+
 
   <form (ngSubmit)="submit()">
     <label>Album Title *</label>
@@ -93,7 +95,9 @@
             (dragleave)="onDragLeave($event, t)"
             (click)="fileInputMap.get(t)?.click()">
         <p *ngIf="!t.file">Click or drag & drop audio file here</p>
-        <p *ngIf="t.file"><strong>{{ t.file.name }}</strong> selected</p>
+          <p *ngIf="editMode">*Only drag audio file if you want to replace old one</p>
+
+          <p *ngIf="t.file"><strong>{{ t.file.name }}</strong> selected</p>
         <input type="file" #fileInput (change)="onFileSelected($event, t)" />
         </div>
 
@@ -127,7 +131,9 @@
       <button type="button" (click)="addTrack()" style="background: transparent !important; border: 1px solid #50C878; color: #50C878">Add Track</button>
     </div>
 
-    <button type="submit" [disabled]="loading">Create Album</button>
+    <button type="submit" *ngIf="!this.editMode" [disabled]="loading">Create Album</button>
+    <button type="submit"  *ngIf="this.editMode" [disabled]="loading">Edit Album</button>
+
     <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
   </form>
 </div>

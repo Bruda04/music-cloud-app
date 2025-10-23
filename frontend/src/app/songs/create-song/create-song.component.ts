@@ -69,7 +69,10 @@ export class CreateSongComponent implements OnInit {
     if (songId) {
       this.editMode = true;
       this.songService.getById(songId).subscribe(res => {
+        const other = { ...res.other };
+        delete other['createdAt'];
         this.song = res;
+        this.song.other = other;
         console.log('Loaded song for editing:', this.song);
       });
     }

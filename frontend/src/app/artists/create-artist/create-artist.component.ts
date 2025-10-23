@@ -52,8 +52,7 @@ constructor(private artistService: ArtistService, private genreService:GenreServ
           this.dialogMessage = this.errorMessage;
           this.showDialog = true;
         }
-      }); 
-      // this.artist = this.artistService.getMock(); // TODO: change to getById
+      });
     }
   }
 
