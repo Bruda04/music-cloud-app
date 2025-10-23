@@ -13,6 +13,7 @@ export interface Song {
     artistId?:string, //for create/edit
     otherArtistIds?:string[] //for create/edit
     imageFile?:string, // when create/edit: base64, when load: fileKey
+    fileKey?:string, // when load: fileKey
 }
 
 export interface CreateSongResponse{

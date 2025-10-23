@@ -1,4 +1,5 @@
 import datetime
+import decimal
 import json
 import os
 import boto3
@@ -13,6 +14,13 @@ albums_table_gsi_id = os.environ['ALBUMS_TABLE_GSI_ID']
 artists_table = dynamodb.Table(os.environ['ARTISTS_TABLE'])
 
 MAX_FEED_ITEMS = 20
+
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            return float(o)
+        return super(DecimalEncoder, self).default(o)
+
 
 def fetch_artist(artist_id, fetched_artists):
     if not artist_id:
@@ -36,7 +44,7 @@ def lambda_handler(event, context):
         claims = event.get("requestContext", {}).get("authorizer", {}).get("claims", {})
         user = claims.get("email")
         if not user:
-            return {'statusCode': 400, 'body': json.dumps({'error': 'User email not found in token'}), 'headers': _cors_headers()}
+            return {'statusCode': 400, 'body': json.dumps({'error': 'User email not found in token'}, cls=DecimalEncoder), 'headers': _cors_headers()}
 
         resp = user_feed_table.query(
             KeyConditionExpression=Key('user').eq(user),
@@ -59,7 +67,8 @@ def lambda_handler(event, context):
         for i in items:
             ts = datetime.datetime.fromisoformat(i['timestamp'])
             time_weight = (ts - oldest).total_seconds() / time_range
-            weighted_score = i['score'] * 0.7 + time_weight * 0.3
+            s = float(i.get('score', 0))
+            weighted_score = s * 0.7 + time_weight * 0.3
 
             content_key = i['contentKey']
 
@@ -128,12 +137,12 @@ def lambda_handler(event, context):
 
         return {'statusCode': 200,
                 'headers': _cors_headers(),
-                'body': json.dumps({'songs': songs, 'albums': albums})}
+                'body': json.dumps({'songs': songs, 'albums': albums}, cls=DecimalEncoder)}
 
     except Exception as e:
         return {'statusCode': 500,
                 'headers': _cors_headers(),
-                'body': json.dumps({'error': str(e)})}
+                'body': json.dumps({'error': str(e)}, cls=DecimalEncoder)}
 
 def _cors_headers():
     return {

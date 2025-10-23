@@ -22,6 +22,7 @@ class AppConfig:
 
     RATINGS_TABLE_NAME = "Ratings"
     RATINGS_TABLE_ID = "RatingsTable"
+    RATINGS_TABLE_GSI_ARTIST_ID = "RatingsArtistIndex"
 
     SUBSCRIPTIONS_TABLE_NAME = "Subscriptions"
     SUBSCRIPTIONS_TABLE_ID = "SubscriptionsTable"
@@ -32,6 +33,7 @@ class AppConfig:
 
     LISTENING_HISTORY_TABLE_NAME = "ListeningHistory"
     LISTENING_HISTORY_TABLE_ID = "ListeningHistoryTable"
+    LOG_LISTENING_HISTORY_GSI_ARTIST_ID = "ListeningHistoryArtistIndex"
 
     # S3 buckets
     CONTENT_BUCKET_NAME = "cloud-music-app-content"

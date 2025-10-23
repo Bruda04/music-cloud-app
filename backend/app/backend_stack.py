@@ -120,6 +120,18 @@ class BackendStack(Stack):
             ),
             removal_policy=RemovalPolicy.DESTROY
         )
+        self.ratings_table.add_global_secondary_index(
+            index_name=AppConfig.RATINGS_TABLE_GSI_ARTIST_ID,
+            partition_key=dynamodb.Attribute(
+                name="artistId",
+                type=dynamodb.AttributeType.STRING
+            ),
+            sort_key=dynamodb.Attribute(
+                name="user",
+                type=dynamodb.AttributeType.STRING
+            ),
+            projection_type=dynamodb.ProjectionType.KEYS_ONLY
+        )
 
         self.subscriptions_table = dynamodb.Table(
             self, AppConfig.SUBSCRIPTIONS_TABLE_ID,
@@ -170,6 +182,18 @@ class BackendStack(Stack):
                 type=dynamodb.AttributeType.STRING
             ),
             removal_policy=RemovalPolicy.DESTROY
+        )
+        self.listening_history_table.add_global_secondary_index(
+            index_name=AppConfig.LOG_LISTENING_HISTORY_GSI_ARTIST_ID,
+            partition_key=dynamodb.Attribute(
+                name="artistId",
+                type=dynamodb.AttributeType.STRING
+            ),
+            sort_key=dynamodb.Attribute(
+                name="user",
+                type=dynamodb.AttributeType.STRING
+            ),
+            projection_type=dynamodb.ProjectionType.KEYS_ONLY
         )
 
         # --- Cognito User Pool ---
@@ -707,7 +731,9 @@ class BackendStack(Stack):
                 "SUBSCRIPTIONS_TABLE": AppConfig.SUBSCRIPTIONS_TABLE_NAME,
                 "SUBSCRIPTIONS_TABLE_GSI_ID": AppConfig.SUBSCRIPTIONS_TABLE_GSI_ID,
                 "LISTENING_HISTORY_TABLE": AppConfig.LISTENING_HISTORY_TABLE_NAME,
+                "LISTENING_HISTORY_TABLE_GSI_ARTIST_ID": AppConfig.LOG_LISTENING_HISTORY_GSI_ARTIST_ID,
                 "RATINGS_TABLE": AppConfig.RATINGS_TABLE_NAME,
+                "RATINGS_TABLE_GSI_ARTIST_ID": AppConfig.RATINGS_TABLE_GSI_ARTIST_ID,
                 "REGION": AppConfig.REGION
             }
         )

@@ -43,7 +43,7 @@ export class SongCardComponent implements OnInit {
   }
 
   playSong() {
-    if (!this.song.file) return;
+    if (!this.song.fileKey) return;
 
     if (this.isPlaying) {
       this.audio.pause();
@@ -64,7 +64,7 @@ export class SongCardComponent implements OnInit {
       return;
     }
 
-    this.songService.getUrl(this.song.file).subscribe(async (res) => {
+    this.songService.getUrl(this.song.fileKey).subscribe(async (res) => {
       try {
         const response = await fetch(res.url);
         const blob = await response.blob();
