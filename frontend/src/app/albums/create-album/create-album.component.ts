@@ -62,9 +62,9 @@ export class CreateAlbumComponent implements OnInit {
 
 
   ngOnInit() {
-        this.artistService.getAll().subscribe(a=>
+        this.artistService.getAllRegular().subscribe(a=>
         {
-          this.artists = a.artists;
+          this.artists = a;
         });
         this.genreService.getAll().subscribe(a=>
         {
