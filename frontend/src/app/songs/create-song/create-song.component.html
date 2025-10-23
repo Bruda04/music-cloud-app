@@ -5,7 +5,7 @@
     <label>Title *</label>
     <input type="text" [(ngModel)]="song.title" name="title" placeholder="Song title" />
 
-    <div class="array-group">
+    <div class="array-group" *ngIf="!editMode">
       <label>Artist *</label>
       <div class="array-tokens">
         <div class="array-item" *ngIf="song.artist">
