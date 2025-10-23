@@ -40,8 +40,8 @@ class AppConfig:
     CONTENT_BUCKET_ID = "cloud-music-app-content-bucket"
 
     # Cognito
-    COGNITO_CLIENT_LOGOUT_URLS = ["http://localhost:4200/home"]
-    COGNITO_CLIENT_CALLBACK_URLS = ["http://localhost:4200/home"]
+    COGNITO_CLIENT_LOGOUT_URLS = ["https://d33wfvzpdaqwtq.cloudfront.net"]
+    COGNITO_CLIENT_CALLBACK_URLS = ["https://d33wfvzpdaqwtq.cloudfront.net"]
     COGNITO_USER_POOL_ID = "cloud-music-app-user-pool"
     COGNITO_USER_POOL_NAME = "user-pool-cloud-music-app"
     COGNITO_CLIENT_ID = "cloud-music-app-client"
