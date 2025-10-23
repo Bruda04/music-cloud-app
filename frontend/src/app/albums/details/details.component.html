@@ -2,11 +2,11 @@
   <div class="album-header">
     <div class="album-info">
       <h2>{{ album.title }}</h2>
-      <p><strong>Artists:</strong> {{ album?.artist?.name }}</p>
+      <p><strong>Artists:</strong> {{ album.artist?.name }}</p>
       <div *ngFor="let o of album.other | keyvalue">
 
       </div>
-      <p><strong>Details: </strong> {{ album?.details }}</p>
+      <p><strong>Details: </strong> {{ album.details }}</p>
       <div class="genres">
         <span *ngFor="let genre of album.genres" class="genre-chip">{{ genre }}</span>
       </div>
@@ -24,6 +24,7 @@
       <div class="track-actions" *ngIf="authService.loggedInUser?.role == UserRole.AuthUser">
         <button (click)="rateTrack(track, $event)">★ Rate</button>
         <button (click)="downloadTrack(track, $event)">⬇ Download</button>
+        <button (click)="lyrics(track)">Lyrics</button>
       </div>
 
       <span>

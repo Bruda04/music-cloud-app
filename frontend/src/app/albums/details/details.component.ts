@@ -17,107 +17,122 @@ import {ImagesService} from '../../shared/images/service/images.service';
   standalone: false
 })
 export class AlbumDetailsComponent implements OnInit {
-    album!: Album;
-    artists: Artist[] = [];
-    audio = new Audio();
-    currentTrack?: string;
-    isPlaying = false;
+  album!: Album;
+  artists: Artist[] = [];
+  audio = new Audio();
+  currentTrack?: string;
+  isPlaying = false;
 
-    photoPath: string | undefined = 'photo.png';
+  photoPath: string | undefined = 'photo.png';
 
-    showDialog = false;
-    dialogType: DialogType = 'confirmation';
-    dialogTitle = '';
-    dialogMessage = '';
-    dialogRating: number = 0;
-
-    constructor(private route: ActivatedRoute, private albumService: AlbumService, protected authService: AuthService, private  cacheService: CacheService, private imageService: ImagesService) {}
-
-    ngOnInit() {
-        const navState = history.state;
-
-        if (navState.album) {
-            this.album = navState.album;
-            //this.album.tracks[0].ratingCount = 2
-            //this.album.tracks[0].ratingSum = 9
-            this.artists = navState.artists || [];
-        } else {
-            const albumId = this.route.snapshot.paramMap.get('id');
-            if (albumId) {
-                this.albumService.getById(albumId).subscribe(album => {this.album = album;});
-            }
-        }
-
-        this.loadImage();
-      console.log(this.album);
-    }
-
-    getArtistNames(): string {
-        if (!this.album?.artistId?.length) return 'Unknown artist';
-        return this.album.artistId
-    }
-
-    playTrack(track:TrackDTO) {
-        if (!track.fileKey) return;
-
-        if (this.isPlaying) {
-            this.audio.pause();
-            this.audio.currentTime = 0;
-            this.isPlaying = false;
-            return;
-        }
-
-        this.logPlay(track);
-
-      const cached = this.cacheService.getTrack(track.songId!);
-      if (cached) {
-        console.log('Playing from cache');
-        this.audio.src = cached.data; // Base64 data URL
-        this.audio.play().then(() => {
-          this.currentTrack = track.songId;
-          this.isPlaying = true
-        })
-          .catch(err => console.error(err));
-        this.audio.onended = () => {
-          this.isPlaying = false
-          this.currentTrack = undefined;
-        };
-
-        return;
-      }
-
-
-        this.albumService.getUrl(track.fileKey).subscribe({
-            next: async (url) => {
-              try {
-                const response = await fetch(url.url);
-                const blob = await response.blob();
-                this.cacheService.saveTrack(track.songId!, track.title + '.mp3', blob);
-                console.log('Song cached');
-
-                console.log('Playing from cache after fetch');
-                this.audio.src = URL.createObjectURL(blob);
-                this.audio.play().then(() => {
-                  this.isPlaying = true
-                  this.currentTrack = track.songId;
-                })
-                  .catch(err => console.error(err));
-                this.audio.onended = () => {
-                  this.isPlaying = false
-                  this.currentTrack = undefined;
-                };
-
-              } catch (err) {
-                console.error('Failed to play song', err);
-              }
-            },
-            error: (err) => console.error('Failed to get track URL', err)
-        });
-    }
+  showDialog = false;
+  dialogType: DialogType = 'confirmation';
+  dialogTitle = '';
+  dialogMessage = '';
+  dialogRating: number = 0;
 
   protected readonly UserRole = UserRole;
-
   private ratingTrackId: string | null = null;
+
+  constructor(private route: ActivatedRoute, private albumService: AlbumService, protected authService: AuthService, private  cacheService: CacheService, private imageService: ImagesService) {}
+
+  ngOnInit() {
+      const navState = history.state;
+
+      if (navState.album) {
+          this.album = navState.album;
+          //this.album.tracks[0].ratingCount = 2
+          //this.album.tracks[0].ratingSum = 9
+          this.artists = navState.artists || [];
+      } else {
+          const albumId = this.route.snapshot.paramMap.get('id');
+          if (albumId) {
+              this.albumService.getById(albumId).subscribe(album => {this.album = album;});
+          }
+      }
+
+      this.loadImage();
+    console.log(this.album);
+  }
+
+  getArtistNames(): string {
+      if (!this.album?.artistId?.length) return 'Unknown artist';
+      return this.album.artistId
+  }
+
+  playTrack(track:TrackDTO) {
+      if (!track.fileKey) return;
+
+      if (this.isPlaying) {
+          this.audio.pause();
+          this.audio.currentTime = 0;
+          this.isPlaying = false;
+          return;
+      }
+
+      this.logPlay(track);
+
+    const cached = this.cacheService.getTrack(track.songId!);
+    if (cached) {
+      console.log('Playing from cache');
+      this.audio.src = cached.data; // Base64 data URL
+      this.audio.play().then(() => {
+        this.currentTrack = track.songId;
+        this.isPlaying = true
+      })
+        .catch(err => console.error(err));
+      this.audio.onended = () => {
+        this.isPlaying = false
+        this.currentTrack = undefined;
+      };
+
+      return;
+    }
+
+
+      this.albumService.getUrl(track.fileKey).subscribe({
+          next: async (url) => {
+            try {
+              const response = await fetch(url.url);
+              const blob = await response.blob();
+              this.cacheService.saveTrack(track.songId!, track.title + '.mp3', blob);
+              console.log('Song cached');
+
+              console.log('Playing from cache after fetch');
+              this.audio.src = URL.createObjectURL(blob);
+              this.audio.play().then(() => {
+                this.isPlaying = true
+                this.currentTrack = track.songId;
+              })
+                .catch(err => console.error(err));
+              this.audio.onended = () => {
+                this.isPlaying = false
+                this.currentTrack = undefined;
+              };
+
+            } catch (err) {
+              console.error('Failed to play song', err);
+            }
+          },
+          error: (err) => console.error('Failed to get track URL', err)
+      });
+  }
+
+  lyrics(track: TrackDTO) {
+    const lyrics = track.lyrics;
+    if (typeof lyrics === 'string' && lyrics.trim() !== '') {
+      this.dialogType = 'message';
+      this.dialogTitle = `Lyrics for "${track.title}"`;
+      this.dialogMessage = lyrics;
+      this.showDialog = true;
+    }
+    else{
+      this.dialogType = 'message';
+      this.dialogTitle = 'No Lyrics Found';
+      this.dialogMessage = `Lyrics for "${track.title}" are not available.`;
+      this.showDialog = true;
+    }
+  }
 
   rateTrack(track: TrackDTO, $event: PointerEvent) {
     $event.stopPropagation();
@@ -140,7 +155,6 @@ export class AlbumDetailsComponent implements OnInit {
       });
     }
   }
-
 
   odTrackRated(rating: number) {
     this.dialogRating = rating;
