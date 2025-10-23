@@ -15,8 +15,6 @@ import {Router} from '@angular/router';
   imports: [
     NgForOf,
     NgIf,
-    DecimalPipe,
-    AsyncPipe,
     SongsModule,
   ]
 })
