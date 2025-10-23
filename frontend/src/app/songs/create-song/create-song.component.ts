@@ -72,7 +72,7 @@ export class CreateSongComponent implements OnInit {
         const other = { ...res.other };
         delete other['createdAt'];
         this.song = res;
-        //this.song.other = other;
+        this.song.other = other;
         console.log('Loaded song for editing:', this.song);
       });
     }
