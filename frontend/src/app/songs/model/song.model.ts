@@ -17,6 +17,8 @@ export interface Song {
 }
 
 export interface CreateSongResponse{
+  songUploadUrl: string | undefined;
+  imageUploadUrl: string | undefined;
   songId:string,
   filekey:string,
   message:string

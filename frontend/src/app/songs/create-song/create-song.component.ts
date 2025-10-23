@@ -165,9 +165,7 @@ export class CreateSongComponent implements OnInit {
         artistId: this.song.artist?.artistId,
         otherArtistIds: this.song.otherArtists?.map(a => a.artistId),
         genres: this.song.genres,
-        file: this.song.file,
         fileChanged: this.song.fileChanged,
-        imageFile: this.song.imageFile,
         other: this.song.other
       };
 
@@ -176,19 +174,51 @@ export class CreateSongComponent implements OnInit {
         : this.songService.create(payload);
 
       req.subscribe({
-        next: res => {
-          this.loading = false;
-          this.dialogType = 'message';
-          this.dialogTitle = 'Success';
-          this.dialogMessage = res.message;
-          this.showDialog = true;
+        next: async (res) => {
+          try {
+            console.log('Metadata saved, response:', res);
+            if (this.uploadedFile && res.songUploadUrl) {
+              await fetch(res.songUploadUrl, {
+                method: 'PUT',
+                body: this.uploadedFile,
+                headers: {
+                  'Content-Type': 'audio/mpeg'
+                }
+              });
+
+            }
+
+            if (this.uploadedImage && res.imageUploadUrl) {
+              await fetch(res.imageUploadUrl, {
+                method: 'PUT',
+                body: this.uploadedImage,
+                headers: {
+                  'Content-Type': 'image/png'
+                }
+              });
+            }
+
+            this.loading = false;
+            this.dialogType = 'message';
+            this.dialogTitle = 'Success';
+            this.dialogMessage = 'Song metadata saved and files uploaded successfully.';
+            this.showDialog = true;
+
+          } catch (uploadErr) {
+            console.error('Upload failed:', uploadErr);
+            this.loading = false;
+            this.dialogType = 'error';
+            this.dialogTitle = 'Upload Error';
+            this.dialogMessage = 'Metadata saved, but file upload failed.';
+            this.showDialog = true;
+          }
         },
-        error: err => {
+        error: (err) => {
           console.error(err);
           this.loading = false;
           this.dialogType = 'error';
           this.dialogTitle = 'Error';
-          this.dialogMessage = 'Error request.';
+          this.dialogMessage = 'Error creating song metadata.';
           this.showDialog = true;
         }
       });
@@ -197,11 +227,10 @@ export class CreateSongComponent implements OnInit {
       this.loading = false;
       this.dialogType = 'error';
       this.dialogTitle = 'Error';
-      this.dialogMessage = 'Failed to convert file to Base64.';
+      this.dialogMessage = 'Unexpected error occurred.';
       this.showDialog = true;
     }
   }
-
   closeDialog() {
     this.showDialog = false;
   }

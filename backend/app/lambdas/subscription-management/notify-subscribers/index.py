@@ -36,8 +36,13 @@ def lambda_handler(event, context):
                      f"Title: {content_name}\n\nCheck it out on our platform!"
 
         for user_email in all_subscribers:
-            continue
+            # For demonstration purposes, because of sandbox mode always send to same address.
+            #send_email(from_email, email_body, email_subject)
+
+            # Uncomment the line below to actually send emails to subscribers.
             #send_email(user_email, email_body, email_subject)
+            continue
+
 
         return {
             'statusCode': 200,

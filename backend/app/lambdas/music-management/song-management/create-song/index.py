@@ -28,14 +28,7 @@ def lambda_handler(event, context):
             }
 
         body = json.loads(event.get('body', '{}'))
-        file_content_base64 = body.get('file')
 
-        if not file_content_base64:
-            return {
-                'statusCode': 400,
-                'headers': _cors_headers(),
-                'body': json.dumps({'message': 'Missing file'})
-            }
             
         artist = artists_table.get_item(Key={'artistId': body['artistId']}).get('Item')
         if not artist or (artist and artist.get('isDeleted', False)):
@@ -45,7 +38,7 @@ def lambda_handler(event, context):
                 'body': json.dumps({'message': 'Artist does not exist or has been deleted.'})
             }
 
-        required_fields = ['title', 'artistId', 'genres', 'imageFile']
+        required_fields = ['title', 'artistId', 'genres']
         missing = [f for f in required_fields if f not in body or not body[f]]
         if missing:
             return {
@@ -54,15 +47,13 @@ def lambda_handler(event, context):
                 'body': json.dumps({'message': f'Missing required fields: {", ".join(missing)}'})
             }
 
-        file_bytes = base64.b64decode(file_content_base64)
         timestamp = int(datetime.utcnow().timestamp())
-        key = f"{timestamp}-{body['title'].replace(' ', '_')}.mp3"
+        song_key = f"{timestamp}-{body['title'].replace(' ', '_')}.mp3"
 
-        s3.put_object(
-            Bucket=BUCKET,
-            Key=f"songs/{key}",
-            Body=file_bytes,
-            ContentType='audio/mpeg'
+        song_upload_url = s3.generate_presigned_url(
+            'put_object',
+            Params={'Bucket': BUCKET, 'Key': f'songs/{song_key}', 'ContentType': 'audio/mpeg'},
+            ExpiresIn=3600
         )
 
         genres = [g.strip().lower() for g in body['genres'] if g.strip()]
@@ -77,28 +68,17 @@ def lambda_handler(event, context):
                 pass
 
         # Image handling
-        image_bytes = base64.b64decode(body['imageFile'])
         timestamp = int(datetime.utcnow().timestamp())
         safe_title = body['title'].replace(' ', '_')
 
-        # Detect image type
-        image_type = imghdr.what(None, h=image_bytes)
-        if image_type not in ['jpeg', 'png']:
-            return {
-                'statusCode': 400,
-                'headers': _cors_headers(),
-                'body': json.dumps({'message': 'Only JPG and PNG images are supported.'})
-            }
 
         # Use jpg instead of jpeg for filename
-        ext = 'jpg' if image_type == 'jpeg' else 'png'
-        image_key = f"{timestamp}-{safe_title}.{ext}"
+        image_key = f"{timestamp}-{safe_title}.png"
 
-        s3.put_object(
-            Bucket=BUCKET,
-            Key=f"images/songs/{image_key}",
-            Body=image_bytes,
-            ContentType=f'image/{ext}'
+        image_upload_url = s3.generate_presigned_url(
+            'put_object',
+            Params={'Bucket': BUCKET, 'Key': 'images/songs/{image_key}', 'ContentType': 'image/png'},
+            ExpiresIn=3600
         )
 
         song_id = str(uuid.uuid4())
@@ -108,7 +88,7 @@ def lambda_handler(event, context):
             'artistId': body['artistId'],
             'otherArtistIds': body['otherArtistIds'] if 'otherArtistIds' in body else [],
             'genres': genres,
-            'fileKey': key,
+            'fileKey': song_key,
             'createdAt': datetime.utcnow().isoformat(),
             'imageFile': image_key,
             'lyrics': '',
@@ -150,7 +130,10 @@ def lambda_handler(event, context):
             'body': json.dumps({
                 'message': 'Song uploaded and metadata saved successfully',
                 'songId': song_id,
-                'fileKey': key
+                'songUploadUrl': song_upload_url,
+                'imageUploadUrl': image_upload_url,
+                'songKey': song_key,
+                'imageKey': image_key
             })
         }
 
