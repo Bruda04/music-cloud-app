@@ -8,6 +8,7 @@ import { DialogType } from '../../shared/dialog/dialog.component';
 import { Genre } from '../../songs/model/genre.model';
 import { GenreService } from '../../songs/service/genre.service';
 import { ActivatedRoute } from '@angular/router';
+import {CacheService} from '../../shared/cache/cache.service';
 
 @Component({
   selector: 'app-create-album',
@@ -20,7 +21,6 @@ export class CreateAlbumComponent implements OnInit {
         title: '',
         artistId: "",
         genres: [],
-        imageFile: "",
         details: "",
         tracks: [],
         other: {}
@@ -53,7 +53,7 @@ export class CreateAlbumComponent implements OnInit {
   dialogMessage = '';
   showDialog = false;
 
-    constructor( private artistService: ArtistService, private genreService: GenreService, private albumService: AlbumService, private router: Router, private route: ActivatedRoute) {}
+    constructor( private artistService: ArtistService, private genreService: GenreService, private albumService: AlbumService, private cache: CacheService, private route: ActivatedRoute) {}
 
     getArtistNameById(id: string): string {
       const artist = this.artists.find(a => a.artistId === id);
@@ -85,25 +85,26 @@ export class CreateAlbumComponent implements OnInit {
             title: albumData.title,
             artistId: albumData.artist?.artistId || '',
             genres: albumData.genres,
-            imageFile: albumData.imageFile || '',
             details: albumData.details,
             other,
             tracks: albumData.tracks.map(t => ({
+              songId: t.songId,
               title: t.title,
-              file: '', // <-- instead of undefined
+              file: undefined,
               otherArtistIds: t.otherArtistIds || []
             }))
           };
 
+          console.log(this.album);
 
-
-        // Initialize tracks if missing
+          // Initialize tracks if missing
           if (!this.album.tracks) {
             this.album.tracks = [];
           }
 
           // Load tracks to your local array for editing
           this.tracks = albumData.tracks.map((t: TrackDTO) => ({
+            songId: t.songId,
             title: t.title,
             file: undefined, // user can reupload if needed
             dragging: false,
@@ -212,40 +213,22 @@ export class CreateAlbumComponent implements OnInit {
 
       try {
 
-        const tracksPayload: CreateTrackDTO[] = await Promise.all(
-          this.tracks.map(async (t) => {
-            let fileBase64 = '';
-            if (t.file) {
-              fileBase64 = await this.convertFileToBase64(t.file);
-            }
-
+        const tracksPayload: CreateTrackDTO[] = this.tracks.map((t) => {
             return {
+              songId: t.songId,
               title: t.title.trim(),
-              file: fileBase64, // empty if not replaced
               otherArtistIds: t.otherArtistIds
             };
-          })
-        );
-
-
-        let imageBase64 = "";
-        if(this.uploadImageFile) {
-           imageBase64 = await this.convertFileToBase64(this.uploadImageFile);
-        }
+        });
 
         const payload:CreateAlbumDTO = {
               title: this.album.title,
               artistId: this.album.artistId,
               genres: this.album.genres,
-              imageFile: imageBase64,
               tracks: tracksPayload,
             details: this.album.details.trim(),
           other: this.album.other
           };
-
-
-
-
 
 
         if (this.editMode) {
@@ -253,20 +236,57 @@ export class CreateAlbumComponent implements OnInit {
             payload.albumId = this.editAlbumId
           }
 
-          if (!this.uploadImageFile) {
-            delete payload.imageFile;
-          }
-          payload.tracks = payload.tracks?.map(t => {
-            const copy = { ...t };
-            if (!t.file) delete copy.file;
-            return copy;
-          });
-
 
           this.albumService.edit(payload).subscribe({
-            next: (res) => {
+            next: async (res) => {
+              console.log('Metadata saved, response:', res);
+              if (this.uploadImageFile && res.imageUploadUrl) {
+                await fetch(res.imageUploadUrl, {
+                  method: 'PUT',
+                  body: this.uploadImageFile,
+                  headers: {
+                    'Content-Type': 'image/png'
+                  }
+                });
+              }
+
+
+              if (res.trackUploadUrls && this.tracks) {
+                const newTrackFiles = this.tracks
+                  .filter(t => t.file && !t.songId)  // nove pesme
+                  .map((t, idx) => ({ file: t.file!, url: res.trackUploadUrls[idx] }));
+                console.log("New tracks to upload:", newTrackFiles);
+                for (const t of newTrackFiles) {
+                  await fetch(t.url, {
+                    method: 'PUT',
+                    body: t.file,
+                    headers: { 'Content-Type': 'audio/mpeg' }
+                  });
+                }
+              }
+
+              // --- Upload overridden tracks ---
+              if (res.trackOverrideUrls && this.tracks) {
+                const overrideTracks = this.tracks
+                  .filter(t => t.songId && t.file); // postojeći trackovi sa izmenjenim file
+                console.log("Override tracks to upload:", overrideTracks);
+                for (const t of overrideTracks) {
+                  const url = res.trackOverrideUrls[t.songId!];
+                  if (url) {
+                    await fetch(url, {
+                      method: 'PUT',
+                      body: t.file,
+                      headers: { 'Content-Type': 'audio/mpeg' }
+                    });
+                  }
+                }
+              }
+
+
+
               this.loading = false;
               this.showMessage(res.message);
+              this.cache.clearCache();
             },
             error: (err) => {
               console.error(err);
@@ -279,9 +299,35 @@ export class CreateAlbumComponent implements OnInit {
           console.log("Album to be created")
           console.log(payload);
           this.albumService.create(payload).subscribe({
-            next: (res) => {
+            next: async (res) => {
+              console.log('Metadata saved, response:', res);
+              for (let i = 0; i < this.tracks.length; i++) {
+                const track = this.tracks[i];
+                const urlInfo = res.trackUploadUrls[i];
+                if (track.file && urlInfo) {
+                  await fetch(urlInfo, {
+                    method: 'PUT',
+                    body: track.file,
+                    headers: {
+                      'Content-Type': 'audio/mpeg'
+                    }
+                  });
+                }
+              }
+
+              if (this.uploadImageFile && res.imageUploadUrl) {
+                await fetch(res.imageUploadUrl, {
+                  method: 'PUT',
+                  body: this.uploadImageFile,
+                  headers: {
+                    'Content-Type': 'image/png'
+                  }
+                });
+              }
+
               this.loading = false;
               this.showMessage(res.message);
+              this.cache.clearCache();
             },
             error: (err) => {
               console.error(err);
@@ -348,21 +394,6 @@ export class CreateAlbumComponent implements OnInit {
     closeDialog() {
         this.showDialog = false;
     }
-
-    convertFileToBase64(file: File): Promise<string> {
-        return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => {
-            const result = reader.result as string;
-            const base64 = result.split(',')[1];
-            resolve(base64);
-        };
-        reader.onerror = error => reject(error);
-        });
-    }
-
-
 
 
   onImageSelected(event: any) {

@@ -7,6 +7,7 @@ import { ArtistService } from '../../artists/service/artist.service';
 import { Artist } from '../../artists/model/artist.model';
 import { GenreService } from '../service/genre.service';
 import { Genre } from '../model/genre.model';
+import {CacheService} from '../../shared/cache/cache.service';
 
 @Component({
   selector: 'app-create-song',
@@ -52,7 +53,8 @@ export class CreateSongComponent implements OnInit {
     private songService: SongService,
     private artistService: ArtistService,
     private genreService: GenreService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private cacheService: CacheService,
   ) {}
 
   ngOnInit() {
@@ -202,6 +204,7 @@ export class CreateSongComponent implements OnInit {
             this.dialogTitle = 'Success';
             this.dialogMessage = 'Song metadata saved and files uploaded successfully.';
             this.showDialog = true;
+            this.cacheService.clearCache();
 
           } catch (uploadErr) {
             console.error('Upload failed:', uploadErr);
@@ -264,18 +267,6 @@ export class CreateSongComponent implements OnInit {
     this.dragging = false;
   }
 
-  convertFileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        const result = reader.result as string;
-        const base64 = result.split(',')[1];
-        resolve(base64);
-      };
-      reader.onerror = error => reject(error);
-    });
-  }
   onImageDropped(event: DragEvent) {
   event.preventDefault();
   this.draggingImage = false;

@@ -49,7 +49,7 @@ export class AlbumDetailsComponent implements OnInit {
         }
 
         this.loadImage();
-
+      console.log(this.album);
     }
 
     getArtistNames(): string {

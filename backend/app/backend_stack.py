@@ -538,6 +538,7 @@ class BackendStack(Stack):
             code=_lambda.Code.from_asset(AppConfig.EDIT_ALBUM_LAMBDA),
             timeout=Duration.seconds(10),
             environment={
+                "BUCKET": AppConfig.CONTENT_BUCKET_NAME,
                 "ALBUMS_TABLE": AppConfig.ALBUMS_TABLE_NAME,
                 "ALBUMS_TABLE_GSI_ID": AppConfig.ALBUMS_TABLE_GSI_ID,
                 "ARTISTS_TABLE": AppConfig.ARTISTS_TABLE_NAME,
@@ -830,6 +831,7 @@ class BackendStack(Stack):
         self.albums_table.grant_read_write_data(self.delete_album_lambda)
         self.genre_contents_table.grant_read_write_data(self.delete_album_lambda)
         self.content_bucket.grant_read_write(self.delete_album_lambda)
+        self.content_bucket.grant_read_write(self.edit_album_lambda)
         self.albums_table.grant_read_write_data(self.edit_album_lambda)
         self.genre_contents_table.grant_read_write_data(self.edit_album_lambda)
         self.artists_table.grant_read_data(self.edit_album_lambda)

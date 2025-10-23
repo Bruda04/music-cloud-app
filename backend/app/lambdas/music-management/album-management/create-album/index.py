@@ -21,6 +21,14 @@ sns_client = boto3.client('sns', region_name=os.environ["REGION"])
 
 def lambda_handler(event, context):
     try:
+        claims = event.get("requestContext", {}).get("authorizer", {}).get("claims", {})
+        if not claims.get("cognito:groups") or "Admins" not in claims.get("cognito:groups"):
+            return {
+                'statusCode': 403,
+                'headers': _cors_headers(),
+                'body': json.dumps({'message': 'Forbidden: Admins only'})
+            }
+
         body = json.loads(event.get('body', '{}'))
 
         required_fields = ['title', 'artistId', 'genres', 'tracks', 'details']
@@ -41,19 +49,8 @@ def lambda_handler(event, context):
             }
 
         #Image handling
-        image_bytes = base64.b64decode(body['imageFile'])
         timestamp = int(datetime.utcnow().timestamp())
         safe_title = body['title'].replace(' ', '_')
-
-        # Detect image type
-        image_type = imghdr.what(None, h=image_bytes)
-        if image_type not in ['jpeg', 'png']:
-            return {
-                'statusCode': 400,
-                'headers': _cors_headers(),
-                'body': json.dumps({'message': 'Only JPG and PNG images are supported.'})
-            }
-
         # Use jpg instead of jpeg for filename
         image_key = f"{timestamp}-{safe_title}.png"
 

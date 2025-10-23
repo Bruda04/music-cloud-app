@@ -8,8 +8,8 @@
     <input type="text" [(ngModel)]="album.title" name="title" placeholder="Album title" />
 
     <!-- Artists -->
-    <div class="form-group">
-      <label>Artist *</label>
+    <div *ngIf="!this.editMode" class="form-group">
+      <label >Artist *</label>
       <select [(ngModel)]="album.artistId" name="artistSelect">
         <option value="">-- Select artist --</option>
         <option *ngFor="let a of artists" [value]="a.artistId">{{ a.name }}</option>

@@ -52,4 +52,9 @@ export class CacheService {
   isCached(trackId: string): boolean {
     return !!localStorage.getItem(this.STORAGE_PREFIX + trackId);
   }
+
+  clearCache() {
+    const keys = this.getAllKeys();
+    keys.forEach(k => localStorage.removeItem(k));
+  }
 }

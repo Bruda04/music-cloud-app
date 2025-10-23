@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 import imghdr
 
+from boto3.dynamodb.conditions import Key
 
 s3 = boto3.client('s3')
 BUCKET = os.environ['BUCKET']
@@ -19,6 +20,14 @@ artists_table = dynamodb.Table(os.environ['ARTISTS_TABLE'])
 
 def lambda_handler(event, context):
     try:
+        claims = event.get("requestContext", {}).get("authorizer", {}).get("claims", {})
+        if not claims.get("cognito:groups") or "Admins" not in claims.get("cognito:groups"):
+            return {
+                'statusCode': 403,
+                'headers': _cors_headers(),
+                'body': json.dumps({'message': 'Forbidden: Admins only'})
+            }
+
         body = json.loads(event.get('body', '{}'))
 
         required_fields = ['title', 'artistId', 'genres', 'tracks', 'details']
@@ -32,7 +41,20 @@ def lambda_handler(event, context):
             return _error(400, 'Missing albumId for update.')
 
         # Check existing album
-        existing_album = albums_table.get_item(Key={'albumId': album_id}).get('Item')
+        gsi_response = albums_table.query(
+            IndexName=albums_table_gsi_id,
+            KeyConditionExpression=Key('albumId').eq(album_id)
+        )
+
+        if not gsi_response['Items']:
+            return {
+                "statusCode": 404,
+                "body": json.dumps({"message": "Album not found"})
+            }
+
+        artist_id = gsi_response['Items'][0]['artistId']
+        existing_album = albums_table.get_item(Key={'albumId': album_id, 'artistId': artist_id}).get('Item')
+
         if not existing_album:
             return _error(404, 'Album not found.')
 
@@ -44,63 +66,61 @@ def lambda_handler(event, context):
         # -----------------------------
         # Handle image replacement
         # -----------------------------
-        image_key = existing_album.get('imageFile', '')
-        if body.get('imageFile'):
-            image_bytes = base64.b64decode(body['imageFile'])
-            image_type = imghdr.what(None, h=image_bytes)
-            if image_type not in ['jpeg', 'png']:
-                return _error(400, 'Only JPG and PNG images are supported.')
-            ext = 'jpg' if image_type == 'jpeg' else 'png'
-            safe_title = body['title'].replace(' ', '_')
-            timestamp = int(datetime.utcnow().timestamp())
-            new_image_key = f"{timestamp}-{safe_title}.{ext}"
+        safe_title = body['title'].replace(' ', '_')
+        timestamp = int(datetime.utcnow().timestamp())
+        new_image_key = f"{timestamp}-{safe_title}.png"
 
-            s3.put_object(
-                Bucket=BUCKET,
-                Key=f"images/albums/{new_image_key}",
-                Body=image_bytes,
-                ContentType=f'image/{ext}'
-            )
-            image_key = new_image_key  # replace
+        image_key = existing_album.get('imageFile', new_image_key)
 
-        # -----------------------------
-        # Handle tracks
-        # -----------------------------
+        image_upload_url = s3.generate_presigned_url(
+            'put_object',
+            Params={'Bucket': BUCKET, 'Key': f'images/albums/{image_key}', 'ContentType': 'image/png'},
+            ExpiresIn=3600
+        )
+
         updated_tracks = []
+        override_track_urls = {}
+        new_track_urls = []
+
+        existing_tracks_map = {t['songId']: t for t in existing_album.get('tracks', [])}
+
+        incoming_song_ids = set()
         for idx, track in enumerate(body['tracks']):
             title = track.get('title', '').strip()
             if not title:
                 return _error(400, f'Missing title for track at index {idx}')
 
-            # If a new file is provided, upload and replace fileKey
-            file_key = None
-            if track.get('file'):
-                file_bytes = base64.b64decode(track['file'])
-                timestamp = int(datetime.utcnow().timestamp())
-                safe_title = title.replace(' ', '_')
-                key = f"{timestamp}-{safe_title}.mp3"
-                s3.put_object(
-                    Bucket=BUCKET,
-                    Key=f"albums/{key}",
-                    Body=file_bytes,
-                    ContentType='audio/mpeg'
-                )
-                file_key = key
-            else:
-                # try to reuse from existing album if same title
-                existing_track = next(
-                    (t for t in existing_album.get('tracks', []) if t.get('title') == title),
-                    None
-                )
-                file_key = existing_track['fileKey'] if existing_track else None
+            existing_track = None
+            if track.get('songId'):
+                existing_track = existing_tracks_map.get(track['songId'])
 
-            # Keep existing IDs and rating info if available
+            # Kreiraj novi songId ako ne postoji
             song_id = existing_track.get('songId') if existing_track else str(uuid.uuid4())
+            incoming_song_ids.add(song_id)
+
+            # File key
+            timestamp = int(datetime.utcnow().timestamp())
+            safe_title = title.replace(' ', '_')
+            file_key = existing_track.get('fileKey') if existing_track else f"{timestamp}-{safe_title}.mp3"
+
+            # Presigned PUT URL
+            presigned_url = s3.generate_presigned_url(
+                'put_object',
+                Params={'Bucket': BUCKET, 'Key': f"albums/{file_key}"},
+                ExpiresIn=3600
+            )
+
+            # Ako postoji existing_track -> override
+            if existing_track:
+                override_track_urls[song_id] = presigned_url
+            else:
+                new_track_urls.append(presigned_url)
+
+            # Keep existing rating info i artist info
             rating_sum = existing_track.get('ratingSum', 0) if existing_track else 0
             rating_count = existing_track.get('ratingCount', 0) if existing_track else 0
-            artist_id = existing_track.get('artistId') if existing_track else body['artistId']
 
-            updated_tracks.append({
+            updated_track = {
                 'songId': song_id,
                 'title': title,
                 'fileKey': file_key,
@@ -110,7 +130,16 @@ def lambda_handler(event, context):
                 'ratingSum': rating_sum,
                 'ratingCount': rating_count,
                 'genres': [g.strip().lower() for g in body['genres'] if g.strip()]
-            })
+            }
+
+            updated_tracks.append(updated_track)
+
+        # --- Obrisi trackove koji su uklonjeni ---
+        for song_id, existing_track in existing_tracks_map.items():
+            if song_id not in incoming_song_ids:
+                # Briše se fajl sa S3
+                if existing_track.get('fileKey'):
+                    s3.delete_object(Bucket=BUCKET, Key=f"albums/{existing_track['fileKey']}")
 
         # -----------------------------
         # Update genre info
@@ -174,7 +203,10 @@ def lambda_handler(event, context):
             'headers': _cors_headers(),
             'body': json.dumps({
                 'message': 'Album updated successfully',
-                'albumId': album_id
+                'albumId': album_id,
+                'imageUploadUrl': image_upload_url,
+                'trackUploadUrls': new_track_urls,
+                'trackOverrideUrls' : override_track_urls
             })
         }
 

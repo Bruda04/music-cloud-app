@@ -19,7 +19,6 @@ export interface CreateAlbumDTO {
   artistId: string;           // main artist ID
   genres: string[];
   details: string;
-  imageFile?: string;
   tracks?: CreateTrackDTO[];
   other?: Record<string, string>;
   albumId?: string;
@@ -28,6 +27,7 @@ export interface CreateAlbumDTO {
 
 export interface AlbumTrack {
   title: string;
+  songId?: string;
   file?: File;
   fileBase64?: string;
   dragging?: boolean;
@@ -48,8 +48,9 @@ export interface TrackDTO {
 }
 
 export interface CreateTrackDTO {
+  songId?: string;
   title: string;
-  file?: string;
+  file?: File;
   artistId?: string;
   otherArtistIds?: string[];
   genres?: string[];
@@ -61,5 +62,8 @@ export interface CreateTrackDTO {
 export interface CreateAlbumResponse{
     message: string,
     albumId: string,
+    trackUploadUrls: string[],
+    trackOverrideUrls: Record<string, string>,
+    imageUploadUrl: string,
     tracks: TrackDTO[]
 }
