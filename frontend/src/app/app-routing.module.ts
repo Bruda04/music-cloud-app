@@ -1,10 +1,37 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { HomepageComponent } from './homepage/homepage.component';
+import { CreateArtistComponent } from './artists/create-artist/create-artist.component';
+import { CreateSongComponent } from './songs/create-song/create-song.component';
+import { CreateAlbumComponent } from './albums/create-album/create-album.component';
+import { AllArtistsPageComponent } from './artists/all-artists/all-artists-page/all-artists.component';
+import { AllAlbumsPageComponent } from './albums/all-albums/all-albums-page/all-albums.component';
+import { AlbumDetailsComponent } from './albums/details/details.component';
+import { AdminGuard } from './guards/admin.guard';
+import {AllSongsComponent} from './songs/all-songs/all-songs.component';
+import {AuthUserGuard} from './guards/authUser.guard';
+import {DiscoveryComponent} from './discovery/discovery.component';
+import {ArtistPageComponent} from './artists/all-artists/artist-page/artist-page.component';
+import {SubscriptionsComponent} from './subscriptions/subscriptions.component';
+import {RegularUserGuard} from './guards/regularUser.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
-  { path: 'home', component:HomepageComponent },
+  { path: 'home', component: HomepageComponent },
+  { path: 'artists', component: AllArtistsPageComponent, canActivate: [AuthUserGuard]},
+  { path: 'artists/create', component: CreateArtistComponent, canActivate: [AdminGuard]},
+  { path: 'artists/edit/:id', component: CreateArtistComponent, canActivate: [AdminGuard]},
+  { path: 'albums', component: AllAlbumsPageComponent, canActivate: [AuthUserGuard]},
+  { path: 'albums/details/:id', component: AlbumDetailsComponent, canActivate: [AuthUserGuard] },
+  { path: 'artists/details/:id', component: ArtistPageComponent, canActivate: [AuthUserGuard] },
+
+  { path: 'albums/create', component: CreateAlbumComponent, canActivate: [AdminGuard]},
+  { path: 'albums/edit/:id', component: CreateAlbumComponent, canActivate: [AdminGuard]},
+  { path: 'songs', component: AllSongsComponent, canActivate: [AuthUserGuard]},
+  { path: 'songs/create', component: CreateSongComponent, canActivate: [AdminGuard]},
+  { path: 'songs/edit/:id', component: CreateSongComponent, canActivate: [AdminGuard] },
+  { path: 'discovery', component: DiscoveryComponent, canActivate: [RegularUserGuard]},
+  { path: 'subscriptions', component: SubscriptionsComponent, canActivate: [RegularUserGuard]},
   { path: '**', redirectTo: 'home' },
 ];
 

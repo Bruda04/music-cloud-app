@@ -1,0 +1,98 @@
+.album-details {
+  padding: 1rem 2rem;
+}
+
+.genres span {
+  background: #333;
+  color: #fff;
+  border-radius: 1rem;
+  padding: 0.2rem 0.6rem;
+  margin: 0 0.3rem;
+  font-size: 12px;
+}
+
+
+.track-list {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.track-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #222;
+  border-radius: 0.6rem;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.track-item:hover {
+  background-color: #333;
+}
+
+.track-item.playing {
+  background-color: #2d6a4f;
+}
+
+.play-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+
+.album-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.album-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.album-photo {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-left: 1rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+}
+
+.track-actions {
+  display: flex;
+  gap: 0.4rem; /* mali razmak između dugmadi */
+}
+
+.track-actions button {
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.track-actions button:hover {
+  transform: translateY(-1px);
+}
+
+.track-actions button:first-child {
+  background-color: #50C878; /* Rate dugme */
+  color: #1e1e1e;
+}
+
+.track-actions button:last-child {
+  background-color: #6c757d; /* Download dugme */
+  color: #fff;
+}

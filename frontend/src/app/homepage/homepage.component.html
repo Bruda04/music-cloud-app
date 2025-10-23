@@ -1,2 +1,5 @@
-<button *ngIf="!isAuthenticated" (click)="login()">Login</button>
-<button *ngIf="isAuthenticated" (click)="logout()">Logout</button>
+<h1 *ngIf="authService.loggedInUser?.role==UserRole.Admin">Welcome Admin</h1>
+<h1 *ngIf="authService.loggedInUser?.role==UserRole.AuthUser">Welcome User</h1>
+<h1 *ngIf="!authService.loggedInUser">Welcome Guest</h1>
+
+<app-feed *ngIf="authService.loggedInUser?.role==UserRole.AuthUser"/>

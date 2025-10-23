@@ -1,0 +1,14 @@
+<h1 style="
+    padding: 16px;
+    margin: 0;
+    text-align: center;
+    color: #50C878
+">All Albums</h1>
+<div class="all-items-grid">
+  <app-album-card *ngFor="let album of albums" [album]="album" (deleted)="onAlbumDeleted($event)"></app-album-card>
+</div>
+<div class="pagination" style="padding: 20px">
+  <button (click)="prevPage()" [disabled]="page===1">Previous</button>
+  <span>Page {{ page }}</span>
+  <button (click)="nextPage()" [disabled]="!lastKey">Next</button>
+</div>

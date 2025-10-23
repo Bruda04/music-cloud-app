@@ -1,1 +1,164 @@
-/* You can add global styles to this file, and also import other style files */
+@use "sass:color";
+// variables
+$body-bg: #121212;
+$form-bg: #1e1e1e;
+$text-primary: #EAEAEA;
+$text-secondary: #B3B3B3;
+$accent-color: #50C878;
+$error-color: #ff4b4b;
+$input-bg: #2a2a2a;
+$input-border: #333;
+
+// body
+body {
+  background-color: $body-bg;
+  color: $text-primary;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+}
+
+// form container
+.form-container {
+  max-width: 650px;
+  margin: 3rem auto;
+  padding: 2rem;
+  background-color: $form-bg;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  color: $text-primary;
+
+  h2 {
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: $accent-color;
+    font-size: 1.8rem;
+  }
+}
+
+// form elements
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: $text-secondary;
+}
+
+input, textarea {
+  padding: 0.6rem 0.8rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid $input-border;
+  background-color: $input-bg;
+  color: $text-primary;
+  transition: border 0.3s, box-shadow 0.3s;
+
+  &:focus {
+    border-color: $accent-color;
+    box-shadow: 0 0 6px rgba(29, 185, 84, 0.6);
+    outline: none;
+  }
+}
+
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+// buttons
+button {
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background-color: $accent-color;
+  color: $form-bg;
+  font-weight: 600;
+  transition: background-color 0.3s, transform 0.1s;
+
+  &:hover:not(:disabled) {
+    background-color: color.scale($accent-color, $lightness: -10%);
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// errors
+.error {
+  color: $error-color;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-top: -0.5rem;
+}
+
+// array groups
+.array-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  .array-tokens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 3px 0;
+  }
+
+  .array-item {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    border: 1px solid $accent-color;
+    border-radius: 15px;
+    padding: 5px 10px;
+    background-color: $input-bg;
+    font-size: 0.95rem;
+    color: $text-primary;
+    transition: background-color 0.2s, transform 0.1s;
+
+    &:hover {
+      background-color: color.scale($input-bg, $lightness: 5%);
+      transform: translateY(-1px);
+    }
+
+    span {
+      user-select: none;
+    }
+
+    button {
+      background-color: $error-color;
+      color: white;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      transition: background-color 0.2s;
+      padding: 1%;
+
+      &:hover {
+        background-color: color.scale($error-color, $lightness: -10%);
+      }
+    }
+  }
+}
+
+// spacing for add buttons next to inputs
+input[type="text"] + button,
+input[type="text"] + input + button {
+  margin-top: 0.3rem;
+  align-self: flex-start;
+}

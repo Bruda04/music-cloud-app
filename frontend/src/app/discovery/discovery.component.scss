@@ -1,0 +1,152 @@
+/* Component-local styles — safe to include alongside your shared card.css */
+
+/* Title */
+.section-title {
+  color: #50C878;
+  text-align: center;
+  margin-top: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Horizontal slider wrapper (uses your existing horizontal-list styles) */
+.horizontal-list-wrapper,
+.albums-section {
+  max-width: 1400px;
+  width: 80vw;
+  margin: 0 auto;
+  position: relative; /* for arrows positioning */
+}
+
+/* The list itself — reuses your global class but we ensure spacing */
+.horizontal-list {
+  display: flex;
+  gap: 16px;
+  scroll-behavior: smooth; /* smooth scrolling */
+  overflow-x: auto;
+  padding: 12px 8px;
+  scrollbar-width: none;
+}
+
+/* hide scrollbars in WebKit (keeps global behavior) */
+.horizontal-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* A small genre card variant (still uses .card base styles) */
+.genre-card {
+  min-width: 180px;
+  max-width: 220px;
+  padding: 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+/* Subscribe button inside genre card (inline-local appearance) */
+.subscribe-btn {
+  margin-top: 8px;
+  background-color: #50C878;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #1e1e1e;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Prevent the subscribe button from triggering card hover as clickable area */
+.subscribe-btn:focus {
+  outline: 2px solid rgba(80,200,120,0.25);
+}
+
+/* Scroll dots directly under slider */
+.scroll-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px; /* space below slider */
+  pointer-events: none;
+  position: static; /* flow under the list */
+}
+
+.scroll-dots span {
+  width: 8px;
+  height: 8px;
+  background: #555;
+  border-radius: 50%;
+  display: block;
+  transition: background 0.3s;
+}
+
+.scroll-dots span.active {
+  background: #50C878;
+}
+
+/* Albums grid uses your existing .all-items-grid — small tweaks here */
+.albums-section {
+  max-width: 1100px;
+  margin: 1rem auto 2rem;
+}
+
+.all-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(25rem, 1fr));
+  gap: 16px;
+}
+
+/* Ensure album photo fits visually */
+.album-photo {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-left: 16px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* Card text alignment for album cards */
+.card-text h3 {
+  margin: 0 0 6px 0;
+  color: #50C878;
+  font-size: 1.05rem;
+}
+
+/* Scroll buttons (arrows) aligned with slider */
+.scroll-btn {
+  position: absolute;
+  top: 40%; /* optional: adjust if you want exact vertical alignment */
+  background: rgba(80, 200, 120, 0.8);
+  color: #1e1e1e;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background 0.2s;
+}
+
+
+
+
+.scroll-btn:hover {
+  background: #50C878;
+  transition: none;
+}
+
+.scroll-btn.left {
+  left: -30px; /* flush to wrapper */
+}
+
+.scroll-btn.right {
+  right: -50px;
+}

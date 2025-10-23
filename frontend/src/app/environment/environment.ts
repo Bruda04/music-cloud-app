@@ -1,9 +1,10 @@
 export const environment = {
-  production: false,
-  cognito: {
-    userPoolId: 'eu-central-1_kSX5IZ7TI' ,
-    clientId: '1ros1jfnb3dpidu8v0n8g6ndmg',
-    region: 'eu-central-1'
+  production: true,
+  oidc: {
+    authority: 'https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_Nd7q6b57l',
+    redirectUrl: "https://d33wfvzpdaqwtq.cloudfront.net",
+    clientId: '28en3jovhjb4pbh2rnmkd5573s',
+    logoutUrl: 'https://cloudmusicapp.auth.eu-central-1.amazoncognito.com/logout?client_id=28en3jovhjb4pbh2rnmkd5573s&logout_uri=https://d33wfvzpdaqwtq.cloudfront.net',
   },
-  apiUrl: 'https://dhox6eq69e.execute-api.eu-central-1.amazonaws.com/dev'
+  apiUrl: 'https://7wig1ue7la.execute-api.eu-central-1.amazonaws.com/dev'
 };

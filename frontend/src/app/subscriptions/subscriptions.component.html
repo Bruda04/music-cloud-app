@@ -1,0 +1,45 @@
+<div class="subscriptions-page">
+  <h1 class="main-title">My Subscriptions</h1>
+  <div *ngIf="(subscriptions?.genres?.length != 0 || subscriptions?.artists?.length != 0) && this.subscriptions">
+    <div *ngIf="subscriptions?.genres?.length != 0">
+      <h2 class="section-title">Genres</h2>
+      <div class="horizontal-list-wrapper">
+        <button class="scroll-btn left" (click)="scrollGenres(-1)">‹</button>
+
+        <div class="horizontal-list" #genreList>
+          <div class="genre-card card" *ngFor="let genre of subscriptions?.genres">
+            <h3>{{ genre }}</h3>
+            <button class="unsubscribe-btn" (click)="unsubscribeFromGenre(genre, $event)">
+              Unsubscribe
+            </button>
+          </div>
+        </div>
+
+        <button class="scroll-btn right" (click)="scrollGenres(1)">›</button>
+      </div>
+    </div>
+
+    <div *ngIf="subscriptions?.artists?.length != 0">
+      <h2 class="section-title">Artists</h2>
+      <div class="all-items-grid">
+        <div class="artist-card card" *ngFor="let artist of subscriptions?.artists">
+          <h3>{{ artist.name }}</h3>
+          <button class="unsubscribe-btn" (click)="unsubscribeFromArtist(artist)">
+            Unsubscribe
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="subscriptions?.genres?.length === 0 && subscriptions?.artists?.length === 0">
+    <h2 class="unavailable-title">You have no subscriptions yet.</h2>
+
+  </div>
+
+<app-dialog
+  *ngIf="showDialog"
+  [type]="dialogType"
+  [title]="dialogTitle"
+  [message]="dialogMessage"
+  (closed)="onDialogClosed($event)">
+</app-dialog>

@@ -1,0 +1,21 @@
+<h1 style="
+    padding: 16px;
+    width: 80%;
+    margin: 0 auto;
+    color: #50C878
+">All Songs</h1>
+<div class="horizontal-list-wrapper">
+  <div class="song-grid">
+    <app-song-card
+      *ngFor="let song of songs"
+      [song]="song"
+      (deleted)="onSongDeleted($event)">
+    </app-song-card>
+  </div>
+
+  <div class="pagination" style="padding: 20px">
+    <button (click)="prevPage()" [disabled]="page===1">Previous</button>
+    <span>Page {{ page }}</span>
+    <button (click)="nextPage()" [disabled]="!lastKey">Next</button>
+  </div>
+</div>

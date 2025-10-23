@@ -1,0 +1,60 @@
+<div class="song-card">
+
+  <div class="song-top" style="display: flex; gap: 1rem; align-items: stretch;">
+    <div class="song-info" style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
+      <h2>{{ song.title }}</h2>
+      <p style="margin-top: 0">Artists: {{song.artist?.name}}</p>
+      <p style="margin-top: 0">Other artists:
+        <span *ngFor="let a of song.otherArtists; let last = last">
+          {{ a.name }}<span *ngIf="!last">, </span>
+        </span>
+      </p>
+      <div class="genres">
+        <span *ngFor="let genre of song.genres">{{ genre }}</span>
+      </div>
+    </div>
+
+    <img [src]="photoPath" alt="Song photo" class="song-photo" />
+  </div>
+
+  <div class="actions">
+    <button (click)="playSong()">
+      {{ isPlaying ? '⏸Pause' : '▶ Play' }}
+    </button>
+    <button *ngIf="authService.loggedInUser?.role==UserRole.Admin" (click)="goToEdit()">✎ Edit</button>
+    <button *ngIf="authService.loggedInUser?.role==UserRole.Admin" (click)="deleteSong()">🗑 Delete</button>
+    <button *ngIf="authService.loggedInUser?.role==UserRole.AuthUser" (click)="rateSong()">★ Rate</button>
+    <button *ngIf="authService.loggedInUser?.role==UserRole.AuthUser" (click)="downloadSong()">⬇ Download</button>
+    <button *ngIf="authService.loggedInUser" (click)="lyrics()">Lyrics</button>
+  </div>
+
+  <div class="other-info">
+    <ng-container *ngIf="song.ratingCount && song.ratingSum && song.ratingCount > 0">
+      — <span class="rating">
+        ★ {{ (song.ratingSum / song.ratingCount) | number:'1.1-1' }}
+      </span>
+      <span class="rating-count">({{ song.ratingCount }})</span>
+    </ng-container>
+    <ng-container *ngIf="!song.ratingCount">
+      — <span class="rating">No ratings yet</span>
+    </ng-container>
+    
+    <ng-container *ngFor="let key of (song?.other | keyvalue)">
+      <div *ngIf="key.key !== 'lyrics'">
+        <strong>{{ key.key }}:</strong>&nbsp;
+        <span>{{ key.value }}</span>
+      </div>
+    </ng-container>
+
+  </div>
+
+</div>
+
+<app-dialog
+  *ngIf="showDialog"
+  [type]="dialogType"
+  [title]="dialogTitle"
+  [message]="dialogMessage"
+  (rated)="onSongRated($event)"
+  (closed)="onDialogClosed($event)">
+</app-dialog>

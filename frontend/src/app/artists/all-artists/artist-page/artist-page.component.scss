@@ -1,0 +1,75 @@
+.artist-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+
+  .artist-name {
+    color: #50C878;
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .artist-bio {
+    text-align: center;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+
+  .genres {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+
+    .genre-chip {
+      background: #50C878;
+      color: #1e1e1e;
+      border-radius: 16px;
+      padding: 4px 12px;
+      font-size: 0.85rem;
+    }
+  }
+
+  .section-title {
+    color: #50C878;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    text-align: center;
+  }
+
+  .songs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+    gap: 16px;
+  }
+
+  .song-card {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+
+    h3 {
+      margin: 0 0 4px 0;
+      color: #50C878;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .duration {
+      font-size: 0.8rem;
+      color: #555;
+    }
+
+    &:hover {
+      background-color: rgba(80, 200, 120, 0.1);
+      border-radius: 8px;
+    }
+  }
+}

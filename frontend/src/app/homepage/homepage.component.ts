@@ -1,37 +1,26 @@
-import { Component, inject, signal } from '@angular/core';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { Artist } from '../artists/model/artist.model';
+import {NgIf} from '@angular/common';
+import {AuthService} from '../auth/auth.service';
+import {UserRole} from '../auth/model/user.model';
+import {FeedComponent} from '../feed/feed.component';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule],
   templateUrl: './homepage.component.html',
-  styleUrls: []
+  styleUrls: ['./homepage.component.css'],
+  standalone: true,
+  imports: [NgIf, FeedComponent]
 })
-export class HomepageComponent {
-  protected readonly title = signal('frontend');
-  
-  private readonly oidcSecurityService = inject(OidcSecurityService);
-
-  configuration$ = this.oidcSecurityService.getConfiguration();
-  userData$ = this.oidcSecurityService.userData$;
-
-  isAuthenticated = false;
+export class HomepageComponent implements OnInit{
+  artists: Artist[]=[]
+  constructor(protected authService: AuthService,
+  ){}
 
   ngOnInit(): void {
-    this.oidcSecurityService.isAuthenticated$.subscribe(({ isAuthenticated }) => {
-      this.isAuthenticated = isAuthenticated;
-      console.warn('authenticated: ', isAuthenticated);
-    });
   }
 
-  login(): void {
-    this.oidcSecurityService.authorize();
-  }
 
-  logout(): void {
-    this.oidcSecurityService.logoff().subscribe(result => {
-      console.log('logged out', result);
-    });
-  }
+
+  protected readonly UserRole = UserRole;
 }

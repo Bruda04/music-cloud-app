@@ -1,0 +1,147 @@
+<div class="form-container">
+  <h2>{{ editMode ? 'Edit Album' : 'Create Album' }}</h2>
+
+
+
+  <form (ngSubmit)="submit()">
+    <label>Album Title *</label>
+    <input type="text" [(ngModel)]="album.title" name="title" placeholder="Album title" />
+
+    <!-- Artists -->
+    <div *ngIf="!this.editMode" class="form-group">
+      <label >Artist *</label>
+      <select [(ngModel)]="album.artistId" name="artistSelect">
+        <option value="">-- Select artist --</option>
+        <option *ngFor="let a of artists" [value]="a.artistId">{{ a.name }}</option>
+      </select>
+    </div>
+
+
+    <!-- Genres -->
+    <div class="array-group">
+      <label>Genres *</label>
+      <div class="array-tokens">
+        <div class="array-item" *ngFor="let g of album.genres; let i = index">
+          <span>{{ g }}</span>
+          <button type="button" (click)="removeGenre(i)">x</button>
+        </div>
+      </div>
+      <select [(ngModel)]="genreInput" name="genreSelect">
+        <option value="">-- Select genre --</option>
+        <option *ngFor="let g of genres" [value]="g.genreName">{{ g.genreName }}</option>
+      </select>
+      <span class="or">or</span>
+      <input type="text" [(ngModel)]="genreInputManual" name="genreInputManual" placeholder="Enter new genre" />
+      <button type="button" (click)="addGenre()">Add Genre</button>
+    </div>
+
+    <!-- Other -->
+    <div class="array-group">
+      <label>Other Info (optional)</label>
+      <div class="array-tokens">
+        <div class="array-item" *ngFor="let entry of album.other | keyvalue">
+          <span>{{ entry.key }} : {{ entry.value }}</span>
+          <button type="button" (click)="removeOther(entry.key)">x</button>
+        </div>
+      </div>
+      <input type="text" [(ngModel)]="otherKey" name="otherKey" placeholder="Key" />
+      <input type="text" [(ngModel)]="otherValue" name="otherValue" placeholder="Value" />
+      <button type="button" (click)="addOther()">Add Other</button>
+    </div>
+
+
+
+    <!-- Details -->
+    <div class="form-group">
+      <label>Details *</label>
+      <textarea [(ngModel)]="album.details" name="details" placeholder="Enter album details" style="width: 95% !important;"></textarea>
+    </div>
+
+    <!-- Album Image -->
+    <div class="form-group">
+      <label>Album Cover *</label>
+      <div class="file-drop-zone"
+           [class.dragging]="imageDragging"
+           (drop)="onImageDropped($event)"
+           (dragover)="onImageDragOver($event)"
+           (dragleave)="onImageDragLeave($event)"
+           (click)="imageInput.click()">
+        <p *ngIf="!this.uploadImageFile">Click or drag & drop an image here</p>
+        <p *ngIf="this.uploadImageFile"><strong>{{ imageFileName }}</strong> selected</p>
+        <input type="file" #imageInput (change)="onImageSelected($event)" accept="image/*" hidden />
+      </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+    <!-- Tracks -->
+    <div class="array-group">
+      <label>Tracks *</label>
+
+
+      <div *ngFor="let t of tracks; let i = index" class="track-item">
+        <input type="text" [(ngModel)]="t.title" name="trackTitle{{i}}" placeholder="Track title" />
+        <div class="file-drop-zone"
+            [class.dragging]="t.dragging"
+            (drop)="onFileDropped($event, t)"
+            (dragover)="onDragOver($event, t)"
+            (dragleave)="onDragLeave($event, t)"
+            (click)="fileInputMap.get(t)?.click()">
+        <p *ngIf="!t.file">Click or drag & drop audio file here</p>
+          <p *ngIf="editMode">*Only drag audio file if you want to replace old one</p>
+
+          <p *ngIf="t.file"><strong>{{ t.file.name }}</strong> selected</p>
+        <input type="file" #fileInput (change)="onFileSelected($event, t)" />
+        </div>
+
+
+        <!-- Other Artists Section -->
+        <div class="array-group">
+          <label>Other Artists (optional)</label>
+          <div class="array-tokens">
+            <div class="array-item" *ngFor="let id of t.otherArtistIds">
+              <span>{{ getArtistNameById(id) }}</span>
+              <button type="button" (click)="removeOtherArtist(t, id)">x</button>
+            </div>
+          </div>
+          <select [(ngModel)]="selectedOtherArtist[i]" name="otherArtistSelect{{i}}">
+            <option value="">-- Select artist --</option>
+            <ng-container *ngFor="let a of artists">
+              <option *ngIf="a.artistId !== album.artistId" [value]="a.artistId">
+                {{ a.name }}
+              </option>
+            </ng-container>
+
+          </select>
+          <button type="button" style="padding: 0.65rem 1.3rem; align-self: flex-start;" (click)="addOtherArtist(t, selectedOtherArtist[i], i)">Add Artist</button>
+        </div>
+
+        <button type="button" (click)="removeTrack(i)" *ngIf="tracks.length > 1">Remove Track</button>
+      </div>
+
+
+
+      <button type="button" (click)="addTrack()" style="background: transparent !important; border: 1px solid #50C878; color: #50C878">Add Track</button>
+    </div>
+
+    <button type="submit" *ngIf="!this.editMode" [disabled]="loading">Create Album</button>
+    <button type="submit"  *ngIf="this.editMode" [disabled]="loading">Edit Album</button>
+
+    <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+  </form>
+</div>
+
+<app-dialog
+  *ngIf="showDialog"
+  [type]="dialogType"
+  [title]="dialogTitle"
+  [message]="dialogMessage"
+  (closed)="closeDialog()">
+</app-dialog>
