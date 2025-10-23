@@ -29,8 +29,8 @@ export class ArtistService {
     return this.httpClient.delete<{"message":String}>(`${environment.apiUrl}/artists/${artistId}`);
   }
 
-  getAllRegular(): Observable<Artist[]> {
-    return this.httpClient.get<Artist[]>(`${environment.apiUrl}/artists`);
+  getAllRegular(): Observable<{ artists: Artist[] }> {
+    return this.httpClient.get<{ artists: Artist[] }>(`${environment.apiUrl}/artists`);
   }
 
   getAll(limit: number = 6, lastKey?: string): Observable<PaginatedArtists> {

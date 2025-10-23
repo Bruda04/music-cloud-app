@@ -59,7 +59,7 @@ export class CreateSongComponent implements OnInit {
 
   ngOnInit() {
     this.artistService.getAllRegular().subscribe(artists => {
-      this.artists = artists;
+      this.artists = artists.artists;
     });
 
     this.genreService.getAll().subscribe(genres => {
